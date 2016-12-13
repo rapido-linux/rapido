@@ -69,9 +69,6 @@ echo "$file_path" \
 	> /sys/kernel/config/target/core/fileio_0/filer/wwn/vpd_unit_serial \
 	|| _fatal
 echo "1" > /sys/kernel/config/target/core/fileio_0/filer/enable || _fatal
-# needs to be done after enable, as target_configure_device() resets it
-echo "SUSE" > /sys/kernel/config/target/core/fileio_0/filer/wwn/vendor_id \
-	|| _fatal
 
 #### iblock backstore - only if started with a "vda" block device attached
 iblock_dev="/dev/vda"
@@ -84,9 +81,6 @@ if [ -b "$iblock_dev" ]; then
 	 > /sys/kernel/config/target/core/iblock_0/blocker/wwn/vpd_unit_serial \
 		|| _fatal
 	echo "1" > /sys/kernel/config/target/core/iblock_0/blocker/enable \
-		|| _fatal
-	echo "SUSE" \
-	       > /sys/kernel/config/target/core/iblock_0/blocker/wwn/vendor_id \
 		|| _fatal
 fi
 
@@ -112,8 +106,6 @@ echo "$dmdelay_dev" \
 	> /sys/kernel/config/target/core/iblock_1/delayer/wwn/vpd_unit_serial \
 	|| _fatal
 echo "1" > /sys/kernel/config/target/core/iblock_1/delayer/enable || _fatal
-echo "SUSE" > /sys/kernel/config/target/core/iblock_1/delayer/wwn/vendor_id \
-	|| _fatal
 
 mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN} || _fatal
 
