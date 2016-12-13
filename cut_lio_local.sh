@@ -24,7 +24,7 @@ dracut --no-compress  --kver "$KVER" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_iblock \
-		       target_core_file dm-delay" \
+		       target_core_file dm-delay loop" \
 	--no-hostonly --no-hostonly-cmdline \
 	--modules "bash base network ifcfg" \
 	--tmpdir "$RAPIDO_DIR/initrds/" \
