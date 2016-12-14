@@ -16,35 +16,48 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 set -x
 
-TUNCTL=$(which tunctl)
-if [ -z "$TUNCTL" ]; then
-    echo "Could not find tunctl...rerun as root or install the tunctl package"
-    exit 1
-fi
+TUNCTL=$(which tunctl) || _fail "tunctl missing"
+
+# cleanup on premature exit by executing whatever has been prepended to @unwind
+unwind=""
+trap "eval \$unwind" 0 1 2 3 15
 
 ip link add $BR_DEV type bridge || _fail "failed to add $BR_DEV"
+unwind="ip link delete $BR_DEV type bridge; ${unwind}"
 if [ -n "$BR_ADDR" ]; then
 	ip addr add $BR_ADDR dev $BR_DEV || exit 1
+	unwind="ip addr del $BR_ADDR dev $BR_DEV; ${unwind}"
 fi
 
 if [ -n "$BR_IF" ]; then
 	ip link set $BR_IF master $BR_DEV || exit 1
+	unwind="ip link set $BR_IF nomaster; ${unwind}"
 fi
 
 # setup tap interfaces for VMs
 $TUNCTL -u $TAP_USER -t $TAP_DEV0 || exit 1
+unwind="$TUNCTL -d $TAP_DEV0; ${unwind}"
 ip link set $TAP_DEV0 master $BR_DEV || exit 1
-
+unwind="ip link set $TAP_DEV0 nomaster; ${unwind}"
 
 $TUNCTL -u $TAP_USER -t $TAP_DEV1 || exit 1
+unwind="$TUNCTL -d $TAP_DEV1; ${unwind}"
 ip link set $TAP_DEV1 master $BR_DEV || exit 1
+unwind="ip link set $TAP_DEV1 nomaster; ${unwind}"
 
 ip link set dev $BR_DEV up || exit 1
+unwind="ip link set dev $BR_DEV down; ${unwind}"
 ip link set dev $TAP_DEV0 up || exit 1
+unwind="ip link set dev $TAP_DEV0 down; ${unwind}"
 ip link set dev $TAP_DEV1 up || exit 1
+unwind="ip link set dev $TAP_DEV1 down; ${unwind}"
 
 if [ -n "$BR_DHCP_SRV_RANGE" ]; then
 	dnsmasq --no-hosts --no-resolv \
 		--interface="$BR_DEV" \
 		--dhcp-range="$BR_DHCP_SRV_RANGE" || exit 1
+	unwind="kill $!; ${unwind}"
 fi
+
+# success! clear unwind
+unwind=""
