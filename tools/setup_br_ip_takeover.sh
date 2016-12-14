@@ -57,7 +57,6 @@ function _apply_addrs() {
 	done < $addrs_file
 }
 
-BRCTL=$(which brctl) || _fail "brctl missing"
 TUNCTL=$(which tunctl) || _fail "tunctl missing"
 [ -z "$BR_ADDR" ] || _fail "BR_ADDR setting incompatible with ip takeover"
 [ -n "$BR_DEV" ] || _fail "BR_DEV required for IP takeover"
@@ -71,8 +70,8 @@ BR_IF_DUMP_DIR=`mktemp --tmpdir -d ${BR_IF}_addr_dump.XXXXXXXXXX` || exit 1
 unwind="rmdir $BR_IF_DUMP_DIR"
 trap "eval \$unwind" 0 1 2 3 15
 
-$BRCTL addbr $BR_DEV || exit 1
-unwind="$BRCTL delbr $BR_DEV; ${unwind}"
+ip link add $BR_DEV type bridge || exit 1
+unwind="ip link delete $BR_DEV type bridge; ${unwind}"
 
 ip link set dev $BR_DEV down || exit 1
 
@@ -94,8 +93,8 @@ _apply_routes del "$BR_IF" "${BR_IF_DUMP_DIR}/routes" || exit 1
 _apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
 _apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
 
-$BRCTL addif $BR_DEV $BR_IF
-unwind="$BRCTL delif $BR_DEV $BR_IF; ${unwind}"
+ip link set $BR_IF master $BR_DEV || exit 1
+unwind="ip link set $BR_IF nomaster; ${unwind}"
 
 _apply_addrs add "$BR_DEV" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
 _apply_addrs add "$BR_DEV" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
@@ -108,15 +107,15 @@ _apply_routes add "$BR_DEV" "${BR_IF_DUMP_DIR}/routes" || exit 1
 # setup tap interfaces for VMs
 $TUNCTL -u $TAP_USER -t $TAP_DEV0 || exit 1
 unwind="$TUNCTL -d $TAP_DEV0; ${unwind}"
-$BRCTL addif $BR_DEV $TAP_DEV0 || exit 1
-unwind="$BRCTL delif $BR_DEV $TAP_DEV0; ${unwind}"
+ip link set $TAP_DEV0 master $BR_DEV || exit 1
+unwind="ip link set $TAP_DEV0 nomaster; ${unwind}"
 ip link set $TAP_DEV0 up
 unwind="ip link set $TAP_DEV0 down; ${unwind}"
 
 $TUNCTL -u $TAP_USER -t $TAP_DEV1 || exit 1
 unwind="$TUNCTL -d $TAP_DEV1; ${unwind}"
-$BRCTL addif $BR_DEV $TAP_DEV1 || exit 1
-unwind="$BRCTL delif $BR_DEV $TAP_DEV1; ${unwind}"
+ip link set $TAP_DEV1 master $BR_DEV || exit 1
+unwind="ip link set $TAP_DEV1 nomaster; ${unwind}"
 ip link set $TAP_DEV1 up
 unwind="ip link set $TAP_DEV1 down; ${unwind}"
 

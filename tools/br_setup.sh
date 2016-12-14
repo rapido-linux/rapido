@@ -16,33 +16,28 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 set -x
 
-BRCTL=$(which brctl)
-if [ -z "$BRCTL" ]; then
-    echo "Could not find brctl...rerun as root or install the bridge-tools package"
-    exit 1
-fi
-
 TUNCTL=$(which tunctl)
 if [ -z "$TUNCTL" ]; then
     echo "Could not find tunctl...rerun as root or install the tunctl package"
     exit 1
 fi
 
-$BRCTL addbr $BR_DEV || exit 1
+ip link add $BR_DEV type bridge || _fail "failed to add $BR_DEV"
 if [ -n "$BR_ADDR" ]; then
 	ip addr add $BR_ADDR dev $BR_DEV || exit 1
 fi
 
 if [ -n "$BR_IF" ]; then
-	$BRCTL addif $BR_DEV $BR_IF || exit 1
+	ip link set $BR_IF master $BR_DEV || exit 1
 fi
 
 # setup tap interfaces for VMs
 $TUNCTL -u $TAP_USER -t $TAP_DEV0 || exit 1
-$BRCTL addif $BR_DEV $TAP_DEV0 || exit 1
+ip link set $TAP_DEV0 master $BR_DEV || exit 1
+
 
 $TUNCTL -u $TAP_USER -t $TAP_DEV1 || exit 1
-$BRCTL addif $BR_DEV $TAP_DEV1 || exit 1
+ip link set $TAP_DEV1 master $BR_DEV || exit 1
 
 ip link set dev $BR_DEV up || exit 1
 ip link set dev $TAP_DEV0 up || exit 1
