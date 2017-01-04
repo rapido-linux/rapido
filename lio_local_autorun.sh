@@ -12,6 +12,8 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
+export_blockdevs="/dev/vda /dev/vdb"
+
 if [ ! -f /vm_autorun.env ]; then
 	echo "Error: autorun scripts must be run from within an initramfs VM"
 	exit 1
@@ -70,20 +72,6 @@ echo "$file_path" \
 	|| _fatal
 echo "1" > /sys/kernel/config/target/core/fileio_0/filer/enable || _fatal
 
-#### iblock backstore - only if started with a "vda" block device attached
-iblock_dev="/dev/vda"
-if [ -b "$iblock_dev" ]; then
-	mkdir -p /sys/kernel/config/target/core/iblock_0/blocker || _fatal
-	echo "udev_path=${iblock_dev}" \
-		> /sys/kernel/config/target/core/iblock_0/blocker/control \
-		|| _fatal
-	echo "$iblock_dev" \
-	 > /sys/kernel/config/target/core/iblock_0/blocker/wwn/vpd_unit_serial \
-		|| _fatal
-	echo "1" > /sys/kernel/config/target/core/iblock_0/blocker/enable \
-		|| _fatal
-fi
-
 #### iblock + dm-delay backstore
 dmdelay_path=/lun_dmdelay
 dmdelay_size_b=1073741824
@@ -99,13 +87,30 @@ echo "0 $dmdelay_size_blocks delay $dmdelay_loop_dev 0 $dmdelay_ms" \
 	| dmsetup create delayed || _fatal
 udevadm settle
 dmdelay_dev="/dev/dm-0"
-mkdir -p /sys/kernel/config/target/core/iblock_1/delayer || _fatal
+mkdir -p /sys/kernel/config/target/core/iblock_0/delayer || _fatal
 echo "udev_path=${dmdelay_dev}" \
-	> /sys/kernel/config/target/core/iblock_1/delayer/control || _fatal
+	> /sys/kernel/config/target/core/iblock_0/delayer/control || _fatal
 echo "$dmdelay_dev" \
-	> /sys/kernel/config/target/core/iblock_1/delayer/wwn/vpd_unit_serial \
+	> /sys/kernel/config/target/core/iblock_0/delayer/wwn/vpd_unit_serial \
 	|| _fatal
-echo "1" > /sys/kernel/config/target/core/iblock_1/delayer/enable || _fatal
+echo "1" > /sys/kernel/config/target/core/iblock_0/delayer/enable || _fatal
+
+#### iblock backstores - only if "vda" block device attached
+i=1
+for iblock_dev in $export_blockdevs; do
+	[ -b "$iblock_dev" ] || continue;
+
+	mkdir -p /sys/kernel/config/target/core/iblock_${i}/blocker || _fatal
+	echo "udev_path=${iblock_dev}" \
+		> /sys/kernel/config/target/core/iblock_${i}/blocker/control \
+		|| _fatal
+	echo "$iblock_dev" \
+	 > /sys/kernel/config/target/core/iblock_${i}/blocker/wwn/vpd_unit_serial \
+		|| _fatal
+	echo "1" > /sys/kernel/config/target/core/iblock_${i}/blocker/enable \
+		|| _fatal
+	((i++))
+done
 
 mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN} || _fatal
 
@@ -119,21 +124,25 @@ for tpgt in tpgt_1 tpgt_2; do
 		/sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_0/68c6222530
 	[ $? -eq 0 ] || _fatal
 
-	# iblock backend as lun1
-	if [ -b "$iblock_dev" ]; then
-		mkdir -p /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_1
-		[ $? -eq 0 ] || _fatal
-		ln -s /sys/kernel/config/target/core/iblock_0/blocker \
-			/sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_1/68c6222531
-		[ $? -eq 0 ] || _fatal
-	fi
+	# dm-delay backend as lun1
+	mkdir -p /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_1
+	[ $? -eq 0 ] || _fatal
+	ln -s /sys/kernel/config/target/core/iblock_0/delayer \
+		/sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_1/68c6222531
+	[ $? -eq 0 ] || _fatal
 
-	# dm-delay backend as lun2
-	mkdir -p /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_2
-	[ $? -eq 0 ] || _fatal
-	ln -s /sys/kernel/config/target/core/iblock_1/delayer \
-		/sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_2/68c6222532
-	[ $? -eq 0 ] || _fatal
+	# /dev/vdX iblock1+ backends as lun2+
+	i=1
+	for iblock_dev in $export_blockdevs; do
+		[ -b "$iblock_dev" ] || continue;
+
+		mkdir -p /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_$((i + 1))
+		[ $? -eq 0 ] || _fatal
+		ln -s /sys/kernel/config/target/core/iblock_${i}/blocker \
+			/sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_$((i + 1))/68c622253$((i + 1))
+		[ $? -eq 0 ] || _fatal
+		((i++))
+	done
 
 	#### Network portals for iSCSI Target Portal Group
 	#### iSCSI Target Ports
@@ -196,7 +205,7 @@ for tpgt in tpgt_1 tpgt_2; do
 		echo 5 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/acls/${initiator}/attrib/dataout_timeout_retries
 		echo 3 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/acls/${initiator}/attrib/dataout_timeout
 
-		for lun in 0 1 2; do
+		for lun in 0 1; do
 			#### iSCSI Initiator LUN ACLs for iSCSI Target Portal Group
 			[ -e /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_${lun} ] || continue
 
@@ -206,16 +215,34 @@ for tpgt in tpgt_1 tpgt_2; do
 				/sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/acls/${initiator}/lun_${lun}/${IQN_SHA}${lun}
 			echo 0 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/acls/${initiator}/lun_${lun}/write_protect
 		done
+
+		lun=2
+		for iblock_dev in $export_blockdevs; do
+			[ -b "$iblock_dev" ] || continue;
+
+			#### iSCSI Initiator LUN ACLs for iSCSI Target Portal Group
+			[ -e /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_${lun} ] || continue
+
+			mkdir -p /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/acls/${initiator}/lun_${lun}
+			[ $? -eq 0 ] || _fatal
+			ln -s /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_${lun} \
+				/sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/acls/${initiator}/lun_${lun}/${IQN_SHA}${lun}
+			echo 0 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/acls/${initiator}/lun_${lun}/write_protect
+			((lun++))
+		done
 	done
 done
 
 set +x
 
 echo "LUN 0: file backed logical unit, using LIO fileio"
-if [ -b "$iblock_dev" ]; then
-	echo "LUN 1: $iblock_dev backed logical unit, using LIO iblock"
-fi
-echo "LUN 2: loopback file with 1s dm-delay I/O latency"
+echo "LUN 1: loopback file with 1s dm-delay I/O latency"
+lun=2
+for iblock_dev in $export_blockdevs; do
+	[ -b "$iblock_dev" ] || continue;
+	echo "LUN ${lun}: $iblock_dev backed logical unit, using LIO iblock"
+	((lun++))
+done
 
 # standalone iSCSI target - listen on ports 3260 and 3261 of assigned address
 ip link show eth0 | grep $MAC_ADDR1
