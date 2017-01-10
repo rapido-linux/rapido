@@ -23,7 +23,7 @@ dracut --no-compress  --kver "$KVER" \
 		   xfs_io getfattr setfattr chacl attr killall \
 		   id sort uniq date expr tac diff head dirname \
 		   /usr/lib64/libhandle.so.1 /lib64/libssl.so.1.0.0 \
-		   basename tee egrep mount.cifs \
+		   basename tee egrep hexdump sync xfs_db mount.cifs \
 		   fstrim fio logger dbench dmsetup chattr cmp stat" \
 	--include "$FSTESTS_DIR" "/fstests" \
 	--include "$RAPIDO_DIR/cifs_autorun.sh" "/.profile" \
