@@ -21,7 +21,7 @@ dracut --no-compress  --kver "$KVER" \
 		   strace mkfs mkfs.xfs /lib64/libkeyutils.so.1 \
 		   which perl awk bc touch cut chmod true false \
 		   xfs_io getfattr setfattr chacl attr killall \
-		   id sort uniq date expr tac diff head dirname \
+		   id sort uniq date expr tac diff head dirname seq \
 		   /usr/lib64/libhandle.so.1 /lib64/libssl.so.1.0.0 \
 		   basename tee egrep hexdump sync xfs_db \
 		   fstrim fio logger dbench dmsetup chattr cmp stat" \
