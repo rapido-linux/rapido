@@ -54,7 +54,8 @@ creds_path="/tmp/cifs_creds"
 [ -n "$CIFS_DOMAIN" ] && echo "domain=${CIFS_DOMAIN}" >> $creds_path
 [ -n "$CIFS_USER" ] && echo "username=${CIFS_USER}" >> $creds_path
 [ -n "$CIFS_PW" ] && echo "password=${CIFS_PW}" >> $creds_path
-mount_args="-ocredentials=${creds_path},vers=3.0"
+mount_args="-ocredentials=${creds_path}"
+[ -n "$CIFS_MOUNT_OPTS" ] && mount_args="${mount_args},${CIFS_MOUNT_OPTS}"
 
 mkdir -p /mnt/test
 mount -t cifs //${CIFS_SERVER}/${CIFS_SHARE} /mnt/test \
