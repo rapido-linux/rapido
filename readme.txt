@@ -21,7 +21,7 @@ Rapido has a pretty minimal set of dependencies, which should be present
 on all major Linux distributions.
 - Dracut
 - qemu / KVM
-- brctl (bridge-utils) and tunctl, used for VM network provisioning
+- tunctl for VM network provisioning
 
 Once all dependencies have been installed, Rapiod can be configured via
 rapido.conf. At a minimum, the VM network configuration and Linux kernel
