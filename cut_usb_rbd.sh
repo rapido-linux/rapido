@@ -19,7 +19,10 @@ KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
 dracut --no-compress  --kver "$KVER" \
 	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   eject strace mkfs.vfat mountpoint /lib64/libkeyutils.so.1 \
-		   mktemp touch sync cryptsetup" \
+		   mktemp touch sync cryptsetup dmsetup scp ssh \
+		   /usr/lib/udev/rules.d/10-dm.rules \
+		   /usr/lib/udev/rules.d/13-dm-disk.rules \
+		   /usr/lib/udev/rules.d/95-dm-notify.rules" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
