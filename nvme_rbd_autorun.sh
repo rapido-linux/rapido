@@ -73,6 +73,11 @@ for i in $DYN_DEBUG_FILES; do
 	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
 done
 
+modprobe nvme-core || _fatal
+modprobe nvme-fabrics || _fatal
+modprobe nvme-loop || _fatal
+modprobe nvmet || _fatal
+
 mkdir -p /sys/kernel/config/nvmet/subsystems/nvmf-test
 cd /sys/kernel/config/nvmet/subsystems/nvmf-test
 echo 1 > attr_allow_any_host

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -26,6 +26,7 @@ dracut --no-compress  --kver "$KVER" \
 	--include "$RAPIDO_DIR/nvme_rbd_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	--add-drivers "nvme-core nvme-fabrics nvme-loop nvmet" \
 	--no-hostonly --no-hostonly-cmdline \
 	--modules "bash base network ifcfg" \
 	--tmpdir "$RAPIDO_DIR/initrds/" \
