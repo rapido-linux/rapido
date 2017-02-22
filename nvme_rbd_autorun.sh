@@ -28,18 +28,6 @@ CEPH_RBD_DEV=/dev/rbd/${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}
 ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
 	|| /usr/lib/systemd/systemd-udevd --daemon
 
-# enable debugfs
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
-# mount configfs first
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 ##### map rbd device
 _ini_parse "/etc/ceph/keyring" "client.${CEPH_USER}" "key"
 [ -z "$key" ] && _fatal "client.${CEPH_USER} key not found in keyring"
@@ -64,6 +52,12 @@ udevadm settle || _fatal
 cat /proc/mounts | grep debugfs &> /dev/null
 if [ $? -ne 0 ]; then
 	mount -t debugfs debugfs /sys/kernel/debug/
+fi
+
+# mount configfs first
+cat /proc/mounts | grep configfs &> /dev/null
+if [ $? -ne 0 ]; then
+	mount -t configfs configfs /sys/kernel/config/
 fi
 
 for i in $DYN_DEBUG_MODULES; do
