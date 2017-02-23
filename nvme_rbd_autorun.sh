@@ -48,17 +48,20 @@ udevadm settle || _fatal
 # confirm that udev brought up the $pool/$img device path link
 [ -L $CEPH_RBD_DEV ] || _fatal
 
-# enable debugfs
 cat /proc/mounts | grep debugfs &> /dev/null
 if [ $? -ne 0 ]; then
 	mount -t debugfs debugfs /sys/kernel/debug/
 fi
 
-# mount configfs first
 cat /proc/mounts | grep configfs &> /dev/null
 if [ $? -ne 0 ]; then
 	mount -t configfs configfs /sys/kernel/config/
 fi
+
+modprobe nvme-core
+modprobe nvme-fabrics
+modprobe nvme-loop
+modprobe nvmet
 
 for i in $DYN_DEBUG_MODULES; do
 	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
@@ -67,26 +70,23 @@ for i in $DYN_DEBUG_FILES; do
 	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
 done
 
-modprobe nvme-core || _fatal
-modprobe nvme-fabrics || _fatal
-modprobe nvme-loop || _fatal
-modprobe nvmet || _fatal
+nvmet_subsystem="nvmf-test"
+mkdir -p /sys/kernel/config/nvmet/subsystems/${nvmet_subsystem} || _fatal
+cd /sys/kernel/config/nvmet/subsystems/${nvmet_subsystem} || _fatal
+echo 1 > attr_allow_any_host || _fatal
+mkdir namespaces/1 || _fatal
+cd namespaces/1 || _fatal
+echo -n $CEPH_RBD_DEV > device_path || _fatal
+echo 1 > enable || _fatal
 
-mkdir -p /sys/kernel/config/nvmet/subsystems/nvmf-test
-cd /sys/kernel/config/nvmet/subsystems/nvmf-test
-echo 1 > attr_allow_any_host
-mkdir namespaces/1
-cd namespaces/1
-echo -n $CEPH_RBD_DEV > device_path
-echo 1 > enable
+mkdir /sys/kernel/config/nvmet/ports/1 || _fatal
+cd /sys/kernel/config/nvmet/ports/1 || _fatal
+echo loop > addr_trtype || _fatal
 
-mkdir /sys/kernel/config/nvmet/ports/1
-cd /sys/kernel/config/nvmet/ports/1
-echo loop > addr_trtype
+ln -s /sys/kernel/config/nvmet/subsystems/${nvmet_subsystem} \
+	subsystems/${nvmet_subsystem} || _fatal
 
-ln -s /sys/kernel/config/nvmet/subsystems/nvmf-test subsystems/nvmf-test
-
-echo "transport=loop,nqn=nvmf-test" > /dev/nvme-fabrics
+echo "transport=loop,nqn=${nvmet_subsystem}" > /dev/nvme-fabrics || _fatal
 
 set +x
 
