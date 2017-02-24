@@ -19,10 +19,6 @@ KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
 dracut --no-compress  --kver "$KVER" \
 	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs /lib64/libkeyutils.so.1" \
-	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
-	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
-	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	--include "$RAPIDO_DIR/nvme_local_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
