@@ -43,9 +43,6 @@ function _zram_setup() {
 	echo "mounted $zram_name for $zram_mnt_owner at $zram_mnt"
 }
 
-# get ownership of the ceph src dir so it can be applied to the mounted fses
-owner=`stat --format="%U:%G" $CEPH_SRC` || _fail
-
 num_zram_devs=1
 [ -n "$ZRAM_VSTART_OUT_SIZE" ] && ((num_zram_devs++))
 [ -n "$ZRAM_VSTART_DATA_SIZE" ] && ((num_zram_devs++))
@@ -53,17 +50,21 @@ num_zram_devs=1
 modprobe zram num_devices="${num_zram_devs}" || _fail
 zram_i=0
 
+# use rapido dir ownership for initramfs subdir mount point
+owner=`stat --format="%U:%G" $RAPIDO_DIR` || _fail
 _zram_setup "zram${zram_i}" $ZRAM_INITRD_SIZE $ZRAM_INITRD_MNT $owner
 ((zram_i++))
 
 # if running with a vstart.sh cluster, use zram for logs and data
 if [ -n "$ZRAM_VSTART_OUT_SIZE" ]; then
+	owner=`stat --format="%U:%G" $CEPH_SRC` || _fail
 	_zram_setup "zram${zram_i}" $ZRAM_VSTART_OUT_SIZE \
 		    $ZRAM_VSTART_OUT_MNT $owner
 	((zram_i++))
 fi
 
 if [ -n "$ZRAM_VSTART_DATA_SIZE" ]; then
+	owner=`stat --format="%U:%G" $CEPH_SRC` || _fail
 	_zram_setup "zram${zram_i}" $ZRAM_VSTART_DATA_SIZE \
 		    $ZRAM_VSTART_DATA_MNT $owner
 	((zram_i++))
