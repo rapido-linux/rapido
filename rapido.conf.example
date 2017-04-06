@@ -5,14 +5,6 @@
 # e.g. KERNEL_SRC="/home/me/linux"
 KERNEL_SRC=""
 
-# Path to src directory within Ceph source repository. Only required if a Ceph
-# specific Cut script will be run. vstart.sh should be run prior to Cut.
-# If not specified, then the Ceph config, keyring and binaries will be obtained
-# from the local system.
-#
-# e.g. CEPH_SRC="/home/me/ceph/src"
-CEPH_SRC=""
-
 # bridge device provisioned by br_setup.sh
 # e.g. BR_DEV="br0"
 BR_DEV="br0"
@@ -42,6 +34,12 @@ TAP_USER=""
 # e.g. QEMU_EXTRA_ARGS="-nographic -drive file=/dev/sdz,if=virtio,cache=none,format=raw,index=0"
 # e.g. QEMU_EXTRA_ARGS="-nographic -gdb tcp::1234"
 QEMU_EXTRA_ARGS="-nographic"
+
+# kernel modules or files for which dynamic debug should be enabled
+# e.g. DYN_DEBUG_MODULES="rbd libceph"
+# e.g. DYN_DEBUG_FILES="drivers/block/rbd.c"
+#DYN_DEBUG_MODULES=""
+#DYN_DEBUG_FILES=""
 
 ######### First VM #########
 # Tap tunnel interface provisioned by br_setup.sh, and used by vm.sh
@@ -79,7 +77,15 @@ IP_ADDR2="192.168.155.102"
 HOSTNAME2="rapido2"
 #############################
 
-##### autorun globals #####
+##### Ceph globals #####
+# Path to src directory within Ceph source repository. Only required if a Ceph
+# specific Cut script will be run. vstart.sh should be run prior to Cut.
+# If not specified, then the Ceph config, keyring and binaries will be obtained
+# from the local system.
+#
+# e.g. CEPH_SRC="/home/me/ceph/src"
+CEPH_SRC=""
+
 # user for Ceph authentication. Secret obtained from keyring file.
 # The default "admin" user is created by vstart.sh.
 CEPH_USER="admin"
@@ -89,23 +95,17 @@ CEPH_USER="admin"
 # the first vstart.sh deployed monitor.
 CEPH_MON_NAME="a"
 
-# kernel modules or files for which dynamic debug should be enabled
-# e.g. DYN_DEBUG_MODULES="rbd libceph"
-# e.g. DYN_DEBUG_FILES="drivers/block/rbd.c"
-#DYN_DEBUG_MODULES=""
-#DYN_DEBUG_FILES=""
-###########################
-
-####### lio_local_autorun, lio_rbd_autorun and rbd_autorun #######
-# IQN for the iSCSI target configured by lio_*_autorun.sh
-TARGET_IQN="iqn.2003-01.org.linux-iscsi:rapido"
-
 # The RBD pool and image to expose via LIO/tcmu iSCSI, loopback fabric, or for
 # rbd_autorun.sh to map as a local device. This image must be created prior
 # to booting the test VM.
 CEPH_RBD_POOL="rbd"
 CEPH_RBD_IMAGE="iscsi_test"
 CEPH_RBD_IMAGE_MB="4096"
+###########################
+
+####### lio_local_autorun, lio_rbd_autorun and rbd_autorun #######
+# IQN for the iSCSI target configured by lio_*_autorun.sh
+TARGET_IQN="iqn.2003-01.org.linux-iscsi:rapido"
 
 # List of initiator IQNs granted full access to the lio_*_autorun.sh iSCSI
 # target. Defaults below correspond to the libiscsi test utility.
@@ -154,7 +154,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # TCMU_RUNNER_SRC should correspond to a checkout and build of
 # https://github.com/open-iscsi/tcmu-runner
 # e.g. TCMU_RUNNER_SRC="/home/me/tcmu-runner"
-TCMU_RUNNER_SRC="/home/ddiss/isms/tcmu-runner"
+#TCMU_RUNNER_SRC=""
 #################################
 
 ###### dropbear_autorun.sh ######
