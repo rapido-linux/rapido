@@ -15,6 +15,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
+_rt_require_ceph
+
 KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
 dracut --no-compress  --kver "$KVER" \
 	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
