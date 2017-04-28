@@ -32,7 +32,7 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 	--include "$RAPIDO_DIR/cephfs_fuse_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "fuse e1000" \
+	--add-drivers "fuse" \
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT
