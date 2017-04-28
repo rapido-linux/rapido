@@ -22,7 +22,6 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 	--include "$RAPIDO_DIR/nvme_rdma_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--kmoddir "$KERNEL_SRC/mods" \
 	--add-drivers "nvme-core nvme-fabrics nvme-rdma nvmet nvmet-rdma \
 		       rdma_rxe zram lzo ib_core ib_uverbs rdma_ucm" \
 	--modules "bash base network ifcfg" \
