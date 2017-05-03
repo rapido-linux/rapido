@@ -56,7 +56,7 @@ if [ -n "$BR_DHCP_SRV_RANGE" ]; then
 	dnsmasq --no-hosts --no-resolv \
 		--interface="$BR_DEV" \
 		--dhcp-range="$BR_DHCP_SRV_RANGE" || exit 1
-	unwind="kill $!; ${unwind}"
+	unwind="kill $(cat /var/run/dnsmasq.pid); ${unwind}"
 fi
 
 # success! clear unwind
