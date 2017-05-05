@@ -170,8 +170,10 @@ done
 set +x
 
 # new portals are disabled by default
-mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR1}:3260
-mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${IP_ADDR2}:3260
+mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR1}:3260 \
+	|| _fatal
+mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${IP_ADDR2}:3260 \
+	|| _fatal
 
 # only enable portal for corresponding MAC/IP
 ip link show eth0 | grep $MAC_ADDR1
