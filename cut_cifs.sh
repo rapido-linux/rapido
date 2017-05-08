@@ -15,9 +15,9 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
-KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
-dracut --no-compress  --kver "$KVER" \
-	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+_rt_require_dracut_args
+
+dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs /lib64/libkeyutils.so.1 \
 		   which perl awk bc touch cut chmod true false \
 		   mktemp getfattr setfattr chacl attr killall \
@@ -30,8 +30,7 @@ dracut --no-compress  --kver "$KVER" \
 	--include "$RAPIDO_DIR/cifs_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--no-hostonly --no-hostonly-cmdline \
 	--add-drivers "cifs" \
 	--modules "bash base network ifcfg" \
-	--tmpdir "$RAPIDO_DIR/initrds/" \
-	--force $DRACUT_OUT
+	$DRACUT_EXTRA_ARGS \
+	$DRACUT_OUT

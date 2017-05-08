@@ -15,9 +15,10 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
-KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
-dracut --no-compress  --kver "$KVER" \
-	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+_rt_require_ceph
+_rt_require_dracut_args
+
+dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   eject strace mkfs.vfat mountpoint /lib64/libkeyutils.so.1 \
 		   mktemp touch sync cryptsetup dmsetup scp ssh \
 		   /usr/lib/udev/rules.d/10-dm.rules \
@@ -36,7 +37,6 @@ dracut --no-compress  --kver "$KVER" \
 	--include "$RBD_USB_SRC/rbd-usb.conf" "/etc/rbd-usb/rbd-usb.conf" \
 	--add-drivers "target_core_mod target_core_iblock usb_f_tcm \
 		       usb_f_mass_storage zram dm-crypt" \
-	--no-hostonly --no-hostonly-cmdline \
 	--modules "bash base network ifcfg" \
-	--tmpdir "$RAPIDO_DIR/initrds/" \
-	--force $DRACUT_OUT
+	$DRACUT_EXTRA_ARGS \
+	$DRACUT_OUT

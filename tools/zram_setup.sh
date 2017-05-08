@@ -17,6 +17,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
+_rt_require_zram_params
+
 set -x
 
 function _zram_setup() {

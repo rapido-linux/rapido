@@ -15,9 +15,9 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
-KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
-dracut --no-compress  --kver "$KVER" \
-	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+_rt_require_dracut_args
+
+dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs truncate losetup dmsetup \
 		   /usr/lib/udev/rules.d/95-dm-notify.rules" \
 	--include "$RAPIDO_DIR/lio_local_autorun.sh" "/.profile" \
@@ -25,7 +25,6 @@ dracut --no-compress  --kver "$KVER" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_iblock \
 		       target_core_file dm-delay loop" \
-	--no-hostonly --no-hostonly-cmdline \
 	--modules "bash base network ifcfg" \
-	--tmpdir "$RAPIDO_DIR/initrds/" \
-	--force $DRACUT_OUT
+	$DRACUT_EXTRA_ARGS \
+	$DRACUT_OUT

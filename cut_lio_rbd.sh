@@ -15,9 +15,10 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
-KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
-dracut --no-compress  --kver "$KVER" \
-	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+_rt_require_ceph
+_rt_require_dracut_args
+
+dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs /lib64/libkeyutils.so.1" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
@@ -27,7 +28,6 @@ dracut --no-compress  --kver "$KVER" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
-	--no-hostonly --no-hostonly-cmdline \
 	--modules "bash base network ifcfg" \
-	--tmpdir "$RAPIDO_DIR/initrds/" \
-	--force $DRACUT_OUT
+	$DRACUT_EXTRA_ARGS \
+	$DRACUT_OUT

@@ -15,15 +15,15 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
+_rt_require_dracut_args
+
 [ -n "$TCMU_RUNNER_SRC" ] || _fail "TCMU_RUNNER_SRC needs to be configured"
 tcmu_so_inc=""
 for i in `find ${TCMU_RUNNER_SRC} -type f|grep "\.so"`; do
 	tcmu_so_inc="${tcmu_so_inc} --include $i /lib64/`basename $i`"
 done
 
-KVER="`cat ${KERNEL_SRC}/include/config/kernel.release`" || exit 1
-dracut --no-compress  --kver "$KVER" \
-	--install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep \
 		   /lib64/libkeyutils.so.1 \
 		   /usr/lib64/libnl-genl-3.so /usr/lib64/libgio-2.0.so \
@@ -43,7 +43,6 @@ dracut --no-compress  --kver "$KVER" \
 	--include "${TCMU_RUNNER_SRC}/tcmu-runner" "/bin/tcmu-runner" \
 	$tcmu_so_inc \
 	--add-drivers "target_core_mod target_core_user tcm_loop" \
-	--no-hostonly --no-hostonly-cmdline \
 	--modules "bash base network ifcfg" \
-	--tmpdir "$RAPIDO_DIR/initrds/" \
-	--force $DRACUT_OUT
+	$DRACUT_EXTRA_ARGS \
+	$DRACUT_OUT
