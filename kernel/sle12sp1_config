@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.12.66 Kernel Configuration
+# Linux/x86 3.12.73 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -593,7 +593,6 @@ CONFIG_DNS_RESOLVER=y
 # CONFIG_BATMAN_ADV is not set
 # CONFIG_OPENVSWITCH is not set
 # CONFIG_VSOCKETS is not set
-CONFIG_NETLINK_MMAP=y
 # CONFIG_NETLINK_DIAG is not set
 # CONFIG_NET_MPLS_GSO is not set
 CONFIG_RPS=y
@@ -833,6 +832,7 @@ CONFIG_BLK_DEV_DM=y
 # CONFIG_DM_SNAPSHOT is not set
 # CONFIG_DM_THIN_PROVISIONING is not set
 # CONFIG_DM_CACHE is not set
+# CONFIG_DM_ERA is not set
 # CONFIG_DM_MIRROR is not set
 # CONFIG_DM_RAID is not set
 # CONFIG_DM_ZERO is not set
