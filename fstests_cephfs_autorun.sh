@@ -22,7 +22,7 @@ fi
 set -x
 
 # path to xfstests within the initramfs
-XFSTESTS_DIR="/fstests/xfstests"
+XFSTESTS_DIR="/fstests"
 
 hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
 hostname_short="${hostname_fqn%%.*}"

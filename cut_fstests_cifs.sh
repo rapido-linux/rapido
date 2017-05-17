@@ -16,6 +16,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args
+_rt_require_fstests
 
 dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs /lib64/libkeyutils.so.1 \
@@ -26,7 +27,7 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   basename tee egrep hexdump sync xfs_db xfs_io mount.cifs \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
 		   dbench /usr/share/dbench/client.txt" \
-	--include "$FSTESTS_DIR" "/fstests" \
+	--include "$FSTESTS_SRC" "/fstests" \
 	--include "$RAPIDO_DIR/fstests_cifs_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
