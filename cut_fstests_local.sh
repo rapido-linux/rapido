@@ -28,7 +28,7 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
 		   dbench /usr/share/dbench/client.txt" \
 	--include "$FSTESTS_DIR" "/fstests" \
-	--include "$RAPIDO_DIR/fstest_local_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/fstests_local_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo" \
