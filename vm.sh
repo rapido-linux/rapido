@@ -15,6 +15,8 @@
 RAPIDO_DIR="`dirname $0`"
 . "${RAPIDO_DIR}/runtime.vars"
 
+_rt_require_qemu_kvm_bin
+
 [ -f "$DRACUT_OUT" ] \
 	|| _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
 
@@ -41,14 +43,15 @@ fi
 
 pgrep -a qemu-system | grep -q mac=${MAC_ADDR1} && vm1_running=1
 if [ -z "$vm1_running" ]; then
-	qemu-kvm -smp cpus=2 -m 512 \
-		 -kernel "$kernel_img" \
-		 -initrd "$DRACUT_OUT" \
-		 -device e1000,netdev=nw1,mac=${MAC_ADDR1} \
-		 -netdev tap,id=nw1,script=no,downscript=no,ifname=${TAP_DEV0} \
-		 -append "ip=${kern_ip_addr1} rd.systemd.unit=emergency \
-			  rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
-		 $qemu_more_args
+	$QEMU_KVM_BIN \
+		-smp cpus=2 -m 512 \
+		-kernel "$kernel_img" \
+		-initrd "$DRACUT_OUT" \
+		-device e1000,netdev=nw1,mac=${MAC_ADDR1} \
+		-netdev tap,id=nw1,script=no,downscript=no,ifname=${TAP_DEV0} \
+		-append "ip=${kern_ip_addr1} rd.systemd.unit=emergency \
+		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
+		$qemu_more_args
 	exit $?
 fi
 
@@ -61,13 +64,14 @@ fi
 
 pgrep -a qemu-system | grep -q mac=${MAC_ADDR2} && vm2_running=1
 if [ -z "$vm2_running" ]; then
-	qemu-kvm -smp cpus=2 -m 512 \
-		 -kernel "$kernel_img" \
-		 -initrd "$DRACUT_OUT" \
-		 -device e1000,netdev=nw1,mac=${MAC_ADDR2} \
-		 -netdev tap,id=nw1,script=no,downscript=no,ifname=${TAP_DEV1} \
-		 -append "ip=${kern_ip_addr2} rd.systemd.unit=emergency \
-			  rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
-		 $qemu_more_args
+	$QEMU_KVM_BIN \
+		-smp cpus=2 -m 512 \
+		-kernel "$kernel_img" \
+		-initrd "$DRACUT_OUT" \
+		-device e1000,netdev=nw1,mac=${MAC_ADDR2} \
+		-netdev tap,id=nw1,script=no,downscript=no,ifname=${TAP_DEV1} \
+		-append "ip=${kern_ip_addr2} rd.systemd.unit=emergency \
+		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
+		$qemu_more_args
 	exit $?
 fi

@@ -120,14 +120,14 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 		iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test-2"
 ###########################
 
-####### fstests_*_autorun.sh and cifs_autorun.sh #######
+####### fstests_*_autorun.sh #######
 # If defined, run the following command from within the fstests source directory
 # following VM boot-up.
 # e.g. FSTESTS_AUTORUN_CMD="./check -g auto && shutdown"
 #FSTESTS_AUTORUN_CMD=""
 #################################
 
-######## cifs_autorun.sh ########
+######## fstests_cifs_autorun.sh ########
 # SMB/CIFS server and authentication details, used to mount the test share.
 # e.g. CIFS_SERVER="smbserver.example.com"
 #CIFS_SERVER=""
@@ -143,12 +143,12 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #CIFS_MOUNT_OPTS=""
 #################################
 
-# FSTESTS_DIR is used by cut_fstests_cephfs.sh, and needs to be a parent
-# directory of xfstests. This funky configuration is a workaround for old Dracut
-# versions, which fail to copy files immediately nested under directories
-# specified with --include.
-# e.g. FSTESTS_DIR="/home/me/fstests"
-#FSTESTS_DIR=""
+######## cut_fstests_*.sh #########
+# FSTESTS_SRC should correspond to a checkout and build of the xfstests source
+# available at https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
+# e.g. FSTESTS_SRC="/home/me/xfstests-dev"
+#FSTESTS_SRC=""
+##################################
 
 ######## cut_usb_rbd.sh #########
 # RBD_USB_SRC should correspond to a checkout and build of
