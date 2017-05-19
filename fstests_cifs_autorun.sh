@@ -50,12 +50,14 @@ for i in $DYN_DEBUG_FILES; do
 	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
 done
 
+set +x
 creds_path="/tmp/cifs_creds"
 [ -n "$CIFS_DOMAIN" ] && echo "domain=${CIFS_DOMAIN}" >> $creds_path
 [ -n "$CIFS_USER" ] && echo "username=${CIFS_USER}" >> $creds_path
 [ -n "$CIFS_PW" ] && echo "password=${CIFS_PW}" >> $creds_path
 mount_args="-ocredentials=${creds_path}"
 [ -n "$CIFS_MOUNT_OPTS" ] && mount_args="${mount_args},${CIFS_MOUNT_OPTS}"
+set -x
 
 mkdir -p /mnt/test
 mount -t cifs //${CIFS_SERVER}/${CIFS_SHARE} /mnt/test \
