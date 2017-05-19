@@ -31,7 +31,7 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 	--include "$RAPIDO_DIR/fstests_cifs_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "cifs" \
+	--add-drivers "cifs ccm ctr" \
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT
