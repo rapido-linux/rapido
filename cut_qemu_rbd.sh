@@ -16,6 +16,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args
+_rt_require_ceph
 
 dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs /lib64/libkeyutils.so.1 lsscsi" \
