@@ -17,61 +17,71 @@ RAPIDO_DIR="`dirname $0`"
 
 _rt_require_qemu_kvm_bin
 
-[ -f "$DRACUT_OUT" ] \
-	|| _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
+function _vm_is_running
+{
+	local vm_num=$1
+	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
 
-kernel_img="${KERNEL_SRC}/arch/x86/boot/bzImage"
-[ -f "$kernel_img" ] \
-	|| _fail "no kernel image present at ${kernel_img}. Build needed?"
+	[ -f $vm_pid_file ] || return
 
-[ -n "$MAC_ADDR1" ] || _fail "MAC_ADDR1 not configured in rapido.conf"
-[ -n "$MAC_ADDR2" ] || _fail "MAC_ADDR2 not configured in rapido.conf"
+	ps -p "$(cat $vm_pid_file)" > /dev/null && echo "1"
+}
+
+function _vm_start
+{
+	local vm_num=$1
+	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
+	local kernel_img="${KERNEL_SRC}/arch/x86/boot/bzImage"
+
+	if [ -z "$vm_num" ] || [ $vm_num -lt 1 ] || [ $vm_num -gt 2 ]; then
+		_fail "a maximum of two network connected VMs are supported"
+	fi
+
+	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
+	# moving to a VM${vm_num}_MAC_ADDR or ini style config would make sense
+	eval local mac_addr='$MAC_ADDR'${vm_num}
+	eval local tap='$TAP_DEV'$((vm_num - 1))
+	eval local is_dhcp='$IP_ADDR'${vm_num}'_DHCP'
+	if [ "$is_dhcp" = "1" ]; then
+		local kern_ip_addr="dhcp"
+	else
+		eval local ip_addr='$IP_ADDR'${vm_num}
+		eval local hostname='$HOSTNAME'${vm_num}
+		[ -n "$ip_addr" ] \
+		    || _fail "IP_ADDR${vm_num} not configured in rapido.conf"
+		[ -n "$hostname" ] \
+		    || _fail "HOSTNAME${vm_num} not configured in rapido.conf"
+		local kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
+	fi
+
+	# cut_ script may have specified some parameters for qemu (9p share)
+	local qemu_cut_args="$(getfattr --only-values \
+				-n $QEMU_ARGS_XATTR $DRACUT_OUT 2> /dev/null)"
+	local qemu_more_args="$QEMU_EXTRA_ARGS $qemu_cut_args"
+
+	[ -f "$kernel_img" ] \
+	   || _fail "no kernel image present at ${kernel_img}. Build needed?"
+	[ -f "$DRACUT_OUT" ] \
+	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
+	[ -n "$tap" ] \
+		|| _fail "TAP_DEV$((vm_num - 1)) not configured in rapido.conf"
+
+	$QEMU_KVM_BIN \
+		-smp cpus=2 -m 512 \
+		-kernel "$kernel_img" \
+		-initrd "$DRACUT_OUT" \
+		-device e1000,netdev=nw1,mac=${mac_addr} \
+		-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap} \
+		-append "ip=${kern_ip_addr} rd.systemd.unit=emergency \
+		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
+		-pidfile "$vm_pid_file" \
+		$qemu_more_args
+	exit $?
+}
 
 set -x
 
-# cut_ script may have specified some parameters for qemu (9p share)
-qemu_cut_args="$(getfattr --only-values -n $QEMU_ARGS_XATTR $DRACUT_OUT \
-							2> /dev/null)"
-qemu_more_args="$QEMU_EXTRA_ARGS $qemu_cut_args"
-
-if [ "$IP_ADDR1_DHCP" = "1" ]; then
-	kern_ip_addr1="dhcp"
-else
-	[ -n "$IP_ADDR1" ] || _fail "IP_ADDR1 not configured in rapido.conf"
-	kern_ip_addr1="${IP_ADDR1}:::255.255.255.0:${HOSTNAME1}"
-fi
-
-pgrep -a qemu-system | grep -q mac=${MAC_ADDR1} && vm1_running=1
-if [ -z "$vm1_running" ]; then
-	$QEMU_KVM_BIN \
-		-smp cpus=2 -m 512 \
-		-kernel "$kernel_img" \
-		-initrd "$DRACUT_OUT" \
-		-device e1000,netdev=nw1,mac=${MAC_ADDR1} \
-		-netdev tap,id=nw1,script=no,downscript=no,ifname=${TAP_DEV0} \
-		-append "ip=${kern_ip_addr1} rd.systemd.unit=emergency \
-		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
-		$qemu_more_args
-	exit $?
-fi
-
-if [ "$IP_ADDR2_DHCP" = "1" ]; then
-	kern_ip_addr2="dhcp"
-else
-	[ -n "$IP_ADDR2" ] || _fail "IP_ADDR2 not configured in rapido.conf"
-	kern_ip_addr2="${IP_ADDR2}:::255.255.255.0:${HOSTNAME2}"
-fi
-
-pgrep -a qemu-system | grep -q mac=${MAC_ADDR2} && vm2_running=1
-if [ -z "$vm2_running" ]; then
-	$QEMU_KVM_BIN \
-		-smp cpus=2 -m 512 \
-		-kernel "$kernel_img" \
-		-initrd "$DRACUT_OUT" \
-		-device e1000,netdev=nw1,mac=${MAC_ADDR2} \
-		-netdev tap,id=nw1,script=no,downscript=no,ifname=${TAP_DEV1} \
-		-append "ip=${kern_ip_addr2} rd.systemd.unit=emergency \
-		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
-		$qemu_more_args
-	exit $?
-fi
+[ -z "$(_vm_is_running 1)" ] && _vm_start 1
+[ -z "$(_vm_is_running 2)" ] && _vm_start 2
+# _vm_start exits when done, so we only get here if none were started
+_fail "Currently Rapido only supports a maximum of two VMs"
