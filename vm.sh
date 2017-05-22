@@ -33,6 +33,9 @@ function _vm_start
 	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
 	local kernel_img="${KERNEL_SRC}/arch/x86/boot/bzImage"
 
+	[ -f "$DRACUT_OUT" ] \
+	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
+
 	if [ -z "$vm_num" ] || [ $vm_num -lt 1 ] || [ $vm_num -gt 2 ]; then
 		_fail "a maximum of two network connected VMs are supported"
 	fi
@@ -55,14 +58,11 @@ function _vm_start
 	fi
 
 	# cut_ script may have specified some parameters for qemu (9p share)
-	local qemu_cut_args="$(getfattr --only-values \
-				-n $QEMU_ARGS_XATTR $DRACUT_OUT 2> /dev/null)"
+	local qemu_cut_args="$(_rt_xattr_qemu_args_get ${DRACUT_OUT})"
 	local qemu_more_args="$QEMU_EXTRA_ARGS $qemu_cut_args"
 
 	[ -f "$kernel_img" ] \
 	   || _fail "no kernel image present at ${kernel_img}. Build needed?"
-	[ -f "$DRACUT_OUT" ] \
-	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
 	[ -n "$tap" ] \
 		|| _fail "TAP_DEV$((vm_num - 1)) not configured in rapido.conf"
 

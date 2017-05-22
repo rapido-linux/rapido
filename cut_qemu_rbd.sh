@@ -24,11 +24,10 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/.profile" \
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	$DRACUT_OUT || _fail "dracut failed"
 
 # set qemu arguments to attach the RBD image. qemu uses librbd, and supports
 # writeback caching via a "cache=writeback" parameter.
 qemu_cut_args="-drive format=rbd,file=rbd:${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}"
 qemu_cut_args="${qemu_cut_args}:conf=${CEPH_CONF},if=virtio,cache=none,format=raw"
-setfattr -n "$QEMU_ARGS_XATTR" -v "$qemu_cut_args" $DRACUT_OUT \
-	|| _fail "failed to set xattr on $DRACUT_OUT"
+_rt_xattr_qemu_args_set "$DRACUT_OUT"  "$qemu_cut_args"
