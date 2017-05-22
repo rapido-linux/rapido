@@ -23,7 +23,7 @@ on all major Linux distributions.
 - qemu / KVM
 - tunctl for VM network provisioning
 
-Once all dependencies have been installed, Rapiod can be configured via
+Once all dependencies have been installed, Rapido can be configured via
 rapido.conf. At a minimum, the VM network configuration and Linux kernel
 source parameters should be defined, in order to proceed.
 
