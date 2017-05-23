@@ -22,7 +22,7 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs /lib64/libkeyutils.so.1 lsscsi" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/.profile" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
@@ -31,3 +31,4 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 qemu_cut_args="-drive format=rbd,file=rbd:${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}"
 qemu_cut_args="${qemu_cut_args}:conf=${CEPH_CONF},if=virtio,cache=none,format=raw"
 _rt_xattr_qemu_args_set "$DRACUT_OUT"  "$qemu_cut_args"
+_rt_xattr_vm_networkless_set "$DRACUT_OUT"
