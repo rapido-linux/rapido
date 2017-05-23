@@ -150,6 +150,20 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #FSTESTS_SRC=""
 ##################################
 
+####### blktests_*_autorun.sh #######
+# If defined, run the following command from within the blktests source directory
+# following VM boot-up.
+# e.g. BLKTESTS_AUTORUN_CMD="./check && shutdown"
+#BLKTESTS_AUTORUN_CMD=""
+#################################
+
+######## cut_blktests_*.sh #########
+# BLKTESTS_SRC should correspond to a checkout and build of the blktests source
+# available at https://github.com/osandov/blktests.git
+# e.g. BLKTESTS_SRC="/home/me/blktests"
+#BLKTESTS_SRC=""
+##################################
+
 ######## cut_usb_rbd.sh #########
 # RBD_USB_SRC should correspond to a checkout and build of
 # https://github.com/ddiss/rbd-usb.
