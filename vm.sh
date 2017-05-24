@@ -42,36 +42,44 @@ function _vm_start
 
 	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
 	# moving to a VM${vm_num}_MAC_ADDR or ini style config would make sense
-	eval local mac_addr='$MAC_ADDR'${vm_num}
-	eval local tap='$TAP_DEV'$((vm_num - 1))
-	eval local is_dhcp='$IP_ADDR'${vm_num}'_DHCP'
-	if [ "$is_dhcp" = "1" ]; then
-		local kern_ip_addr="dhcp"
+	local qemu_netdev=""
+	local kern_ip_addr=""
+	if [ -n "$(_rt_xattr_vm_networkless_get ${DRACUT_OUT})" ]; then
+		# this image doesn't require network access
+		kern_ip_addr="none"
+		qemu_netdev="-net none"	# override default (-net nic -net user)
 	else
-		eval local ip_addr='$IP_ADDR'${vm_num}
-		eval local hostname='$HOSTNAME'${vm_num}
-		[ -n "$ip_addr" ] \
-		    || _fail "IP_ADDR${vm_num} not configured in rapido.conf"
-		[ -n "$hostname" ] \
-		    || _fail "HOSTNAME${vm_num} not configured in rapido.conf"
-		local kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
+		eval local mac_addr='$MAC_ADDR'${vm_num}
+		eval local tap='$TAP_DEV'$((vm_num - 1))
+		[ -n "$tap" ] \
+			|| _fail "TAP_DEV$((vm_num - 1)) not configured"
+		eval local is_dhcp='$IP_ADDR'${vm_num}'_DHCP'
+		if [ "$is_dhcp" = "1" ]; then
+			kern_ip_addr="dhcp"
+		else
+			eval local hostname='$HOSTNAME'${vm_num}
+			[ -n "$hostname" ] \
+				|| _fail "HOSTNAME${vm_num} not configured"
+			eval local ip_addr='$IP_ADDR'${vm_num}
+			[ -n "$ip_addr" ] \
+				|| _fail "IP_ADDR${vm_num} not configured"
+			kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
+		fi
+		qemu_netdev="-device e1000,netdev=nw1,mac=${mac_addr} \
+			-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap}"
 	fi
 
 	# cut_ script may have specified some parameters for qemu (9p share)
 	local qemu_cut_args="$(_rt_xattr_qemu_args_get ${DRACUT_OUT})"
-	local qemu_more_args="$QEMU_EXTRA_ARGS $qemu_cut_args"
+	local qemu_more_args="$qemu_netdev $QEMU_EXTRA_ARGS $qemu_cut_args"
 
 	[ -f "$kernel_img" ] \
 	   || _fail "no kernel image present at ${kernel_img}. Build needed?"
-	[ -n "$tap" ] \
-		|| _fail "TAP_DEV$((vm_num - 1)) not configured in rapido.conf"
 
 	$QEMU_KVM_BIN \
 		-smp cpus=2 -m 512 \
 		-kernel "$kernel_img" \
 		-initrd "$DRACUT_OUT" \
-		-device e1000,netdev=nw1,mac=${mac_addr} \
-		-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap} \
 		-append "ip=${kern_ip_addr} rd.systemd.unit=emergency \
 		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
 		-pidfile "$vm_pid_file" \
