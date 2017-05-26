@@ -73,11 +73,14 @@ function _vm_start
 	local qemu_cut_args="$(_rt_xattr_qemu_args_get ${DRACUT_OUT})"
 	local qemu_more_args="$qemu_netdev $QEMU_EXTRA_ARGS $qemu_cut_args"
 
+	local vm_resources="$(_rt_xattr_vm_resources_get ${DRACUT_OUT})"
+	[ -n "$vm_resources" ] || vm_resources="-smp cpus=2 -m 512"
+
 	[ -f "$kernel_img" ] \
 	   || _fail "no kernel image present at ${kernel_img}. Build needed?"
 
 	$QEMU_KVM_BIN \
-		-smp cpus=2 -m 512 \
+		$vm_resources \
 		-kernel "$kernel_img" \
 		-initrd "$DRACUT_OUT" \
 		-append "ip=${kern_ip_addr} rd.systemd.unit=emergency \
