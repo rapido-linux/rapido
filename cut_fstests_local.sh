@@ -38,3 +38,4 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 	$DRACUT_OUT || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
+_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
