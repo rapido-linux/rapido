@@ -20,19 +20,20 @@ _rt_require_fstests
 
 dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.btrfs mkfs.xfs /lib64/libkeyutils.so.1 \
-		   which perl awk bc touch cut chmod true false \
-		   mktemp getfattr setfattr chacl attr killall \
+		   which perl awk bc touch cut chmod true false unlink \
+		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
 		   /usr/lib64/libhandle.so.1 /lib64/libssl.so.1.0.0 \
-		   basename tee egrep hexdump sync xfs_db xfs_io \
-		   xfs_logprint xfs_repair xfs_growfs \
+		   basename tee egrep xfs_freeze xfs_db xfs_io xfs_info \
+		   xfs_logprint xfs_repair xfs_growfs xfs_quota xfs_bmap \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
-		   dbench /usr/share/dbench/client.txt hostname" \
+		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
+		   od wc getfacl setfacl tr xargs sysctl link truncate quota" \
 	--include "$FSTESTS_SRC" "/fstests" \
 	--include "$RAPIDO_DIR/fstests_local_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo" \
+	--add-drivers "zram lzo dm-snapshot dm-flakey" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"

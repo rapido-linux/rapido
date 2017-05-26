@@ -20,13 +20,14 @@ _rt_require_fstests
 
 dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs /lib64/libkeyutils.so.1 \
-		   which perl awk bc touch cut chmod true false \
+		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall \
 		   id sort uniq date expr tac diff head dirname seq \
 		   /usr/lib64/libhandle.so.1 /lib64/libssl.so.1.0.0 \
 		   basename tee egrep hexdump sync xfs_db xfs_io mount.cifs \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
-		   dbench /usr/share/dbench/client.txt" \
+		   dbench /usr/share/dbench/client.txt getconf md5sum od wc \
+		   getfacl setfacl tr xargs sysctl link truncate quota" \
 	--include "$FSTESTS_SRC" "/fstests" \
 	--include "$RAPIDO_DIR/fstests_cifs_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
