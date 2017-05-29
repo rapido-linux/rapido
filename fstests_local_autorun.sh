@@ -26,7 +26,7 @@ XFSTESTS_DIR="/fstests"
 
 hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
 hostname_short="${hostname_fqn%%.*}"
-filesystem="btrfs"
+filesystem="xfs"
 
 # need hosts file for hostname -s
 cat > /etc/hosts <<EOF

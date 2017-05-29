@@ -28,6 +28,8 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo scsi_debug null_blk loop" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	$DRACUT_OUT || _fail "dracut failed"
+
+_rt_xattr_vm_networkless_set "$DRACUT_OUT"
