@@ -85,12 +85,13 @@ HOSTNAME2="rapido2"
 #############################
 
 ##### Ceph globals #####
-# Path to src directory within Ceph source repository. Only required if a Ceph
-# specific Cut script will be run. vstart.sh should be run prior to Cut.
+# CEPH_SRC should correspond to a checkout and build of the Ceph source
+# available at https://github.com/ceph/ceph. Only required if a Ceph specific
+# Cut script will be run. vstart.sh should be run prior to Cut.
 # If not specified, then the Ceph config, keyring and binaries will be obtained
 # from the local system.
 #
-# e.g. CEPH_SRC="/home/me/ceph/src"
+# e.g. CEPH_SRC="/home/me/ceph"
 CEPH_SRC=""
 
 # user for Ceph authentication. Secret obtained from keyring file.
