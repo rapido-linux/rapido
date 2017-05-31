@@ -17,9 +17,11 @@ RAPIDO_DIR="$(realpath -e ${0%/*})"
 
 _rt_require_dracut_args
 _rt_require_ceph
+_rt_require_lib "libkeyutils.so.1"
 
 dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs /lib64/libkeyutils.so.1 lsscsi" \
+		   strace mkfs.xfs lsscsi \
+		   $LIBS_INSTALL_LIST" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/.profile" \
 	--modules "bash base" \

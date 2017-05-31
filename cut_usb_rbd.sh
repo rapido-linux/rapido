@@ -17,13 +17,15 @@ RAPIDO_DIR="$(realpath -e ${0%/*})"
 
 _rt_require_ceph
 _rt_require_dracut_args
+_rt_require_lib "libkeyutils.so.1"
 
 dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   eject strace mkfs.vfat mountpoint /lib64/libkeyutils.so.1 \
+		   eject strace mkfs.vfat mountpoint \
 		   mktemp touch sync cryptsetup dmsetup scp ssh \
 		   /usr/lib/udev/rules.d/10-dm.rules \
 		   /usr/lib/udev/rules.d/13-dm-disk.rules \
-		   /usr/lib/udev/rules.d/95-dm-notify.rules" \
+		   /usr/lib/udev/rules.d/95-dm-notify.rules \
+		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
