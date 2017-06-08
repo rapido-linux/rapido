@@ -29,12 +29,13 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
+		   repquota setquota xfs_mkfile chgrp du \
 		   $LIBS_INSTALL_LIST" \
 	--include "$FSTESTS_SRC" "/fstests" \
 	--include "$RAPIDO_DIR/fstests_local_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo dm-snapshot dm-flakey" \
+	--add-drivers "zram lzo dm-snapshot dm-flakey xfs" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
