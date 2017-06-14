@@ -27,8 +27,10 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   id sort uniq date expr tac diff head dirname seq \
 		   basename tee egrep hexdump sync xfs_db xfs_io \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
-		   dbench /usr/share/dbench/client.txt getconf md5sum od wc \
-		   getfacl setfacl tr xargs sysctl link truncate quota \
+		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
+		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
+		   repquota setquota quotacheck quotaon xfs_mkfile \
+		   chgrp du fgrep pgrep tar \
 		   $LIBS_INSTALL_LIST" \
 	--include "$FSTESTS_SRC" "/fstests" \
 	--include "$CEPH_MOUNT_BIN" "/sbin/mount.ceph" \
