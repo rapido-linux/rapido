@@ -35,7 +35,7 @@ dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 	--include "$RAPIDO_DIR/fstests_local_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo dm-snapshot dm-flakey xfs" \
+	--add-drivers "zram lzo dm-snapshot dm-flakey xfs btrfs raid6_pq" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
