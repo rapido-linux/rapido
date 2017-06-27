@@ -102,7 +102,7 @@ Rapido ships with two scripts for kernel client VM generation:
   + lio_rbd_autorun.sh is executed by the VM at boot-time
 - cut_fstests_cephfs.sh: generates a CephFS + xfstests client VM
   + fstests_cephfs_autorun.sh is executed by the VM at boot-time
-  + FSTESTS_DIR must be configured in rapido.conf
+  + FSTESTS_SRC must be configured in rapido.conf
 
 The cut_* scripts use Dracut to generate a VM image with all
 dependencies included for the corresponding Ceph kernel client. The
