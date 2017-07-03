@@ -96,7 +96,7 @@ if [ $? -eq 0 ]; then
 	echo rdma > ${nvmet_cfs}/ports/1/addr_trtype || _fatal
 	echo $IP_ADDR1 > ${nvmet_cfs}/ports/1/addr_traddr || _fatal
 	echo ipv4 > ${nvmet_cfs}/ports/1/addr_adrfam || _fatal
-	echo 1023 > ${nvmet_cfs}/ports/1/addr_trsvcid || _fatal
+	echo 4420 > ${nvmet_cfs}/ports/1/addr_trsvcid || _fatal
 	ln -s ${nvmet_cfs}/subsystems/${nvmet_subsystem} \
 		${nvmet_cfs}/ports/1/subsystems/${nvmet_subsystem} || _fatal
 
@@ -106,7 +106,7 @@ fi
 
 ip link show eth0 | grep $MAC_ADDR2
 if [ $? -eq 0 ]; then
-	nvme connect -t rdma -a $IP_ADDR1 -s 1023 -n nvmf-test || _fatal
+	nvme connect -t rdma -a $IP_ADDR1 -s 4420 -n nvmf-test || _fatal
 	udevadm settle
 	nvmedev=$(ls /dev/ | grep -Eo /dev/nvme[0-9]n[0-0])
 	set +x
