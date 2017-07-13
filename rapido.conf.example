@@ -42,6 +42,9 @@ TAP_USER=""
 # e.g. QEMU_EXTRA_ARGS="-nographic -gdb tcp::1234"
 QEMU_EXTRA_ARGS="-nographic"
 
+# extra dracut args, e.g. "--debug"
+#DRACUT_EXTRA_ARGS=""
+
 # kernel modules or files for which dynamic debug should be enabled
 # e.g. DYN_DEBUG_MODULES="rbd libceph"
 # e.g. DYN_DEBUG_FILES="drivers/block/rbd.c"
