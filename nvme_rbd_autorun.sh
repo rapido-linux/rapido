@@ -53,6 +53,7 @@ if [ $? -ne 0 ]; then
 	mount -t debugfs debugfs /sys/kernel/debug/
 fi
 
+modprobe configfs
 cat /proc/mounts | grep configfs &> /dev/null
 if [ $? -ne 0 ]; then
 	mount -t configfs configfs /sys/kernel/config/
