@@ -1,2 +1,5 @@
 rapido.conf
 initrds/myinitrd
+\#*
+*~
+*.pid
