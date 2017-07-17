@@ -25,6 +25,6 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "nvme-core nvme-fabrics nvme-loop nvmet zram lzo" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT
