@@ -59,9 +59,12 @@ unwind="ip link set dev $TAP_DEV1 down; ${unwind}"
 
 if [ -n "$BR_DHCP_SRV_RANGE" ]; then
 	dnsmasq --no-hosts --no-resolv \
+		--pid-file=/var/run/rapido-dnsmasq-$$.pid \
+		--bind-interfaces \
 		--interface="$BR_DEV" \
+		--except-interface=lo \
 		--dhcp-range="$BR_DHCP_SRV_RANGE" || exit 1
-	unwind="kill $(cat /var/run/dnsmasq.pid); ${unwind}"
+	unwind="kill $(cat /var/run/rapido-dnsmasq-$$.pid); ${unwind}"
 	echo "+ started DHCP server"
 fi
 
