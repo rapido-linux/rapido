@@ -19,7 +19,7 @@ _rt_require_dracut_args
 _rt_require_ceph
 _rt_require_blktests
 
-dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   getopt tput wc column blktrace losetup parted truncate \
 		   lsblk strace which awk bc touch cut chmod true false mktemp \
 		   killall id sort uniq date expr tac diff head dirname seq \

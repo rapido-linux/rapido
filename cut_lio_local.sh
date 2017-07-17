@@ -17,7 +17,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})"
 
 _rt_require_dracut_args
 
-dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs truncate losetup dmsetup \
 		   /usr/lib/udev/rules.d/95-dm-notify.rules" \
 	--include "$RAPIDO_DIR/lio_local_autorun.sh" "/.profile" \

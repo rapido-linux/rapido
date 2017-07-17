@@ -20,7 +20,7 @@ _rt_require_ceph
 _rt_require_fstests
 _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_compat.so"
 
-dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall \

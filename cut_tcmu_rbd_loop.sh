@@ -26,7 +26,7 @@ for i in `find ${TCMU_RUNNER_SRC} -type f|grep "\.so"`; do
 	tcmu_so_inc="${tcmu_so_inc} --include $i /lib64/`basename $i`"
 done
 
-dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep \
 		   $LIBS_INSTALL_LIST" \
 	--include "${RAPIDO_DIR}/tcmu_rbd_autorun.sh" "/.profile" \

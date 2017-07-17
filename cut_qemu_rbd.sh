@@ -19,7 +19,7 @@ _rt_require_dracut_args
 _rt_require_ceph
 _rt_require_lib "libkeyutils.so.1"
 
-dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs lsscsi \
 		   $LIBS_INSTALL_LIST" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
