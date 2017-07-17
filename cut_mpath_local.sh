@@ -28,7 +28,7 @@ _rt_require_dracut_args
 # Once booted, you can simulate path failure by switching to the QEMU console
 # (ctrl-a c) and running "drive_del hda"
 
-dracut  --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs parted partprobe sgdisk hdparm \
 		   timeout id chown chmod env killall getopt basename" \
 	--include "$RAPIDO_DIR/mpath_local_autorun.sh" "/.profile" \
