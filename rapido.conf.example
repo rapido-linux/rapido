@@ -120,6 +120,16 @@ CEPH_RBD_IMAGE="iscsi_test"
 CEPH_RBD_IMAGE_MB="4096"
 ###########################
 
+##### multipath globals #####
+# Path to a directory containing multipath-tools sources.
+# Use for testing multipath-tools.
+# It's assumed that you've run "make" in this directory already.
+# MULTIPATH_SRC="/path/to/multipath-tools"
+
+# Flags for running "make install" for multipath-tools
+# This is only used if MULTIPATH_SRC is set, e.g.:
+# MULTIPATH_MAKEFLAGS="usr_prefix=/usr ENABLE_LIBDMMP=0"
+
 ####### lio_local_autorun, lio_rbd_autorun and rbd_autorun #######
 # IQN for the iSCSI target configured by lio_*_autorun.sh
 TARGET_IQN="iqn.2003-01.org.linux-iscsi:rapido"
