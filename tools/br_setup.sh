@@ -58,12 +58,18 @@ ip link set dev $TAP_DEV1 up || exit 1
 unwind="ip link set dev $TAP_DEV1 down; ${unwind}"
 
 if [ -n "$BR_DHCP_SRV_RANGE" ]; then
+	hosts=
+	[ -n "$IP_ADDR1" ] && \
+		hosts="$hosts --dhcp-host=$MAC_ADDR1,$IP_ADDR1,${HOSTNAME1:-vm1}"
+	[ -n "$IP_ADDR2" ] && \
+		hosts="$hosts --dhcp-host=$MAC_ADDR2,$IP_ADDR2,${HOSTNAME2:-vm2}"
 	dnsmasq --no-hosts --no-resolv \
 		--pid-file=/var/run/rapido-dnsmasq-$$.pid \
 		--bind-interfaces \
 		--interface="$BR_DEV" \
 		--except-interface=lo \
-		--dhcp-range="$BR_DHCP_SRV_RANGE" || exit 1
+		--dhcp-range="$BR_DHCP_SRV_RANGE" \
+		${hosts} || exit 1
 	unwind="kill $(cat /var/run/rapido-dnsmasq-$$.pid); ${unwind}"
 	echo "+ started DHCP server"
 fi
