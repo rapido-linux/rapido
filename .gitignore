@@ -3,3 +3,4 @@ initrds/myinitrd
 \#*
 *~
 *.pid
+initrds/
