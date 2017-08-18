@@ -30,10 +30,19 @@ function _zram_hot_add() {
 	chown "$zram_owner" "$zram_dev" || _fail "failed to set $zram_dev owner"
 }
 
+function _usage()
+{
+	echo "Usage: $(basename $0) <size>[K|M|G]"
+	exit 1
+}
+
+modprobe zram
 [ -e /sys/class/zram-control/hot_add ] \
 	|| _fail "zram hot_add sysfs path missing (old kernel?)"
 
+[ "$#" != "1" ] && _usage
+ZRAM_SIZE="$1"
+
 set -x
 
-# TODO: make size a script parameter
-_zram_hot_add "1G" "$TAP_USER"
+_zram_hot_add "$ZRAM_SIZE" "$TAP_USER"

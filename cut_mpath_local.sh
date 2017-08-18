@@ -34,9 +34,10 @@ _rt_require_dracut_args
 	--include "$RAPIDO_DIR/mpath_local_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "virtio_scsi" \
-	--modules "bash base network ifcfg systemd systemd-initrd \
-		   dracut-systemd multipath" \
+	--add-drivers "virtio_scsi virtio_pci sd_mod" \
+	--modules "bash base systemd systemd-initrd dracut-systemd multipath" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT \
 	|| _fail "dracut failed"
+
+_rt_xattr_vm_networkless_set "$DRACUT_OUT"
