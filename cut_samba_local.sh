@@ -24,6 +24,7 @@ _rt_require_dracut_args
 		   fio getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
 		   ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd \
+		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
 		   ${SAMBA_SRC}/bin/default/source3/smbd/smbd" \
 	--include "$RAPIDO_DIR/samba_local_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \

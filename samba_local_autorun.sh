@@ -63,14 +63,20 @@ mkdir -p /usr/local/samba/private/
 mkdir -p /usr/local/samba/lib/
 ln -s ${SAMBA_SRC}/bin/modules/vfs/ /usr/local/samba/lib/vfs
 
+smb_conf_vfs=""
+if [ "$filesystem" == "btrfs" ]; then
+	smb_conf_vfs='vfs objects = btrfs'
+fi
+
 cat > /usr/local/samba/etc/smb.conf << EOF
 [global]
 	workgroup = MYGROUP
 
 [${CIFS_SHARE}]
 	path = /mnt
-	# vfs objects = btrfs
+	$smb_conf_vfs
 	read only = no
+	store dos attributes = yes
 EOF
 
 ${SAMBA_SRC}/bin/default/source3/smbd/smbd || _fatal
