@@ -137,10 +137,15 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #FSTESTS_AUTORUN_CMD=""
 #################################
 
-######## fstests_cifs_autorun.sh ########
-# SMB/CIFS server and authentication details, used to mount the test share.
+## fstests_cifs_autorun.sh and samba_*_autorun.sh ##
+# SMB server and mount options for cifs.ko
 # e.g. CIFS_SERVER="smbserver.example.com"
 #CIFS_SERVER=""
+# e.g. CIFS_MOUNT_OPTS="vers=3.0"
+#CIFS_MOUNT_OPTS=""
+#
+# SMB/CIFS share and authentication details, used for cifs.ko mounts and Samba
+# share configuration.
 # e.g. CIFS_SHARE="myshare"
 #CIFS_SHARE=""
 # e.g. CIFS_DOMAIN="EXAMPLE"
@@ -149,9 +154,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #CIFS_USER=""
 # e.g. CIFS_PW="password"
 #CIFS_PW=""
-# e.g. CIFS_MOUNT_OPTS="vers=3.0"
-#CIFS_MOUNT_OPTS=""
-#################################
+####################################################
 
 ######## cut_fstests_*.sh #########
 # FSTESTS_SRC should correspond to a checkout and build of the xfstests source
@@ -191,4 +194,10 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 ###### dropbear_autorun.sh ######
 # public ssh key to add to Dropbear's authorized_keys file
 #SSH_AUTHORIZED_KEY=""
+#################################
+
+######### cut_samba_*.sh ########
+# SAMBA_SRC should correspond to a checkout and build of Samba.
+# e.g. SAMBA_SRC="/home/me/samba"
+#SAMBA_SRC=""
 #################################
