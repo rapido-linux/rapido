@@ -23,7 +23,8 @@ _rt_require_blktests
 		   getopt tput wc column blktrace losetup parted truncate \
 		   lsblk strace which awk bc touch cut chmod true false mktemp \
 		   killall id sort uniq date expr tac diff head dirname seq \
-		   basename tee egrep hexdump sync fio logger cmp stat" \
+		   basename tee egrep hexdump sync fio logger cmp stat nproc \
+		   xfs_io modinfo blkdiscard realpath" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
