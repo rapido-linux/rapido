@@ -71,6 +71,9 @@ echo "$file_path" \
 	> /sys/kernel/config/target/core/fileio_0/filer/wwn/vpd_unit_serial \
 	|| _fatal
 echo "1" > /sys/kernel/config/target/core/fileio_0/filer/enable || _fatal
+# enable unmap/discard
+echo "1" > /sys/kernel/config/target/core/fileio_0/filer/attrib/emulate_tpu \
+	|| _fatal
 
 #### iblock + dm-delay backstore
 dmdelay_path=/lun_dmdelay
