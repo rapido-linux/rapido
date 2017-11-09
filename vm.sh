@@ -24,7 +24,7 @@ function _vm_is_running
 
 	[ -f $vm_pid_file ] || return
 
-	ps -p "$(cat $vm_pid_file)" > /dev/null && echo "1"
+	ps -p "$(head -n1 $vm_pid_file)" > /dev/null && echo "1"
 }
 
 function _vm_start

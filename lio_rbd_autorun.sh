@@ -84,6 +84,9 @@ echo "${CEPH_RBD_DEV}" > /sys/kernel/config/target/core/rbd_0/rbder/wwn/vpd_unit
 echo "1" > /sys/kernel/config/target/core/rbd_0/rbder/enable || _fatal
 # needs to be done after enable, as target_configure_device() resets it
 echo "SUSE" > /sys/kernel/config/target/core/rbd_0/rbder/wwn/vendor_id || _fatal
+# enable unmap/discard
+echo "1" > /sys/kernel/config/target/core/rbd_0/rbder/attrib/emulate_tpu \
+	|| _fatal
 
 mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN} || _fatal
 
