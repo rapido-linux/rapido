@@ -39,3 +39,5 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT
+
+_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
