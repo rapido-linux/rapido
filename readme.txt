@@ -21,7 +21,7 @@ Rapido has a pretty minimal set of dependencies, which should be present
 on all major Linux distributions.
 - Dracut
 - qemu / KVM
-- tunctl for VM network provisioning
+- iproute2 with 'ip tuntap' support
 
 Once all dependencies have been installed, Rapido can be configured via
 rapido.conf. At a minimum, the VM network configuration and Linux kernel

@@ -17,8 +17,6 @@ RAPIDO_DIR="`dirname $0`/.."
 
 set -x
 
-TUNCTL=$(which tunctl) || _fail "tunctl missing"
-
 if [ -n "$BR_DHCP_SRV_RANGE" ]; then
 	dnsmasq_pid=`ps -eo pid,args | grep -v grep | grep dnsmasq \
 			| grep -- --interface=$BR_DEV \
@@ -36,10 +34,10 @@ ip link set dev $TAP_DEV0 down || exit 1
 ip link set dev $BR_DEV down || exit 1
 
 ip link set $TAP_DEV1 nomaster || exit 1
-$TUNCTL -d $TAP_DEV1 || exit 1
+ip tuntap delete dev $TAP_DEV1 mode tap || exit 1
 
 ip link set $TAP_DEV0 nomaster || exit 1
-$TUNCTL -d $TAP_DEV0 || exit 1
+ip tuntap delete dev $TAP_DEV0 mode tap || exit 1
 
 if [ -n "$BR_IF" ]; then
 	ip link set $BR_IF nomaster || exit 1
