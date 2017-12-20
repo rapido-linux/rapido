@@ -57,7 +57,6 @@ function _apply_addrs() {
 	done < $addrs_file
 }
 
-TUNCTL=$(which tunctl) || _fail "tunctl missing"
 [ -z "$BR_ADDR" ] || _fail "BR_ADDR setting incompatible with ip takeover"
 [ -n "$BR_DEV" ] || _fail "BR_DEV required for IP takeover"
 [ -n "$BR_IF" ] || _fail "BR_IF required for IP takeover"
@@ -105,15 +104,15 @@ unwind="ip link set dev $BR_DEV down; ${unwind}"
 _apply_routes add "$BR_DEV" "${BR_IF_DUMP_DIR}/routes" || exit 1
 
 # setup tap interfaces for VMs
-$TUNCTL -u $TAP_USER -t $TAP_DEV0 || exit 1
-unwind="$TUNCTL -d $TAP_DEV0; ${unwind}"
+ip tuntap add dev $TAP_DEV0 mode tap user $TAP_USER || exit 1
+unwind="ip tuntap delete dev $TAP_DEV0 mode tap; ${unwind}"
 ip link set $TAP_DEV0 master $BR_DEV || exit 1
 unwind="ip link set $TAP_DEV0 nomaster; ${unwind}"
 ip link set $TAP_DEV0 up
 unwind="ip link set $TAP_DEV0 down; ${unwind}"
 
-$TUNCTL -u $TAP_USER -t $TAP_DEV1 || exit 1
-unwind="$TUNCTL -d $TAP_DEV1; ${unwind}"
+ip tuntap add dev $TAP_DEV1 mode tap user $TAP_USER || exit 1
+unwind="ip tuntap delete dev $TAP_DEV1 mode tap; ${unwind}"
 ip link set $TAP_DEV1 master $BR_DEV || exit 1
 unwind="ip link set $TAP_DEV1 nomaster; ${unwind}"
 ip link set $TAP_DEV1 up

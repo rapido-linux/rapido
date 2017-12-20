@@ -15,8 +15,6 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-TUNCTL=$(which tunctl) || _fail "tunctl missing"
-
 # cleanup on premature exit by executing whatever has been prepended to @unwind
 unwind=""
 trap "eval \$unwind" 0 1 2 3 15
@@ -38,14 +36,14 @@ fi
 echo
 
 # setup tap interfaces for VMs
-$TUNCTL -u $TAP_USER -t $TAP_DEV0 || exit 1
-unwind="$TUNCTL -d $TAP_DEV0; ${unwind}"
+ip tuntap add dev $TAP_DEV0 mode tap user $TAP_USER || exit 1
+unwind="ip tuntap delete dev $TAP_DEV0 mode tap; ${unwind}"
 ip link set $TAP_DEV0 master $BR_DEV || exit 1
 unwind="ip link set $TAP_DEV0 nomaster; ${unwind}"
 echo "+ created $TAP_DEV0"
 
-$TUNCTL -u $TAP_USER -t $TAP_DEV1 || exit 1
-unwind="$TUNCTL -d $TAP_DEV1; ${unwind}"
+ip tuntap add dev $TAP_DEV1 mode tap user $TAP_USER || exit 1
+unwind="ip tuntap delete dev $TAP_DEV1 mode tap; ${unwind}"
 ip link set $TAP_DEV1 master $BR_DEV || exit 1
 unwind="ip link set $TAP_DEV1 nomaster; ${unwind}"
 echo "+ created $TAP_DEV1"
