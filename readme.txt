@@ -49,25 +49,21 @@ Once generated, the VM image and kernel can be booted by running
 Architecture
 ============
 
-The "Ceph" configuration and runtime binaries below are only required
-if running one of the CephFS or RBD "cut" scripts.
-
-+--------------------+             +------------------------+
-|                    |             |                        |
-| Ceph configuration |             | Rapido "cut" script    |
-| + ceph.conf        +----------+  |                        |
-| + keyring          |          |  | +--------------------+ |    +-----+
-|                    |          |  | |                    | |    |     |
-+--------------------+          |  | | File manifest:     | |    |     |
-+------------------------+      |  | | + Kernel modules   | |    |     |
-|                        |      v  | | + User-space files | |    |     |
-| Ceph runtime           |      |  | |                    | |    |     |
-| + Compiled from source |      |  | +---------+----------+ |    |     |
-|   + vstart.sh cluster  |      |  |           |            <----+     |
-| or                     |      |  | +---------v----------+ |    |     |
-| + Local host           |      |  | |                    | |    |     |
-|   + Regular Ceph       +------+---->                    | |    |     |
-|     cluster            |      |  | |  Dracut initramfs  | |    |  R  |
+                                   +------------------------+
+                                   |                        |
+                                   | Rapido "cut" script    |
+                                   |                        |
+                                   | +--------------------+ |    +-----+
+                                   | |                    | |    |     |
+                                   | | File manifest:     | |    |     |
++------------------------+         | | + Kernel modules   | |    |     |
+|                        |         | | + User-space files | |    |     |
+| Userspace dependencies |         | |                    | |    |     |
+| E.g.                   |         | +---------+----------+ |    |     |
+| - xfstests, blktests   |         |           |            <----+     |
+| - Ceph conf + binaries |         | +---------v----------+ |    |     |
+| - Samba                +------+---->                    | |    |     |
+| - etc.                 |      |  | |  Dracut initramfs  | |    |  R  |
 |                        |      |  | |  generator         | |    |  a  |
 +------------------------+      ^  | |                    | |    |  p  |
                                 |  | +---------+----------+ |    |  i  |
