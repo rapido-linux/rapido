@@ -27,4 +27,6 @@ _rt_require_dracut_args
 		       target_core_file dm-delay loop" \
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	$DRACUT_OUT || _fail "dracut failed"
+
+_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
