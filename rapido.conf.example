@@ -1,6 +1,5 @@
 # Path to Linux kernel source. Prior to running a "cut_X" script, the kernel
-# should be built, with modules installed (or symlinked) under
-# /lib/modules/<kernel_version>
+# should be built, with modules installed (see KERNEL_INSTALL_MOD_PATH below).
 #
 # e.g. KERNEL_SRC="/home/me/linux"
 KERNEL_SRC=""
