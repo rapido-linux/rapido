@@ -32,6 +32,7 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_COMMON_LIB" "/usr/lib64/libceph-common.so.0" \
 	--include "$CEPHFS_LIB" "/usr/lib64/libcephfs.so.2" \
+	--include "$CEPH_RADOS_LIB" "/usr/lib64/librados.so.2" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RAPIDO_DIR/samba_cephfs_autorun.sh" "/.profile" \
