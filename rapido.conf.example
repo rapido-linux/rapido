@@ -38,7 +38,7 @@ TAP_USER=""
 # redirection.
 #
 # e.g. QEMU_EXTRA_ARGS="-nographic -drive file=/dev/sdz,if=virtio,cache=none,format=raw,index=0"
-# e.g. QEMU_EXTRA_ARGS="-nographic -gdb tcp::1234"
+# e.g. QEMU_EXTRA_ARGS="-nographic -gdb tcp:127.0.0.1:1234"
 QEMU_EXTRA_ARGS="-nographic"
 
 # extra dracut args, e.g. "--debug"
