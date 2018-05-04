@@ -24,11 +24,14 @@ on all major Linux distributions.
 - iproute2 with 'ip tuntap' support
 
 Once all dependencies have been installed, Rapido can be configured via
-rapido.conf. At a minimum, the VM network configuration and Linux kernel
-source parameters should be defined, in order to proceed.
+rapido.conf (see rapido.conf.example). At a minimum, the Linux kernel
+source parameters should be defined.
 
+Test VM images may be "cut" with or without network support. For
+networking, the bridge, tap and MAC address parameters must be specified
+in rapido.conf.
 The tools/br_setup.sh script should be run as root to configure the
-bridge network.
+bridge network device.
 By default, the bridge network is isolated, and isn't connected to any
 physical adapters. All parameters (device names, IP addresses, etc.) are
 configured in rapido.conf.
@@ -44,6 +47,22 @@ initramfs image will be written to initrds/myinitrd.
 
 Once generated, the VM image and kernel can be booted by running
 "vm.sh".
+
+
+Adding Your Own Tests
+=====================
+
+Rapido can be easily extended to test any kernel functionality of
+interest. To do so, make a copy of the cut_simple_example.sh and
+simple_example_autorun.sh scripts, and modify them to suit your needs.
+The example scripts are fully annotated.
+
+
+Feedback and Bug Reporting
+==========================
+
+Please raise any questions or issues upstream via
+https://github.com/rapido-linux/rapido/issues
 
 
 Architecture
