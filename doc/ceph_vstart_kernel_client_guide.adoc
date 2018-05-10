@@ -1,0 +1,250 @@
+= Ceph Kernel Client Testing with vstart
+:toc:
+
+
+== Introduction
+
+Ceph's 'vstart.sh' utility is very useful for deploying and testing a
+mock Ceph cluster directly from the source repository. It can:
+
+* Generate a cluster configuration file and authentication keys
+* Provision and deploy a number of OSDs
+** Backed by local disk or memory
+* Deploy an arbitrary number of monitor, MDS or rados gateway nodes
+
+All services are deployed as the running user. I.e. root access is not
+needed.
+
+Once deployed, the mock cluster can be used with any of the existing
+Ceph client utilities, or exercised with the unit tests in the Ceph
+src/test directory.
+
+When developing or testing Linux kernel changes for CephFS or RBD, it's
+useful to also be able to use these clients against a 'vstart.sh'
+deployed Ceph cluster. This can be done using the procedure outlined
+below, which was performed on openSUSE Leap, but is intended to be
+portable.
+
+
+== Network Setup
+
+'br_setup.sh' creates a bridge network device, assigns a network address
+to it, and connects two new TAP interfaces to the bridge.
+
+* Ceph OSDs, mons and MDSes will listen on the bridge network address
+* Kernel client VMs will be connected to the TAP interfaces directly
+
+The bridge network is isolated by default, i.e. it isn't connected to
+any physical adapters.
+'br_setup.sh' should be run as root:
+
+[source,shell]
+--------------
+sudo tools/br_setup.sh
+# + created bridge br0 with address 192.168.155.1/24		# <1>
+# + created tap0						# <2>
+# + created tap1
+--------------
+<1> The device name and address are configured in 'rapido.conf' via
+    'BR_DEV' and 'BR_ADDR' respectively
+<2> The 'TAP_USER' 'rapido.conf' parameter specifies the owner of the
+    TAP interfaces. This should correspond to the user running Ceph.
+
+For more information on the bridge setup, see:
+http://blog.elastocloud.org/2015/07/qemukvm-bridged-network-with-tap.html
+
+
+== Ceph Cluster Deployment
+
+Once the bridge network has been configured, Ceph can be compiled and
+deployed:
+
+[source,shell]
+--------------
+. rapido.conf							# <1>
+cd $CEPH_SRC
+./do_cmake.sh							# <2>
+cd build
+make -j$(nproc)
+OSD=3 MON=1 RGW=0 MDS=1 ../src/vstart.sh -i 192.168.155.1 -n	# <3>
+--------------
+<1> Include 'rapido.conf' for 'CEPH_SRC' definition, etc.
+<2> See http://docs.ceph.com/docs/master/install/build-ceph/ for help
+    with building Ceph
+<3> The IP address should match the bridge interface address 'BR_ADDR'
+    defined in 'rapido.conf'.
+    A '--memstore' parameter can optionally be added to the 'vstart.sh'
+    invocation if memory backed OSDs are desired.
+
+The mock cluster can be stopped at any time via:
+
+[source,shell]
+cd ${CEPH_SRC}/build
+../src/stop.sh
+
+
+== Ceph Cluster Initialisation
+
+'vstart.sh' deploys the Ceph cluster with a CephFS filesystem already
+provisioned:
+
+[source,shell]
+--------------
+export PATH="${CEPH_SRC}/build/bin:${PATH}"			# <1>
+rados lspools
+# cephfs_data_a
+# cephfs_metadata_a
+ceph fs ls
+# name: cephfs_a, metadata pool: cephfs_metadata_a, data pools: [cephfs_data_a ]
+--------------
+<1> Use the binaries from compiled Ceph source
+
+For RBD testing (e.g. via 'cut_rbd.sh'), a pool and image must be
+created, e.g.:
+
+[source,shell]
+--------------
+rados mkpool $CEPH_RBD_POOL
+rbd create --size 1G --pool $CEPH_RBD_POOL $CEPH_RBD_IMAGE	# <1>
+rbd ls -l
+# NAME           SIZE PARENT FMT PROT LOCK
+# iscsi_test       1G          2
+--------------
+<1> 'CEPH_RBD_POOL' and 'CEPH_RBD_IMAGE' are defined in 'rapido.conf'
+
+
+== Kernel Build
+
+Checkout the kernel source, and specify the path in 'rapido.conf'.
+Enter the source directory:
+[source,shell]
+cd $KERNEL_SRC
+
+Generate a suitable kernel build config. 'vanilla_config' is provided as
+a minimal sample config with all Ceph client components enabled:
+
+[source,shell]
+cp <rapido_source_dir>/kernel/vanilla_config .config
+
+or
+
+[source,shell]
+make menuconfig
+# set CONFIG_BLK_DEV_RBD=y, CONFIG_CEPH_FS=y, CONFIG_CEPH_LIB=y,
+#	CONFIG_E1000=y and CONFIG_IP_PNP=y
+
+Compile the kernel, and install the modules into a mods subdirectory:
+
+[source,shell]
+--------------
+make
+INSTALL_MOD_PATH=./mods make modules_install			# <1>
+--------------
+<1> The './mods' install path used here assumes a 'rapido.conf'
+    configuration with 'KERNEL_INSTALL_MOD_PATH' set to the default
+    '"$KERNEL_SRC/mods"'
+
+
+== Kernel Client VM Generation
+
+Rapido ships with scripts for Ceph kernel client VM generation:
+
+* 'cut_rbd.sh': generates a simple RBD client VM
+* 'cut_blktests_rbd.sh': generates a RBD client VM, which also includes
+   the https://github.com/osandov/blktests[blktests test suite]
+* 'cut_cephfs.sh': generates a simple CephFS client VM
+* 'cut_fstests_cephfs.sh': generates a CephFS client VM, which also
+  includes the https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git[
+  xfstests test suite]
+
+The 'cut' scripts use Dracut to generate a VM image with all
+dependencies included for the corresponding Ceph kernel client. The
+images are very lightweight (20M-40M).
+
+The VM images will need to be regenerated if any of the following
+components/files are changed:
+
+* 'rapido.conf'
+* Ceph 'vstart.sh' cluster configuration/keyring
+* Ceph binaries
+* Kernel modules
+
+For more information on kernel/Dracut setup, see:
+http://blog.elastocloud.org/2015/06/rapid-linux-kernel-devtest-with-qemu.html
+
+
+== Kernel VM Deployment
+
+Once a VM has been generated, it can be booted directly via 'vm.sh' .
+The same image can be booted twice, to allow for multiple CephFS/RBD
+clients or iSCSI gateways. Network parameters for both VMs are defined
+in 'rapido.conf'.
+
+The VMs run the corresponding autorun script (e.g. 'rbd_autorun.sh'
+or 'cephfs_autorun.sh') during boot, and then present an interactive
+Dracut shell. The VMs can be shutdown via the 'shutdown' command.
+
+
+== Kernel RBD Usage
+
+If the client VM was generated using 'cut_rbd.sh', then
+'rbd_autorun.sh' will be executed on boot. 'rbd_autorun.sh' performs
+the following:
+
+* Initialises udev and then mounts configfs and debugfs
+* Maps the 'rapido.conf' configured RBD image locally at '/dev/rbd0'
+  and '/dev/rbd/$CEPH_RBD_POOL/$CEPH_RBD_IMAGE'
+
+Once deployed, 'dd' can be used to perform I/O against the mapped RBD
+image.
+
+'cut_blktests_rbd.sh' (and corresponding 'blktests_rbd_autorun.sh')
+additionally configure and start the blktests test suite, following
+successful mapping of the RBD image. 'BLKTESTS_SRC' and optionally
+'BLKTESTS_AUTORUN_CMD' should be configured in 'rapido.conf' prior to
+using this functionality.
+
+When finished, the RBD image can be unmapped via:
+
+[source,shell]
+echo -n 0 > /sys/bus/rbd/remove
+
+
+== Kernel CephFS Usage
+
+If the client VM was generated using 'cut_cephfs.sh', then
+'cephfs_autorun.sh' will be executed on boot, performing the following:
+
+* Mounts configfs and debugfs
+* Mounts the 'vstart.sh' provisioned CephFS filesystem under /mnt/test
+
+'cut_fstests_cephfs.sh' with its corresponding
+'fstests_cephfs_autorun.sh' boot script additionally:
+
+* Generates an xfstests configuration under '/fstests/configs/'
+* Starts the xfstests test suite via the optional 'FSTESTS_AUTORUN_CMD'
+  'rapido.conf' parameter
+
+xfstests can also be manually invoked from a 'cut_fstests_cephfs.sh' VM
+shell via:
+
+[source,shell]
+cd /fstests
+./check generic/001
+
+When finished, the filesystem can be unmounted via:
+
+[source,shell]
+umount /mnt/test
+
+
+== Conclusion
+
+A mock Ceph cluster can be deployed from source in a matter of seconds
+using the 'vstart.sh' utility.
+Likewise, a kernel can be booted directly from source alongside a
+throwaway VM and connected to the mock Ceph cluster in a couple of
+minutes with QEMU/KVM.
+
+This environment is ideal for rapid development and integration testing
+of Ceph user-space and kernel components, including RBD and CephFS.
