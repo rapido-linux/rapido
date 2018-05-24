@@ -12,7 +12,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-if [ ! -f /early_cpio ]; then
+if [ ! -f /vm_autorun.env ]; then
 	echo "Error: autorun scripts must be run from within an initramfs VM"
 	exit 1
 fi
