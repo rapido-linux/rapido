@@ -29,11 +29,6 @@ echo "${CIFS_USER}:x:${cifs_xid}:${cifs_xid}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
 echo "${CIFS_USER}:x:${cifs_xid}:" >> /etc/group
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 modprobe zram num_devices="1" || _fatal "failed to load zram module"
 
 _vm_ar_dyn_debug_enable

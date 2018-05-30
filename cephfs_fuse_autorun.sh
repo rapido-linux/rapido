@@ -21,11 +21,6 @@ fi
 
 set -x
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 modprobe fuse
 
 _vm_ar_dyn_debug_enable

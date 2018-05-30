@@ -27,11 +27,6 @@ fi
 
 set -x
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 _vm_ar_dyn_debug_enable
 
 mkdir --mode=0700 -p /etc/dropbear/ || _fatal

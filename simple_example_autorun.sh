@@ -25,14 +25,6 @@ fi
 # echo shell commands as they are executed
 set -x
 
-# mount kernel configfs
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
-# actual *test* script starts below...
-
 # load the zram kernel module, which was installed via the --add-drivers "zram"
 # parameter in the cut script. Provision a single zram device
 modprobe zram num_devices="1" || _fatal "failed to load zram module"

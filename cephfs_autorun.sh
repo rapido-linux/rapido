@@ -40,11 +40,6 @@ else
 	MON_ADDRESS="$mon_addr"
 fi
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 _vm_ar_dyn_debug_enable
 
 mkdir -p /mnt/cephfs

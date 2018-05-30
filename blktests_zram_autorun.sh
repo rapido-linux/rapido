@@ -25,11 +25,6 @@ set -x
 BLKTESTS_DIR="/blktests"
 [ -d "$BLKTESTS_DIR" ] || _fatal "blktests missing"
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 modprobe zram num_devices="1" || _fatal "failed to load zram module"
 
 _vm_ar_dyn_debug_enable

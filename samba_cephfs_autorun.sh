@@ -27,11 +27,6 @@ echo "${CIFS_USER}:x:${cifs_xid}:${cifs_xid}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
 echo "${CIFS_USER}:x:${cifs_xid}:" >> /etc/group
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 _vm_ar_dyn_debug_enable
 
 sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \

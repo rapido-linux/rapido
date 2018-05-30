@@ -32,11 +32,6 @@ cat > /etc/hosts <<EOF
 127.0.0.1	$hostname_fqn	$hostname_short
 EOF
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 _vm_ar_dyn_debug_enable
 
 set +x

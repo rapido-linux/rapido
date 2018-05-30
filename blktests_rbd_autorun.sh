@@ -52,11 +52,6 @@ udevadm settle || _fatal
 # confirm that udev brought up the $pool/$img device path link
 [ -L $CEPH_RBD_DEV ] || _fatal
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 _vm_ar_dyn_debug_enable
 
 echo "TEST_DEVS=(${CEPH_RBD_DEV})" > ${BLKTESTS_DIR}/config
