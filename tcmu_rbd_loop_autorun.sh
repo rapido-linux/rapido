@@ -35,11 +35,6 @@ tcmu_dev_size="$(( $CEPH_RBD_IMAGE_MB * 1024 * 1024 ))"
 ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
 	|| /usr/lib/systemd/systemd-udevd --daemon
 
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
 cat /proc/mounts | grep configfs &> /dev/null
 if [ $? -ne 0 ]; then
 	mount -t configfs configfs /sys/kernel/config/
@@ -48,12 +43,7 @@ fi
 modprobe target_core_user || _fatal "failed to load LIO kernel module"
 modprobe tcm_loop || _fatal "failed to load LIO kernel module"
 
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
+_vm_ar_dyn_debug_enable
 
 ln -s /lib64/librbd.so /lib64/librbd.so.1
 ln -s /lib64/librados.so /lib64/librados.so.2

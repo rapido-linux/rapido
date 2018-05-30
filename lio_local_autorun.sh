@@ -28,12 +28,6 @@ ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
 	|| /usr/lib/systemd/systemd-udevd --daemon
 udevadm settle || _fatal
 
-# enable debugfs
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
 # mount configfs first
 cat /proc/mounts | grep configfs &> /dev/null
 if [ $? -ne 0 ]; then
@@ -45,12 +39,7 @@ modprobe target_core_iblock || _fatal
 modprobe target_core_file || _fatal
 modprobe iscsi_target_mod || _fatal
 
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
+_vm_ar_dyn_debug_enable
 
 [ -d /sys/kernel/config/target/iscsi ] \
 	|| mkdir /sys/kernel/config/target/iscsi || _fatal

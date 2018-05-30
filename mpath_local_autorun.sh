@@ -21,18 +21,7 @@ fi
 
 set -x
 
-# enable debugfs
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
+_vm_ar_dyn_debug_enable
 
 multipath -ll
 set +x

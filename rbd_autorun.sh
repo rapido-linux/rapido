@@ -48,18 +48,7 @@ udevadm settle || _fatal
 # confirm that udev brought up the $pool/$img device path link
 [ -L $CEPH_RBD_DEV ] || _fatal
 
-# enable debugfs
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
+_vm_ar_dyn_debug_enable
 
 set +x
 

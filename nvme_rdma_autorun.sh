@@ -40,11 +40,6 @@ set -x
 ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
 	|| /usr/lib/systemd/systemd-udevd --daemon
 
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
 modprobe configfs
 cat /proc/mounts | grep configfs &> /dev/null
 if [ $? -ne 0 ]; then
@@ -64,12 +59,7 @@ modprobe nvme-rdma
 modprobe nvmet
 modprobe zram num_devices="0"
 
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
+_vm_ar_dyn_debug_enable
 
 echo eth0 > /sys/module/rdma_rxe/parameters/add
 
