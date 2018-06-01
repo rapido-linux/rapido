@@ -122,12 +122,12 @@ CEPH_RBD_IMAGE="iscsi_test"
 CEPH_RBD_IMAGE_MB="4096"
 ###########################
 
-####### lio_local_autorun, lio_rbd_autorun and rbd_autorun #######
-# IQN for the iSCSI target configured by lio_*_autorun.sh
+####### lio_*_autorun.sh and tgt_local_autorun.sh #######
+# IQN to use for the iSCSI target
 TARGET_IQN="iqn.2003-01.org.linux-iscsi:rapido"
 
-# List of initiator IQNs granted full access to the lio_*_autorun.sh iSCSI
-# target. Defaults below correspond to the libiscsi test utility.
+# List of initiator IQNs granted full access to the iSCSI target. Defaults below
+# correspond to the libiscsi test utility.
 INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 		iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test-2"
 ###########################
