@@ -25,37 +25,19 @@ fi
 # echo shell commands as they are executed
 set -x
 
-# mount kernel debugfs
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-# mount kernel configfs
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
-# enable dynamic debug for any modules or files specified in rapido.conf
-# all kernel modules *should* be loaded before reaching this point
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-
-set +x
-
-# actual *test* script starts below...
-
 # load the zram kernel module, which was installed via the --add-drivers "zram"
 # parameter in the cut script. Provision a single zram device
 modprobe zram num_devices="1" || _fatal "failed to load zram module"
 # failures resulting in a call to _fatal() will shutdown the VM
 
+# enable dynamic debug for any DYN_DEBUG_MODULES or DYN_DEBUG_FILES specified in
+# rapido.conf. All kernel modules *should* be loaded before calling
+_vm_ar_dyn_debug_enable
+
 # set the size of the zram device.
 echo "100M" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
+
+set +x
 
 echo "Rapido scratch VM running. Have a lot of fun..."
 # end of *test* script.

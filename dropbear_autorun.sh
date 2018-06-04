@@ -27,22 +27,7 @@ fi
 
 set -x
 
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
+_vm_ar_dyn_debug_enable
 
 mkdir --mode=0700 -p /etc/dropbear/ || _fatal
 if [ -n "$SSH_AUTHORIZED_KEY" ]; then

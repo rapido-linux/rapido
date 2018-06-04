@@ -36,9 +36,12 @@ TAP_USER=""
 # "-nographic" sees the emulated serial port redirected to the invoking console.
 # "-display none -daemonize" can be used to run VMs in the background, without
 # redirection.
+# "-device virtio-rng-pci" sees the guest make use of /dev/random on the
+# hypervisor for random number generation.
 #
 # e.g. QEMU_EXTRA_ARGS="-nographic -drive file=/dev/sdz,if=virtio,cache=none,format=raw,index=0"
 # e.g. QEMU_EXTRA_ARGS="-nographic -gdb tcp:127.0.0.1:1234"
+# e.g. QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 QEMU_EXTRA_ARGS="-nographic"
 
 # extra dracut args, e.g. "--debug"

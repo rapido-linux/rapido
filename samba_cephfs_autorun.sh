@@ -27,22 +27,7 @@ echo "${CIFS_USER}:x:${cifs_xid}:${cifs_xid}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
 echo "${CIFS_USER}:x:${cifs_xid}:" >> /etc/group
 
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
+_vm_ar_dyn_debug_enable
 
 sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#admin socket = .*##g; \

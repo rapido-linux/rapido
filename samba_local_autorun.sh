@@ -29,17 +29,9 @@ echo "${CIFS_USER}:x:${cifs_xid}:${cifs_xid}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
 echo "${CIFS_USER}:x:${cifs_xid}:" >> /etc/group
 
-cat /proc/mounts | grep debugfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t debugfs debugfs /sys/kernel/debug/
-fi
-
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
-
 modprobe zram num_devices="1" || _fatal "failed to load zram module"
+
+_vm_ar_dyn_debug_enable
 
 echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
 
@@ -48,13 +40,6 @@ mkfs.${filesystem} /dev/zram0 || _fatal "mkfs failed"
 mkdir -p /mnt/
 mount -t $filesystem /dev/zram0 /mnt/ || _fatal
 chmod 777 /mnt/ || _fatal
-
-for i in $DYN_DEBUG_MODULES; do
-	echo "module $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
-for i in $DYN_DEBUG_FILES; do
-	echo "file $i +pf" > /sys/kernel/debug/dynamic_debug/control || _fatal
-done
 
 mkdir -p /usr/local/samba/var/
 mkdir -p /usr/local/samba/etc/
