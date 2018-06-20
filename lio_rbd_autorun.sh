@@ -41,15 +41,20 @@ _vm_ar_dyn_debug_enable
 
 [ -d /sys/kernel/config/target/iscsi ] \
 	|| mkdir /sys/kernel/config/target/iscsi || _fatal
+# no need to create PR state directory, as it's stored in RADOS
 
 # iSCSI Discovery authentication information
 echo -n 0 > /sys/kernel/config/target/iscsi/discovery_auth/enforce_discovery_auth
 
 # rbd backed block device
 mkdir -p /sys/kernel/config/target/core/rbd_0/rbder || _fatal
-echo "udev_path=${CEPH_RBD_DEV}" > /sys/kernel/config/target/core/rbd_0/rbder/control || _fatal
-echo "${CEPH_RBD_DEV}" > /sys/kernel/config/target/core/rbd_0/rbder/wwn/vpd_unit_serial || _fatal
-
+echo "udev_path=${CEPH_RBD_DEV}" \
+	> /sys/kernel/config/target/core/rbd_0/rbder/control || _fatal
+serial="${CEPH_RBD_DEV//\//_}"	# replace '/' for SCSI serial number
+mkdir -p /var/target/alua/tpgs_${serial} || _fatal
+echo "$serial" \
+	> /sys/kernel/config/target/core/rbd_0/rbder/wwn/vpd_unit_serial \
+	|| _fatal
 echo "1" > /sys/kernel/config/target/core/rbd_0/rbder/enable || _fatal
 # needs to be done after enable, as target_configure_device() resets it
 echo "SUSE" > /sys/kernel/config/target/core/rbd_0/rbder/wwn/vendor_id || _fatal

@@ -43,6 +43,7 @@ _vm_ar_dyn_debug_enable
 
 [ -d /sys/kernel/config/target/iscsi ] \
 	|| mkdir /sys/kernel/config/target/iscsi || _fatal
+mkdir -p /var/target/pr || _fatal
 
 #### iSCSI Discovery authentication information
 echo -n 0 > /sys/kernel/config/target/iscsi/discovery_auth/enforce_discovery_auth
@@ -56,7 +57,9 @@ echo "fd_dev_name=${file_path}" \
 	> /sys/kernel/config/target/core/fileio_0/filer/control || _fatal
 echo "fd_dev_size=${file_size_b}" \
 	> /sys/kernel/config/target/core/fileio_0/filer/control || _fatal
-echo "$file_path" \
+serial="${file_path//\//_}"	# replace '/' for SCSI serial number
+mkdir -p /var/target/alua/tpgs_${serial} || _fatal
+echo "$serial" \
 	> /sys/kernel/config/target/core/fileio_0/filer/wwn/vpd_unit_serial \
 	|| _fatal
 echo "1" > /sys/kernel/config/target/core/fileio_0/filer/enable || _fatal
@@ -82,7 +85,9 @@ dmdelay_dev="/dev/dm-0"
 mkdir -p /sys/kernel/config/target/core/iblock_0/delayer || _fatal
 echo "udev_path=${dmdelay_dev}" \
 	> /sys/kernel/config/target/core/iblock_0/delayer/control || _fatal
-echo "$dmdelay_dev" \
+serial="${dmdelay_dev//\//_}"
+mkdir -p /var/target/alua/tpgs_${serial} || _fatal
+echo "$serial" \
 	> /sys/kernel/config/target/core/iblock_0/delayer/wwn/vpd_unit_serial \
 	|| _fatal
 echo "1" > /sys/kernel/config/target/core/iblock_0/delayer/enable || _fatal
@@ -96,7 +101,9 @@ for iblock_dev in $export_blockdevs; do
 	echo "udev_path=${iblock_dev}" \
 		> /sys/kernel/config/target/core/iblock_${i}/blocker/control \
 		|| _fatal
-	echo "$iblock_dev" \
+	serial="${iblock_dev//\//_}"
+	mkdir -p /var/target/alua/tpgs_${serial} || _fatal
+	echo "$serial" \
 	 > /sys/kernel/config/target/core/iblock_${i}/blocker/wwn/vpd_unit_serial \
 		|| _fatal
 	echo "1" > /sys/kernel/config/target/core/iblock_${i}/blocker/enable \
@@ -177,7 +184,7 @@ for tpgt in tpgt_1 tpgt_2; do
 	echo "CHAP,None" > /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/param/AuthMethod
 
 	for initiator in $INITIATOR_IQNS; do
-		# hash IQN and concat first 10 bytes with LUN as ID (XXX serial number?)
+		# hash IQN and concat first 10 bytes with LUN as ID
 		IQN_SHA=`echo $initiator | sha256sum -`
 		IQN_SHA=${IQN_SHA:0:9}
 		echo "provisioning ACL for $initiator (${IQN_SHA})"
