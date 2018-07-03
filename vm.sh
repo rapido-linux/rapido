@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2016-2018, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -36,8 +36,8 @@ function _vm_start
 	[ -f "$DRACUT_OUT" ] \
 	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
 
-	if [ -z "$vm_num" ] || [ $vm_num -lt 1 ] || [ $vm_num -gt 2 ]; then
-		_fail "a maximum of two network connected VMs are supported"
+	if [ -z "$vm_num" ] || [ $vm_num -lt 1 ]; then
+		_fail "invalid vm_num: $vm_num"
 	fi
 
 	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
@@ -50,6 +50,8 @@ function _vm_start
 		qemu_netdev="-net none"	# override default (-net nic -net user)
 	else
 		eval local mac_addr='$MAC_ADDR'${vm_num}
+		[ -n "$mac_addr" ] \
+			|| _fail "MAC_ADDR${vm_num} not configured"
 		eval local tap='$TAP_DEV'$((vm_num - 1))
 		[ -n "$tap" ] \
 			|| _fail "TAP_DEV$((vm_num - 1)) not configured"
@@ -92,7 +94,8 @@ function _vm_start
 
 set -x
 
-[ -z "$(_vm_is_running 1)" ] && _vm_start 1
-[ -z "$(_vm_is_running 2)" ] && _vm_start 2
+for i in `seq 1 "$VM_MAX_COUNT"`; do
+	[ -z "$(_vm_is_running ${i})" ] && _vm_start "$i"
+done
 # _vm_start exits when done, so we only get here if none were started
-_fail "Currently Rapido only supports a maximum of two VMs"
+_fail "Currently Rapido only supports a maximum of $VM_MAX_COUNT VMs"
