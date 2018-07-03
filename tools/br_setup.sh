@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2016-2018, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -35,39 +35,62 @@ if [ -n "$BR_IF" ]; then
 fi
 echo
 
-# setup tap interfaces for VMs
-ip tuntap add dev $TAP_DEV0 mode tap user $TAP_USER || exit 1
-unwind="ip tuntap delete dev $TAP_DEV0 mode tap; ${unwind}"
-ip link set $TAP_DEV0 master $BR_DEV || exit 1
-unwind="ip link set $TAP_DEV0 nomaster; ${unwind}"
-echo "+ created $TAP_DEV0"
+function _br_tap_setup() {
+	local tap_dev="$1"
 
-ip tuntap add dev $TAP_DEV1 mode tap user $TAP_USER || exit 1
-unwind="ip tuntap delete dev $TAP_DEV1 mode tap; ${unwind}"
-ip link set $TAP_DEV1 master $BR_DEV || exit 1
-unwind="ip link set $TAP_DEV1 nomaster; ${unwind}"
-echo "+ created $TAP_DEV1"
+	ip tuntap add dev $tap_dev mode tap user $TAP_USER || _fail
+	unwind="ip tuntap delete dev $tap_dev mode tap; ${unwind}"
+
+	ip link set $tap_dev master $BR_DEV || _fail
+	unwind="ip link set $tap_dev nomaster; ${unwind}"
+
+	ip link set dev $tap_dev up || exit 1
+	unwind="ip link set dev $tap_dev down; ${unwind}"
+
+	echo "+ created $tap_dev"
+}
+
+dhcp_hosts=""
+
+# setup tap interfaces for VMs
+for vm_num in `seq 1 "$VM_MAX_COUNT"`; do
+	eval mac_addr='$MAC_ADDR'${vm_num}
+	if [ -z "$mac_addr" ]; then
+		echo "MAC_ADDR${vm_num} not configured"
+		continue
+	fi
+	eval tap='$TAP_DEV'$((vm_num - 1))
+	[ -z "$tap" ] \
+		&& _fail "TAP_DEV$((vm_num - 1)) not configured"
+
+	_br_tap_setup "$tap"
+
+	[ -z "$BR_DHCP_SRV_RANGE" ] \
+		&& continue	# no DHCP server
+
+	eval ip='$IP_ADDR'${vm_num}
+	[ -z "$ip" ] \
+		&& continue	# no VM IP assigned for DHCP
+
+	# add an explicit DHCP server host entry for this VM
+	dhcp_hosts="$dhcp_hosts --dhcp-host=${mac_addr},${ip}"
+
+	eval hn='$HOSTNAME'${vm_num}
+	[ -n "$hn" ] \
+		&& dhcp_hosts="${dhcp_hosts},${hn}" # append explicit hostname
+done
 
 ip link set dev $BR_DEV up || exit 1
 unwind="ip link set dev $BR_DEV down; ${unwind}"
-ip link set dev $TAP_DEV0 up || exit 1
-unwind="ip link set dev $TAP_DEV0 down; ${unwind}"
-ip link set dev $TAP_DEV1 up || exit 1
-unwind="ip link set dev $TAP_DEV1 down; ${unwind}"
 
 if [ -n "$BR_DHCP_SRV_RANGE" ]; then
-	hosts=
-	[ -n "$IP_ADDR1" ] && \
-		hosts="$hosts --dhcp-host=$MAC_ADDR1,$IP_ADDR1,${HOSTNAME1:-vm1}"
-	[ -n "$IP_ADDR2" ] && \
-		hosts="$hosts --dhcp-host=$MAC_ADDR2,$IP_ADDR2,${HOSTNAME2:-vm2}"
 	dnsmasq --no-hosts --no-resolv \
 		--pid-file=/var/run/rapido-dnsmasq-$$.pid \
 		--bind-interfaces \
 		--interface="$BR_DEV" \
 		--except-interface=lo \
 		--dhcp-range="$BR_DHCP_SRV_RANGE" \
-		${hosts} || exit 1
+		${dhcp_hosts} || exit 1
 	unwind="kill $(cat /var/run/rapido-dnsmasq-$$.pid); ${unwind}"
 	echo "+ started DHCP server"
 fi

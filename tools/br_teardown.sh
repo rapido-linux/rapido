@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2017-2018, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -29,15 +29,20 @@ if [ -n "$BR_DHCP_SRV_RANGE" ]; then
 	kill "$dnsmasq_pid"
 fi
 
-ip link set dev $TAP_DEV1 down || exit 1
-ip link set dev $TAP_DEV0 down || exit 1
+for vm_num in `seq 1 "$VM_MAX_COUNT"`; do
+	eval mac_addr='$MAC_ADDR'${vm_num}
+	if [ -z "$mac_addr" ]; then
+		continue
+	fi
+	eval tap='$TAP_DEV'$((vm_num - 1))
+	[ -z "$tap" ] \
+		&& _fail "TAP_DEV$((vm_num - 1)) not configured"
+	ip link set dev $tap down || exit 1
+	ip link set $tap nomaster || exit 1
+	ip tuntap delete dev $tap mode tap || exit 1
+done
+
 ip link set dev $BR_DEV down || exit 1
-
-ip link set $TAP_DEV1 nomaster || exit 1
-ip tuntap delete dev $TAP_DEV1 mode tap || exit 1
-
-ip link set $TAP_DEV0 nomaster || exit 1
-ip tuntap delete dev $TAP_DEV0 mode tap || exit 1
 
 if [ -n "$BR_IF" ]; then
 	ip link set $BR_IF nomaster || exit 1

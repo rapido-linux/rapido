@@ -95,6 +95,14 @@ IP_ADDR2="192.168.155.102"
 HOSTNAME2="rapido2"
 #############################
 
+######### Third VM #########
+#TAP_DEV2="tap2"
+#MAC_ADDR3=""
+##IP_ADDR3_DHCP="1"
+#IP_ADDR3="192.168.155.103"
+#HOSTNAME3="rapido3"
+#############################
+
 ##### Ceph globals #####
 # CEPH_SRC should correspond to a checkout and build of the Ceph source
 # available at https://github.com/ceph/ceph. Only required if a Ceph specific
