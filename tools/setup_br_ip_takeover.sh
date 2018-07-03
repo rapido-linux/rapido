@@ -69,11 +69,6 @@ BR_IF_DUMP_DIR=`mktemp --tmpdir -d ${BR_IF}_addr_dump.XXXXXXXXXX` || exit 1
 unwind="rmdir $BR_IF_DUMP_DIR"
 trap "eval \$unwind" 0 1 2 3 15
 
-ip link add $BR_DEV type bridge || exit 1
-unwind="ip link delete $BR_DEV type bridge; ${unwind}"
-
-ip link set dev $BR_DEV down || exit 1
-
 ip -6 addr list dev $BR_IF \
 	| sed -n 's#\(scope \w*\).*$#\1#; s#\s*inet6\s*##p' \
 	> ${BR_IF_DUMP_DIR}/inet6_addrs || exit 1
@@ -92,31 +87,14 @@ _apply_routes del "$BR_IF" "${BR_IF_DUMP_DIR}/routes" || exit 1
 _apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
 _apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
 
-ip link set $BR_IF master $BR_DEV || exit 1
-unwind="ip link set $BR_IF nomaster; ${unwind}"
+# use regular bridge setup helper to provision BR_DEV and taps
+${RAPIDO_DIR}/tools/br_setup.sh || exit 1
+unwind="${RAPIDO_DIR}/tools/br_teardown.sh; ${unwind}"
 
 _apply_addrs add "$BR_DEV" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
 _apply_addrs add "$BR_DEV" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
 
-ip link set dev $BR_DEV up
-unwind="ip link set dev $BR_DEV down; ${unwind}"
-
 _apply_routes add "$BR_DEV" "${BR_IF_DUMP_DIR}/routes" || exit 1
-
-# setup tap interfaces for VMs
-ip tuntap add dev $TAP_DEV0 mode tap user $TAP_USER || exit 1
-unwind="ip tuntap delete dev $TAP_DEV0 mode tap; ${unwind}"
-ip link set $TAP_DEV0 master $BR_DEV || exit 1
-unwind="ip link set $TAP_DEV0 nomaster; ${unwind}"
-ip link set $TAP_DEV0 up
-unwind="ip link set $TAP_DEV0 down; ${unwind}"
-
-ip tuntap add dev $TAP_DEV1 mode tap user $TAP_USER || exit 1
-unwind="ip tuntap delete dev $TAP_DEV1 mode tap; ${unwind}"
-ip link set $TAP_DEV1 master $BR_DEV || exit 1
-unwind="ip link set $TAP_DEV1 nomaster; ${unwind}"
-ip link set $TAP_DEV1 up
-unwind="ip link set $TAP_DEV1 down; ${unwind}"
 
 rm ${BR_IF_DUMP_DIR}/routes ${BR_IF_DUMP_DIR}/*addrs
 rmdir ${BR_IF_DUMP_DIR}
