@@ -51,16 +51,20 @@ ln -s ${SAMBA_SRC}/bin/modules/vfs/ /usr/local/samba/lib/vfs
 # XXX these paths are a mess
 ln -s ${SAMBA_SRC}/bin/default /usr/local/samba/libexec
 ln -s ${SAMBA_SRC}/bin/default/ctdb /usr/local/libexec/ctdb
+# renamed with Samba 4.9 events.d -> event
+ctdb_events_dir="$(ls -d ${SAMBA_SRC}/ctdb/config/events*)"
+ln -s "$ctdb_events_dir" /usr/local/samba/etc/ctdb/
+
 # FIXME: 00.ctdb.script calls CTDB, which default to the path below
 ln -s ${SAMBA_SRC}/bin/default/ctdb/ctdb /usr/local/bin/ctdb
 # 00.ctdb.script uses $PATH for tdbtool
 export PATH="${SAMBA_SRC}/bin/default/lib/tdb/:${PATH}"
 export PATH="${SAMBA_SRC}/bin/default/ctdb/:${PATH}"
 
-# disable all event scripts by default
-for es in $(find /usr/local/samba/etc/ctdb/events); do
+# disable all event scripts by default. ".script" suffix is for Samba 4.9+
+for es in $(find "$ctdb_events_dir"); do
 	case "${es##*/}" in
-		"00.ctdb.script")
+		"00.ctdb"|"00.ctdb.script")
 			chmod 755 "$es" ;;
 		*)
 			chmod 644 "$es" ;;
