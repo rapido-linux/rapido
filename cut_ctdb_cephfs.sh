@@ -26,11 +26,11 @@ if [ -z "$MAC_ADDR1" ] || [ -z "$MAC_ADDR2" ] || [ -z "$MAC_ADDR3" ]; then
 	_fail "$0 requires three VM network adapters in rapido.conf"
 fi
 
-# XXX Samba 4.10 paths are currently assumed. Some binaries / scripts have
-# recently changed path:
-# - ctdb_eventd -> ctdb-eventd?
-# - ctdb_event -> ctdb-event?
+# XXX a few paths changed for Samba 4.9+:
+# - ctdb_eventd -> ctdb-eventd
+# - ctdb_event -> ctdb-event
 # - config/events.d -> config/events
+# - ctdb-config & ctdb-path -> new binaries
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace xargs timeout \
 		   which perl awk bc touch cut chmod true false \
@@ -44,8 +44,8 @@ fi
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdb \
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdb-config \
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdbd \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb-event \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb-eventd \
+		   ${SAMBA_SRC}/bin/default/ctdb/ctdb?event \
+		   ${SAMBA_SRC}/bin/default/ctdb/ctdb?eventd \
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_killtcp \
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_lock_helper \
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_mutex_fcntl_helper \
@@ -55,8 +55,7 @@ fi
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_takeover_helper \
 		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_mutex_ceph_rados_helper \
 		   $LIBS_INSTALL_LIST" \
-	--include "${SAMBA_SRC}/ctdb/config/events" \
-		  "/usr/local/samba/etc/ctdb/events" \
+	--include "$CTDB_EVENTS_DIR" "$CTDB_EVENTS_DIR" \
 	--include "${SAMBA_SRC}/ctdb/config/functions" \
 		  "/usr/local/samba/etc/ctdb/functions" \
 	--include "$CEPH_COMMON_LIB" "/usr/lib64/libceph-common.so.0" \
