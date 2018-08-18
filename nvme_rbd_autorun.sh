@@ -29,10 +29,7 @@ CEPH_RBD_DEV=/dev/rbd/${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}
 [ -L $CEPH_RBD_DEV ] || _fatal
 
 modprobe configfs
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
+_vm_ar_configfs_mount
 
 modprobe nvme-core
 modprobe nvme-fabrics

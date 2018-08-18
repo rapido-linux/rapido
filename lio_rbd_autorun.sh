@@ -28,11 +28,7 @@ _vm_ar_rbd_map
 CEPH_RBD_DEV=/dev/rbd/${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}
 [ -L $CEPH_RBD_DEV ] || _fatal
 
-# mount configfs first
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
+_vm_ar_configfs_mount
 
 modprobe target_core_mod || _fatal
 modprobe target_core_rbd || _fatal
