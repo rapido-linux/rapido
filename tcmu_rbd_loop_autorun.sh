@@ -35,10 +35,7 @@ tcmu_dev_size="$(( $CEPH_RBD_IMAGE_MB * 1024 * 1024 ))"
 ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
 	|| /usr/lib/systemd/systemd-udevd --daemon
 
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
+_vm_ar_configfs_mount
 
 modprobe target_core_user || _fatal "failed to load LIO kernel module"
 modprobe tcm_loop || _fatal "failed to load LIO kernel module"

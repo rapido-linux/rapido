@@ -41,10 +41,7 @@ ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
 	|| /usr/lib/systemd/systemd-udevd --daemon
 
 modprobe configfs
-cat /proc/mounts | grep configfs &> /dev/null
-if [ $? -ne 0 ]; then
-	mount -t configfs configfs /sys/kernel/config/
-fi
+_vm_ar_configfs_mount
 
 #ip link set eth0 mtu 9000
 #sleep 5 # give the network stack some time

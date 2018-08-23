@@ -32,7 +32,7 @@ function _zram_hot_add() {
 
 function _usage()
 {
-	echo "Usage: $(basename $0) <size>[K|M|G]"
+	echo "Usage: $(basename $0) <size>[K|M|G] <owner>[:group]"
 	exit 1
 }
 
@@ -40,9 +40,10 @@ modprobe zram
 [ -e /sys/class/zram-control/hot_add ] \
 	|| _fail "zram hot_add sysfs path missing (old kernel?)"
 
-[ "$#" != "1" ] && _usage
+[ "$#" != "2" ] && _usage
 ZRAM_SIZE="$1"
+ZRAM_OWNER="$2"
 
 set -x
 
-_zram_hot_add "$ZRAM_SIZE" "$TAP_USER"
+_zram_hot_add "$ZRAM_SIZE" "$ZRAM_OWNER"
