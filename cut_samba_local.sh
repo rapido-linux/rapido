@@ -15,8 +15,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_samba
 _rt_require_dracut_args
+_rt_require_conf_dir SAMBA_SRC
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.btrfs mkfs.xfs \

@@ -15,9 +15,9 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})"
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_ceph
-_rt_require_samba
 _rt_require_dracut_args
+_rt_require_ceph
+_rt_require_conf_dir SAMBA_SRC
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 
