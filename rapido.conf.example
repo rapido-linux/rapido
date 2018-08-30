@@ -203,3 +203,11 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # e.g. SAMBA_SRC="/home/me/samba"
 #SAMBA_SRC=""
 #################################
+
+########## cut_lrbd.sh #########
+# These should all correspond to checked-out source repositories
+#LRBD_SRC=""
+#TARGETCLI_SRC=""
+#RTSLIB_SRC=""
+#CONFIGSHELL_SRC=""
+################################
