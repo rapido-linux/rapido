@@ -28,6 +28,7 @@ function _zram_hot_add() {
 		/sys/devices/virtual/block/zram${zram_num}/disksize \
 		|| _fail "failed to set size for $zram_dev"
 	chown "$zram_owner" "$zram_dev" || _fail "failed to set $zram_dev owner"
+	echo "$zram_dev"
 }
 
 function _usage()
