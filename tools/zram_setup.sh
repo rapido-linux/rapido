@@ -19,6 +19,9 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_zram_params
 
+ZRAM_BACKUP_DIR=`mktemp --tmpdir -d zram_backup.XXXXXXXXXX` || _fail
+trap "rm -f ${ZRAM_BACKUP_DIR}/readme.txt && rmdir $ZRAM_BACKUP_DIR" 0 1 2 3 15
+
 set -x
 
 function _zram_setup() {
@@ -46,28 +49,12 @@ function _zram_setup() {
 }
 
 num_zram_devs=1
-[ -n "$ZRAM_VSTART_OUT_SIZE" ] && ((num_zram_devs++))
-[ -n "$ZRAM_VSTART_DATA_SIZE" ] && ((num_zram_devs++))
-
 modprobe zram num_devices="${num_zram_devs}" || _fail
 zram_i=0
 
+# backup readme.txt before it's mounted over, so that git doesn't detect removal
+cp -p ${ZRAM_INITRD_MNT}/readme.txt ${ZRAM_BACKUP_DIR}/
 # use rapido dir ownership for initramfs subdir mount point
 owner=`stat --format="%U:%G" $RAPIDO_DIR` || _fail
 _zram_setup "zram${zram_i}" $ZRAM_INITRD_SIZE $ZRAM_INITRD_MNT $owner
-((zram_i++))
-
-# if running with a vstart.sh cluster, use zram for logs and data
-if [ -n "$ZRAM_VSTART_OUT_SIZE" ]; then
-	owner=`stat --format="%U:%G" $CEPH_SRC` || _fail
-	_zram_setup "zram${zram_i}" $ZRAM_VSTART_OUT_SIZE \
-		    $ZRAM_VSTART_OUT_MNT $owner
-	((zram_i++))
-fi
-
-if [ -n "$ZRAM_VSTART_DATA_SIZE" ]; then
-	owner=`stat --format="%U:%G" $CEPH_SRC` || _fail
-	_zram_setup "zram${zram_i}" $ZRAM_VSTART_DATA_SIZE \
-		    $ZRAM_VSTART_DATA_MNT $owner
-	((zram_i++))
-fi
+cp -p ${ZRAM_BACKUP_DIR}/readme.txt ${ZRAM_INITRD_MNT}/
