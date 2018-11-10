@@ -211,3 +211,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #RTSLIB_SRC=""
 #CONFIGSHELL_SRC=""
 ################################
+
+########## openiscsi ###########
+# OPENISCSI_SRC should correspond to a checkout and build of open-iscsi
+#OPENISCSI_SRC=""
+# openiscsi_autorun.sh uses the first entry in INITIATOR_IQNS as the
+# InitiatorName.
+# INITIATOR_DISCOVERY_ADDR is the hostname or IP address that will be used
+# when issuing a SendTargets discovery request.
+#INITIATOR_DISCOVERY_ADDR=""
+################################
