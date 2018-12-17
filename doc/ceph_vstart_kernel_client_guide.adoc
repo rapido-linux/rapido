@@ -104,11 +104,12 @@ created, e.g.:
 
 [source,shell]
 --------------
+. rapido.conf							# <1>
 rados mkpool $CEPH_RBD_POOL
-rbd create --size 1G --pool $CEPH_RBD_POOL $CEPH_RBD_IMAGE	# <1>
+rbd create --size 1G --pool $CEPH_RBD_POOL $CEPH_RBD_IMAGE
 rbd ls -l
 # NAME           SIZE PARENT FMT PROT LOCK
-# iscsi_test       1G          2
+# rapido_rbd       1G          2
 --------------
 <1> 'CEPH_RBD_POOL' and 'CEPH_RBD_IMAGE' are defined in 'rapido.conf'
 
