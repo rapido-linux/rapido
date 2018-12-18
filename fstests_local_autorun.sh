@@ -22,7 +22,7 @@ fi
 set -x
 
 # path to xfstests within the initramfs
-XFSTESTS_DIR="/fstests"
+xfstests_dir="/fstests"
 
 hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
 hostname_short="${hostname_fqn%%.*}"
@@ -40,17 +40,15 @@ _vm_ar_dyn_debug_enable
 echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
 echo "1G" > /sys/block/zram1/disksize || _fatal "failed to set zram disksize"
 
-mkfs.${filesystem} /dev/zram0 || _fatal "mkfs failed"
-mkfs.${filesystem} /dev/zram1 || _fatal "mkfs failed"
-
 mkdir -p /mnt/test
 mkdir -p /mnt/scratch
 
+mkfs.${filesystem} /dev/zram0 || _fatal "mkfs failed"
 mount -t $filesystem /dev/zram0 /mnt/test || _fatal
-mount -t $filesystem /dev/zram1 /mnt/scratch || _fatal
+# xfstests can handle scratch mkfs+mount
 
-if [ -d ${XFSTESTS_DIR} ]; then
-	cat > ${XFSTESTS_DIR}/configs/`hostname -s`.config << EOF
+if [ -d ${xfstests_dir} ]; then
+	cat > ${xfstests_dir}/configs/`hostname -s`.config << EOF
 MODULAR=0
 TEST_DIR=/mnt/test
 TEST_DEV=/dev/zram0
@@ -61,9 +59,9 @@ fi
 
 set +x
 
-echo "$filesystem filesystem mounted at /mnt/test and /mnt/scratch"
+echo "$filesystem filesystem ready for FSQA"
 
 if [ -n "$FSTESTS_AUTORUN_CMD" ]; then
-	cd ${XFSTESTS_DIR} || _fatal
+	cd ${xfstests_dir} || _fatal
 	eval "$FSTESTS_AUTORUN_CMD"
 fi
