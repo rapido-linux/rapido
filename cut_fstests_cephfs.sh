@@ -30,7 +30,7 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon xfs_mkfile \
-		   chgrp du fgrep pgrep tar \
+		   chgrp du fgrep pgrep tar rev kill \
 		   $LIBS_INSTALL_LIST" \
 	--include "$FSTESTS_SRC" "/fstests" \
 	--include "$CEPH_MOUNT_BIN" "/sbin/mount.ceph" \

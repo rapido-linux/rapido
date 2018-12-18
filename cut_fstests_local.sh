@@ -31,7 +31,7 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_mdrestore xfs_metadump xfs_fsr xfsdump \
-		   chgrp du fgrep pgrep tar \
+		   chgrp du fgrep pgrep tar rev kill \
 		   $LIBS_INSTALL_LIST" \
 	--include "$FSTESTS_SRC" "/fstests" \
 	--include "$RAPIDO_DIR/fstests_local_autorun.sh" "/.profile" \
