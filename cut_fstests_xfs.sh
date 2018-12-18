@@ -34,7 +34,7 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_
 		   chgrp du fgrep pgrep tar rev kill \
 		   $LIBS_INSTALL_LIST" \
 	--include "$FSTESTS_SRC" "/fstests" \
-	--include "$RAPIDO_DIR/fstests_local_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/fstests_xfs_autorun.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo dm-snapshot dm-flakey xfs" \
