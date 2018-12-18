@@ -27,5 +27,6 @@ _rt_require_conf_dir OPENISCSI_SRC
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--modules "bash base network ifcfg" \
+	--drivers "iscsi_tcp" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
