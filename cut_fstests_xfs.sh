@@ -17,7 +17,6 @@ RAPIDO_DIR="$(realpath -e ${0%/*})"
 
 _rt_require_dracut_args
 _rt_require_fstests
-_rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_compat.so"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs \
@@ -32,8 +31,10 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_mdrestore xfs_metadump xfs_fsr xfsdump \
 		   chgrp du fgrep pgrep tar rev kill \
-		   $LIBS_INSTALL_LIST" \
-	--include "$FSTESTS_SRC" "/fstests" \
+		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
+		   ${FSTESTS_SRC}/src/log-writes/* \
+		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
+	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	--include "$RAPIDO_DIR/autorun/fstests_xfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \

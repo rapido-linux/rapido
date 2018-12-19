@@ -21,9 +21,6 @@ fi
 
 set -x
 
-# path to xfstests within the initramfs
-xfstests_dir="/fstests"
-
 hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
 hostname_short="${hostname_fqn%%.*}"
 filesystem="xfs"
@@ -47,21 +44,23 @@ mkfs.${filesystem} /dev/zram0 || _fatal "mkfs failed"
 mount -t $filesystem /dev/zram0 /mnt/test || _fatal
 # xfstests can handle scratch mkfs+mount
 
-if [ -d ${xfstests_dir} ]; then
-	cat > ${xfstests_dir}/configs/`hostname -s`.config << EOF
+[ -n "${FSTESTS_SRC}" ] || _fatal "FSTESTS_SRC unset"
+[ -d "${FSTESTS_SRC}" ] || _fatal "$FSTESTS_SRC missing"
+
+cfg="${FSTESTS_SRC}/configs/$(hostname -s).config"
+cat > $cfg << EOF
 MODULAR=0
 TEST_DIR=/mnt/test
 TEST_DEV=/dev/zram0
 SCRATCH_MNT=/mnt/scratch
 SCRATCH_DEV=/dev/zram1
 EOF
-fi
 
 set +x
 
 echo "$filesystem filesystem ready for FSQA"
 
 if [ -n "$FSTESTS_AUTORUN_CMD" ]; then
-	cd ${xfstests_dir} || _fatal
+	cd ${FSTESTS_SRC} || _fatal
 	eval "$FSTESTS_AUTORUN_CMD"
 fi
