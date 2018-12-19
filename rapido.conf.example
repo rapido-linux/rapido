@@ -137,6 +137,9 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # following VM boot-up.
 # e.g. FSTESTS_AUTORUN_CMD="./check -g auto && shutdown"
 #FSTESTS_AUTORUN_CMD=""
+# e.g. FSTESTS_EXCLUDE="btrfs/001 generic/175" and use with 
+# ./check -E ${FSTESTS_SRC}/configs/$(hostname -s).exclude
+#FSTESTS_EXCLUDE=""
 #################################
 
 ## autorun/fstests_cifs.sh and autorun/samba_*.sh ##
