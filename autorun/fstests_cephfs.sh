@@ -57,6 +57,13 @@ TEST_FS_MOUNT_OPTS="-o name=${CEPH_USER},secret=${key}"
 FSTYP="ceph"
 EOF
 
+if [ -n "$FSTESTS_EXCLUDE" ]; then
+	exclude="${FSTESTS_SRC}/configs/$(hostname -s).exclude"
+	for excl in $FSTESTS_EXCLUDE; do
+		echo $excl >> $exclude;
+	done
+fi
+
 set +x
 
 if [ -n "$FSTESTS_AUTORUN_CMD" ]; then

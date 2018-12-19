@@ -57,6 +57,13 @@ SCRATCH_DEV=/dev/zram1
 EOF
 fi
 
+if [ -n "$FSTESTS_EXCLUDE" ]; then
+	exclude="${FSTESTS_SRC}/configs/$(hostname -s).exclude"
+	for excl in $FSTESTS_EXCLUDE; do
+		echo $excl >> $exclude;
+	done
+fi
+
 set +x
 
 echo "$filesystem filesystem ready for FSQA"
