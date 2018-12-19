@@ -118,7 +118,7 @@ CEPH_MON_NAME="a"
 # rbd_autorun.sh to map as a local device. This image must be created prior
 # to booting the test VM.
 CEPH_RBD_POOL="rbd"
-CEPH_RBD_IMAGE="iscsi_test"
+CEPH_RBD_IMAGE="rapido_rbd"
 CEPH_RBD_IMAGE_MB="4096"
 ###########################
 

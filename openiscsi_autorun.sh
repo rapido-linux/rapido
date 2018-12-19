@@ -21,6 +21,8 @@ fi
 
 set -x
 
+modprobe iscsi_tcp
+
 _vm_ar_dyn_debug_enable
 
 mkdir -p /etc/iscsi
