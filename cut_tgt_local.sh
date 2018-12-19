@@ -22,7 +22,7 @@ _rt_require_conf_dir TGT_SRC
 	--install "grep ps \
 		   ${TGT_SRC}/usr/tgtd \
 		   ${TGT_SRC}/usr/tgtadm" \
-	--include "${RAPIDO_DIR}/tgt_local_autorun.sh" "/.profile" \
+	--include "${RAPIDO_DIR}/autorun/tgt_local.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo" \

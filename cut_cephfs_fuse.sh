@@ -28,7 +28,7 @@ _rt_require_lib "libkeyutils.so.1 libfuse.so libcryptopp-5.6.2.so.0 libhandle.so
 	--include "$CEPH_FUSE_BIN" "/bin/ceph-fuse" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/cephfs_fuse_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/cephfs_fuse.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "fuse" \

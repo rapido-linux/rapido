@@ -35,7 +35,7 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 	--include "$CEPH_RADOS_LIB" "/usr/lib64/librados.so.2" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/samba_cephfs_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/samba_cephfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--modules "bash base network ifcfg" \

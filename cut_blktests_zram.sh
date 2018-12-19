@@ -25,7 +25,7 @@ _rt_require_blktests
 		   basename tee egrep hexdump sync fio logger cmp stat nproc \
 		   xfs_io modinfo blkdiscard realpath timeout" \
 	--include "$BLKTESTS_SRC" "/blktests" \
-	--include "$RAPIDO_DIR/blktests_zram_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/blktests_zram.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo scsi_debug null_blk loop" \

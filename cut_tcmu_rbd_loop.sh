@@ -29,7 +29,7 @@ done
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep \
 		   $LIBS_INSTALL_LIST" \
-	--include "${RAPIDO_DIR}/tcmu_rbd_autorun.sh" "/.profile" \
+	--include "${RAPIDO_DIR}/autorun/tcmu_rbd.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--include "$CEPH_RADOS_LIB" "/lib64/librados.so" \

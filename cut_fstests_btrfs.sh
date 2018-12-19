@@ -34,7 +34,7 @@ _rt_require_fstests
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	--include "$RAPIDO_DIR/fstests_btrfs_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/fstests_btrfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo dm-snapshot dm-flakey btrfs raid6_pq" \

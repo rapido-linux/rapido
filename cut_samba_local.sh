@@ -26,7 +26,7 @@ _rt_require_conf_dir SAMBA_SRC
 		   ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd \
 		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
 		   ${SAMBA_SRC}/bin/default/source3/smbd/smbd" \
-	--include "$RAPIDO_DIR/samba_local_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/samba_local.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo xfs btrfs" \

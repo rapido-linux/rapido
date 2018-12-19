@@ -25,7 +25,7 @@ _rt_require_dracut_args
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   mkfs mkfs.xfs parted partprobe sgdisk hdparm uuidgen \
 		   env lsscsi awk" \
-	--include "${RAPIDO_DIR}/lio_pscsi_loop_autorun.sh" "/.profile" \
+	--include "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "virtio_scsi target_core_pscsi tcm_loop" \
