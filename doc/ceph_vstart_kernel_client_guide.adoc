@@ -181,15 +181,15 @@ The same image can be booted twice, to allow for multiple CephFS/RBD
 clients or iSCSI gateways. Network parameters for both VMs are defined
 in 'rapido.conf'.
 
-The VMs run the corresponding autorun script (e.g. 'rbd_autorun.sh'
-or 'cephfs_autorun.sh') during boot, and then present an interactive
+The VMs run the corresponding autorun script (e.g. 'autorun/rbd.sh'
+or 'autorun/cephfs.sh') during boot, and then present an interactive
 Dracut shell. The VMs can be shutdown via the 'shutdown' command.
 
 
 == Kernel RBD Usage
 
 If the client VM was generated using 'cut_rbd.sh', then
-'rbd_autorun.sh' will be executed on boot. 'rbd_autorun.sh' performs
+'autorun/rbd.sh' will be executed on boot. 'autorun/rbd.sh' performs
 the following:
 
 * Initialises udev and then mounts configfs and debugfs
@@ -199,7 +199,7 @@ the following:
 Once deployed, 'dd' can be used to perform I/O against the mapped RBD
 image.
 
-'cut_blktests_rbd.sh' (and corresponding 'blktests_rbd_autorun.sh')
+'cut_blktests_rbd.sh' (and corresponding 'autorun/blktests_rbd.sh')
 additionally configure and start the blktests test suite, following
 successful mapping of the RBD image. 'BLKTESTS_SRC' and optionally
 'BLKTESTS_AUTORUN_CMD' should be configured in 'rapido.conf' prior to
@@ -214,13 +214,13 @@ echo -n 0 > /sys/bus/rbd/remove
 == Kernel CephFS Usage
 
 If the client VM was generated using 'cut_cephfs.sh', then
-'cephfs_autorun.sh' will be executed on boot, performing the following:
+'autorun/cephfs.sh' will be executed on boot, performing the following:
 
 * Mounts configfs and debugfs
 * Mounts the 'vstart.sh' provisioned CephFS filesystem under /mnt/test
 
 'cut_fstests_cephfs.sh' with its corresponding
-'fstests_cephfs_autorun.sh' boot script additionally:
+'autorun/fstests_cephfs.sh' boot script additionally:
 
 * Generates an xfstests configuration under '/fstests/configs/'
 * Starts the xfstests test suite via the optional 'FSTESTS_AUTORUN_CMD'

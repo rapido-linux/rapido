@@ -36,7 +36,7 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1 libgdbm.so libgdbm_
 	--include "$CEPH_MOUNT_BIN" "/sbin/mount.ceph" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/fstests_cephfs_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/fstests_cephfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--modules "bash base network ifcfg" \

@@ -56,7 +56,7 @@ Once generated, the VM image and kernel can be booted by running
 
 Rapido can be easily extended to test any kernel functionality of
 interest. To do so, make a copy of the 'cut_simple_example.sh' and
-'simple_example_autorun.sh' scripts, and modify them to suit your needs.
+'autorun/simple_example.sh' scripts, and modify them to suit your needs.
 The example scripts are fully annotated.
 
 

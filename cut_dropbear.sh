@@ -21,7 +21,7 @@ _rt_require_lib "libkeyutils.so.1"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs dropbear chmod \
 		   $LIBS_INSTALL_LIST" \
-	--include "$RAPIDO_DIR/dropbear_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/dropbear.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--modules "bash base network ifcfg" \

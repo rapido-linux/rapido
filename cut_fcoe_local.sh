@@ -20,7 +20,7 @@ _rt_require_lib "libkeyutils.so.1"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs killall truncate dirname fipvlan basename\
 		   $LIBS_INSTALL_LIST" \
-	--include "$RAPIDO_DIR/fcoe_local_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/fcoe_local.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "target_core_mod tcm_fc target_core_iblock target_core_file libfc fcoe scsi_debug" \

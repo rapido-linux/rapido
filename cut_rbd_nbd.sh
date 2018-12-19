@@ -28,7 +28,7 @@ rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep \
 		   $LIBS_INSTALL_LIST $rbd_nbd_bin" \
-	--include "${RAPIDO_DIR}/rbd_nbd_autorun.sh" "/.profile" \
+	--include "${RAPIDO_DIR}/autorun/rbd_nbd.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \

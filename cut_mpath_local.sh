@@ -31,7 +31,7 @@ _rt_require_dracut_args
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs parted partprobe sgdisk hdparm \
 		   timeout id chown chmod env killall getopt basename" \
-	--include "$RAPIDO_DIR/mpath_local_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/mpath_local.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "virtio_scsi virtio_pci sd_mod" \

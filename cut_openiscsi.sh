@@ -23,7 +23,7 @@ _rt_require_conf_dir OPENISCSI_SRC
 		   ${OPENISCSI_SRC}/usr/iscsid \
 		   ${OPENISCSI_SRC}/libopeniscsiusr/libopeniscsiusr.so \
 		   ${OPENISCSI_SRC}/usr/iscsiadm" \
-	--include "${RAPIDO_DIR}/openiscsi_autorun.sh" "/.profile" \
+	--include "${RAPIDO_DIR}/autorun/openiscsi.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--modules "bash base network ifcfg" \

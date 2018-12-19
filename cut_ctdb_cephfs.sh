@@ -21,7 +21,7 @@ _rt_require_dracut_args
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 
-# ctdb_cephfs_autorun.sh deploys a three-node CTDB cluster
+# autorun/ctdb_cephfs.sh deploys a three-node CTDB cluster
 if [ -z "$MAC_ADDR1" ] || [ -z "$MAC_ADDR2" ] || [ -z "$MAC_ADDR3" ]; then
 	_fail "$0 requires three VM network adapters in rapido.conf"
 fi
@@ -63,7 +63,7 @@ fi
 	--include "$CEPH_RADOS_LIB" "/usr/lib64/librados.so.2" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/ctdb_cephfs_autorun.sh" "/.profile" \
+	--include "$RAPIDO_DIR/autorun/ctdb_cephfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--modules "bash base network ifcfg" \
