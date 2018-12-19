@@ -23,13 +23,14 @@ _rt_require_fstests
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   basename tee egrep xfs_freeze xfs_db xfs_io xfs_info \
-		   xfs_logprint xfs_repair xfs_growfs xfs_quota xfs_bmap \
+		   basename tee egrep yes \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
-		   xfs_mkfile xfs_mdrestore xfs_metadump xfs_fsr xfsdump \
+		   xfs_mkfile xfs_db xfs_io \
+		   xfs_mdrestore xfs_bmap xfs_fsr xfsdump xfs_freeze xfs_info \
+		   xfs_logprint xfs_repair xfs_growfs xfs_quota xfs_metadump \
 		   chgrp du fgrep pgrep tar rev kill \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
