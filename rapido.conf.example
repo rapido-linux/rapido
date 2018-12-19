@@ -115,14 +115,14 @@ CEPH_USER="admin"
 CEPH_MON_NAME="a"
 
 # The RBD pool and image to expose via LIO/tcmu iSCSI, loopback fabric, or for
-# rbd_autorun.sh to map as a local device. This image must be created prior
+# autorun/rbd.sh to map as a local device. This image must be created prior
 # to booting the test VM.
 CEPH_RBD_POOL="rbd"
 CEPH_RBD_IMAGE="rapido_rbd"
 CEPH_RBD_IMAGE_MB="4096"
 ###########################
 
-####### lio_*_autorun.sh and tgt_local_autorun.sh #######
+####### autorun/lio_*.sh and autorun/tgt_local.sh #######
 # IQN to use for the iSCSI target
 TARGET_IQN="iqn.2003-01.org.linux-iscsi:rapido"
 
@@ -132,14 +132,14 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 		iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test-2"
 ###########################
 
-####### fstests_*_autorun.sh #######
+####### autorun/fstests_*.sh #######
 # If defined, run the following command from within the fstests source directory
 # following VM boot-up.
 # e.g. FSTESTS_AUTORUN_CMD="./check -g auto && shutdown"
 #FSTESTS_AUTORUN_CMD=""
 #################################
 
-## fstests_cifs_autorun.sh and samba_*_autorun.sh ##
+## autorun/fstests_cifs.sh and autorun/samba_*.sh ##
 # SMB server and mount options for cifs.ko
 # e.g. CIFS_SERVER="smbserver.example.com"
 #CIFS_SERVER=""
@@ -165,7 +165,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #FSTESTS_SRC=""
 ##################################
 
-####### blktests_*_autorun.sh #######
+####### autorun/blktests_*.sh #######
 # If defined, run the following command from within the blktests source directory
 # following VM boot-up.
 # e.g. BLKTESTS_AUTORUN_CMD="./check && shutdown"
@@ -193,7 +193,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #TCMU_RUNNER_SRC=""
 #################################
 
-###### dropbear_autorun.sh ######
+###### autorun/dropbear.sh ######
 # public ssh key to add to Dropbear's authorized_keys file
 #SSH_AUTHORIZED_KEY=""
 #################################
@@ -215,7 +215,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 ########## openiscsi ###########
 # OPENISCSI_SRC should correspond to a checkout and build of open-iscsi
 #OPENISCSI_SRC=""
-# openiscsi_autorun.sh uses the first entry in INITIATOR_IQNS as the
+# autorun/openiscsi.sh uses the first entry in INITIATOR_IQNS as the
 # InitiatorName.
 # INITIATOR_DISCOVERY_ADDR is the hostname or IP address that will be used
 # when issuing a SendTargets discovery request.
