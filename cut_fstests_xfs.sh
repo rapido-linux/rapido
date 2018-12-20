@@ -31,7 +31,7 @@ _rt_require_fstests
 		   xfs_mkfile xfs_db xfs_io \
 		   xfs_mdrestore xfs_bmap xfs_fsr xfsdump xfs_freeze xfs_info \
 		   xfs_logprint xfs_repair xfs_growfs xfs_quota xfs_metadump \
-		   chgrp du fgrep pgrep tar rev kill \
+		   chgrp du fgrep pgrep tar rev kill duperemove \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
