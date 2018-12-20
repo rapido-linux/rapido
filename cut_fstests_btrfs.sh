@@ -19,11 +19,11 @@ _rt_require_dracut_args
 _rt_require_fstests
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.btrfs btrfs \
+		   strace mkfs mkfs.btrfs btrfs btrfs-convert btrfstune \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   basename tee egrep \
+		   basename tee egrep yes \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \

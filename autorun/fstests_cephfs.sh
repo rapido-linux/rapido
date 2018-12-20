@@ -21,9 +21,6 @@ fi
 
 set -x
 
-# path to xfstests within the initramfs
-XFSTESTS_DIR="/fstests"
-
 hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
 hostname_short="${hostname_fqn%%.*}"
 
@@ -49,7 +46,11 @@ mkdir -p /mnt/test
 mount -t ceph ${MON_ADDRESS}:/ /mnt/test -o name=${CEPH_USER},secret=${key} \
 	|| _fatal
 
-cat > ${XFSTESTS_DIR}/configs/`hostname -s`.config << EOF
+[ -n "${FSTESTS_SRC}" ] || _fatal "FSTESTS_SRC unset"
+[ -d "${FSTESTS_SRC}" ] || _fatal "$FSTESTS_SRC missing"
+
+cfg="${FSTESTS_SRC}/configs/$(hostname -s).config"
+cat > $cfg << EOF
 MODULAR=0
 TEST_DIR=/mnt/test
 TEST_DEV=${MON_ADDRESS}:/
@@ -60,6 +61,6 @@ EOF
 set +x
 
 if [ -n "$FSTESTS_AUTORUN_CMD" ]; then
-	cd ${XFSTESTS_DIR} || _fatal
+	cd ${FSTESTS_SRC} || _fatal
 	eval "$FSTESTS_AUTORUN_CMD"
 fi
