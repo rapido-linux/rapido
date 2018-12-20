@@ -1,0 +1,120 @@
+#!/bin/sh
+#
+# Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
+#
+# This library is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 2.1 of the License, or
+# (at your option) version 3.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+
+RAPIDO_DIR="$(realpath -e ${0%/*})"
+
+declare -A short_help
+
+short_help["teardown-network"]="Teardown network for VMs"
+rapido_teardown_network()
+{
+	${RAPIDO_DIR}/tools/br_teardown.sh
+}
+
+short_help["setup-network"]="Setup network for VMs"
+rapido_setup_network()
+{
+	${RAPIDO_DIR}/tools/br_setup.sh
+}
+
+short_help["boot"]="Boot previously prepared test"
+rapido_boot()
+{
+	${RAPIDO_DIR}/vm.sh
+}
+
+short_help["cut"]="Prepare testcase for booting"
+rapido_cut()
+{
+	local testname="$1"
+
+	if [ -z "$testname" -o x"$testname" = "xhelp" ]; then
+		progname="$(basename $0)"
+		funcname="$(echo ${FUNCNAME[0]} | sed 's/^rapido_//;s/_/-/g')" 
+		echo "Usage ${progname} ${funcname} testname"
+		echo ""
+		echo "Where testname is one of the following:"
+		rapido_list
+		exit
+
+	fi
+
+	pushd ${RAPIDO_DIR} > /dev/null
+	tests="$(ls cut_*.sh)"
+	cut_script="cut_$(echo ${testname} | sed 's/-/_/g').sh"
+
+	if [ ! -x $cut_script ]; then
+		echo "Test ${testname} not found, please use one of:"
+		rapido_list
+		popd > /dev/null
+		exit
+	fi
+
+	exec ./$cut_script
+
+	popd > /dev/null
+}
+
+short_help["list"]="List $(basename $0) subcommands"
+rapido_list()
+{
+	pushd ${RAPIDO_DIR} > /dev/null
+	tests="$(ls cut_*.sh)"
+
+	for t in ${tests}; do
+		echo ${t} | sed 's/^cut_//;s/\.sh$//;s/_/-/g'
+	done
+	popd > /dev/null
+}
+
+list_commands()
+{
+	commands=$(declare -F | grep -o " rapido_[a-zA-Z_]*" | sed 's/^ rapido_//;s/_/-/g')
+	for command in $commands; do
+		if [ -n "${short_help[$command]}" ]; then
+			echo -e "\t$command - ${short_help[$command]}"
+		else
+			echo "\t$command"
+		fi
+	done
+}
+
+short_help["help"]="Show help"
+rapido_help()
+{
+	echo "Usage: $(basename $0) SUBCOMMAND [ARGUMENTS]"
+	echo
+	echo "The available subcommands are:"
+	list_commands
+}
+
+if [ "$#" = "0" ]; then
+	subcommand="help"
+else
+	subcommand="$1"
+	shift
+fi
+
+if ! declare -n subcmd=rapido_alias_${subcommand//-/_} &> /dev/null || \
+	test -z "${subcmd:-}"; then
+	subcmd="$subcommand"
+fi
+
+subcmd_func=rapido_${subcmd//-/_}
+if ! declare -f $subcmd_func > /dev/null; then
+	rapido_help
+	exit 1
+fi
+
+$subcmd_func "$@"

@@ -35,7 +35,7 @@ source parameters should be defined.
 Test VM images may be "cut" with or without network support. For
 networking, the bridge, tap and MAC address parameters must be specified
 in rapido.conf.
-The tools/br_setup.sh script should be run as root to configure the
+The 'rapido setup-network' command should be run as root to configure the
 bridge network device.
 By default, the bridge network is isolated, and isn't connected to any
 physical adapters.
@@ -48,8 +48,11 @@ choose a 'cut_' script to generate a VM image, which pulls all relevant
 kernel modules from the rapido.conf KERNEL_SRC directory. The VM
 initramfs image will be written to 'initrds/myinitrd'.
 
+The cut scripts can be executed by running the appropriate 'rapido cut'
+command, like 'rapido cut fstests-btrfs'.
+
 Once generated, the VM image and kernel can be booted by running
-'vm.sh'.
+'rapido boot'.
 
 
 == Adding Your Own Tests
