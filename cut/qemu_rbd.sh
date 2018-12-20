@@ -12,26 +12,25 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-RAPIDO_DIR="$(realpath -e ${0%/*})"
+RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_ceph
 _rt_require_dracut_args
-_rt_require_lib "libkeyutils.so.1 libfuse.so libcryptopp-5.6.2.so.0 libhandle.so.1 libssl.so.1"
+_rt_require_ceph
+_rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.xfs \
-		   which perl awk bc touch cut chmod true false \
-		   fio getfattr setfattr chacl attr killall sync \
-		   id sort uniq date expr tac diff head dirname seq \
+		   strace mkfs.xfs lsscsi \
 		   $LIBS_INSTALL_LIST" \
-	--include "$CEPH_FUSE_BIN" "/bin/ceph-fuse" \
-	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
-	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/autorun/cephfs_fuse.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "fuse" \
-	--modules "bash base network ifcfg" \
+	--include "$RAPIDO_DIR/vm_autorun.env" "/.profile" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	$DRACUT_OUT || _fail "dracut failed"
+
+# set qemu arguments to attach the RBD image. qemu uses librbd, and supports
+# writeback caching via a "cache=writeback" parameter.
+qemu_cut_args="-drive format=rbd,file=rbd:${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}"
+qemu_cut_args="${qemu_cut_args}:conf=${CEPH_CONF},if=virtio,cache=none,format=raw"
+_rt_xattr_qemu_args_set "$DRACUT_OUT"  "$qemu_cut_args"
+_rt_xattr_vm_networkless_set "$DRACUT_OUT"

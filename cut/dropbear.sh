@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -12,22 +12,18 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-RAPIDO_DIR="$(realpath -e ${0%/*})"
+RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args
-_rt_require_conf_dir TGT_SRC
+_rt_require_lib "libkeyutils.so.1"
 
-"$DRACUT" \
-	--install "grep ps \
-		   ${TGT_SRC}/usr/tgtd \
-		   ${TGT_SRC}/usr/tgtadm" \
-	--include "${RAPIDO_DIR}/autorun/tgt_local.sh" "/.profile" \
-	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
-	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo" \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		   strace mkfs.xfs dropbear chmod \
+		   $LIBS_INSTALL_LIST" \
+	--include "$RAPIDO_DIR/autorun/dropbear.sh" "/.profile" \
+	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
+	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
+	$DRACUT_OUT

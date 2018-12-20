@@ -51,8 +51,8 @@ rapido_cut()
 	fi
 
 	pushd ${RAPIDO_DIR} > /dev/null
-	tests="$(ls cut_*.sh)"
-	cut_script="cut_$(echo ${testname} | sed 's/-/_/g').sh"
+	tests="$(ls cut/*.sh)"
+	cut_script="cut/$(echo ${testname} | sed 's/-/_/g').sh"
 
 	if [ ! -x $cut_script ]; then
 		echo "Test ${testname} not found, please use one of:"
@@ -70,10 +70,10 @@ short_help["list"]="List testcases"
 rapido_list()
 {
 	pushd ${RAPIDO_DIR} > /dev/null
-	tests="$(ls cut_*.sh)"
+	tests="$(ls cut/*.sh | sed 's/^cut\///;s/\.sh$//;s/_/-/g')"
 
 	for t in ${tests}; do
-		echo ${t} | sed 's/^cut_//;s/\.sh$//;s/_/-/g'
+		echo ${t}
 	done
 	popd > /dev/null
 }

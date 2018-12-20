@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -12,25 +12,26 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-RAPIDO_DIR="$(realpath -e ${0%/*})"
+RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args
-_rt_require_ceph
-_rt_require_lib "libkeyutils.so.1"
+
+# the pscsi VM should be booted with a virtio SCSI device attached. E.g.
+# QEMU_EXTRA_ARGS="-nographic -device virtio-scsi-pci,id=scsi \
+#   -drive if=none,id=hda,file=/dev/zram0,cache=none,format=raw,serial=RAPIDO \
+#   -device scsi-hd,drive=hda"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs lsscsi \
-		   $LIBS_INSTALL_LIST" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/.profile" \
+		   mkfs mkfs.xfs parted partprobe sgdisk hdparm uuidgen \
+		   env lsscsi awk" \
+	--include "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "/.profile" \
+	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
+	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
+	--add-drivers "virtio_scsi target_core_pscsi tcm_loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
-# set qemu arguments to attach the RBD image. qemu uses librbd, and supports
-# writeback caching via a "cache=writeback" parameter.
-qemu_cut_args="-drive format=rbd,file=rbd:${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}"
-qemu_cut_args="${qemu_cut_args}:conf=${CEPH_CONF},if=virtio,cache=none,format=raw"
-_rt_xattr_qemu_args_set "$DRACUT_OUT"  "$qemu_cut_args"
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
+

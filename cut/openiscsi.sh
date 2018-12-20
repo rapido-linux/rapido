@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -12,21 +12,21 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-RAPIDO_DIR="$(realpath -e ${0%/*})"
+RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args
-_rt_require_lib "libkeyutils.so.1"
+_rt_require_conf_dir OPENISCSI_SRC
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs \
-		   $LIBS_INSTALL_LIST" \
-	--include "$RAPIDO_DIR/autorun/nvme_local.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "nvme-core nvme-fabrics nvme-loop nvmet zram lzo" \
-	--modules "bash base" \
+"$DRACUT" \
+	--install "grep ps dd mkfs.xfs \
+		   ${OPENISCSI_SRC}/usr/iscsid \
+		   ${OPENISCSI_SRC}/libopeniscsiusr/libopeniscsiusr.so \
+		   ${OPENISCSI_SRC}/usr/iscsiadm" \
+	--include "${RAPIDO_DIR}/autorun/openiscsi.sh" "/.profile" \
+	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
+	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
+	--modules "bash base network ifcfg" \
+	--drivers "iscsi_tcp" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
