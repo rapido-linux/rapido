@@ -44,7 +44,7 @@ physical adapters.
 == Running
 
 Depending on which kernel component or functionality you'd like to test,
-choose a 'cut_' script to generate a VM image, which pulls all relevant
+choose a 'cut' script to generate a VM image, which pulls all relevant
 kernel modules from the rapido.conf KERNEL_SRC directory. The VM
 initramfs image will be written to 'initrds/myinitrd'.
 
@@ -58,7 +58,7 @@ Once generated, the VM image and kernel can be booted by running
 == Adding Your Own Tests
 
 Rapido can be easily extended to test any kernel functionality of
-interest. To do so, make a copy of the 'cut_simple_example.sh' and
+interest. To do so, make a copy of the 'cut/simple_example.sh' and
 'autorun/simple_example.sh' scripts, and modify them to suit your needs.
 The example scripts are fully annotated.
 

@@ -1,4 +1,4 @@
-# Path to Linux kernel source. Prior to running a "cut_X" script, the kernel
+# Path to Linux kernel source. Prior to running "rapido cut", the kernel
 # should be built, with modules installed (see KERNEL_INSTALL_MOD_PATH below).
 #
 # e.g. KERNEL_SRC="/home/me/linux"
@@ -11,7 +11,7 @@ KERNEL_SRC=""
 # "INSTALL_MOD_PATH=./mods make modules_install" during kernel compilation.
 KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
 
-# bridge device provisioned by br_setup.sh
+# bridge device provisioned by "rapido setup-network" (br_setup.sh).
 # e.g. BR_DEV="br0"
 BR_DEV="br0"
 
@@ -158,7 +158,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #CIFS_PW=""
 ####################################################
 
-######## cut_fstests_*.sh #########
+######## cut/fstests_*.sh #########
 # FSTESTS_SRC should correspond to a checkout and build of the xfstests source
 # available at https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
 # e.g. FSTESTS_SRC="/home/me/xfstests-dev"
@@ -172,21 +172,21 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #BLKTESTS_AUTORUN_CMD=""
 #################################
 
-######## cut_blktests_*.sh #########
+######## cut/blktests_*.sh #########
 # BLKTESTS_SRC should correspond to a checkout and build of the blktests source
 # available at https://github.com/osandov/blktests.git
 # e.g. BLKTESTS_SRC="/home/me/blktests"
 #BLKTESTS_SRC=""
 ##################################
 
-######## cut_usb_rbd.sh #########
+######## cut/usb_rbd.sh #########
 # RBD_USB_SRC should correspond to a checkout and build of
 # https://github.com/ddiss/rbd-usb.
 # e.g. RBD_USB_SRC="/home/me/rbd-usb"
 #RBD_USB_SRC=""
 #################################
 
-######## cut_tcmu_*.sh ########
+######## cut/tcmu_*.sh ########
 # TCMU_RUNNER_SRC should correspond to a checkout and build of
 # https://github.com/open-iscsi/tcmu-runner
 # e.g. TCMU_RUNNER_SRC="/home/me/tcmu-runner"
@@ -198,13 +198,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #SSH_AUTHORIZED_KEY=""
 #################################
 
-######### cut_samba_*.sh ########
+######### cut/samba_*.sh ########
 # SAMBA_SRC should correspond to a checkout and build of Samba.
 # e.g. SAMBA_SRC="/home/me/samba"
 #SAMBA_SRC=""
 #################################
 
-########## cut_lrbd.sh #########
+########## cut/lrbd.sh #########
 # These should all correspond to checked-out source repositories
 #LRBD_SRC=""
 #TARGETCLI_SRC=""
