@@ -12,7 +12,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-RAPIDO_DIR="$(realpath -e ${0%/*})"
+RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
 #
@@ -51,8 +51,8 @@ rapido_cut()
 	fi
 
 	pushd ${RAPIDO_DIR} > /dev/null
-	tests="$(ls cut_*.sh)"
-	cut_script="cut_$(echo ${testname} | sed 's/-/_/g').sh"
+	tests="$(ls cut/*.sh)"
+	cut_script="cut/$(echo ${testname} | sed 's/-/_/g').sh"
 
 	if [ ! -x $cut_script ]; then
 		echo "Test ${testname} not found, please use one of:"
@@ -66,14 +66,14 @@ rapido_cut()
 	popd > /dev/null
 }
 
-short_help["list"]="List $(basename $0) subcommands"
+short_help["list"]="List testcases"
 rapido_list()
 {
 	pushd ${RAPIDO_DIR} > /dev/null
-	tests="$(ls cut_*.sh)"
+	tests="$(ls cut/*.sh | sed 's/^cut\///;s/\.sh$//;s/_/-/g')"
 
 	for t in ${tests}; do
-		echo ${t} | sed 's/^cut_//;s/\.sh$//;s/_/-/g'
+		echo ${t}
 	done
 	popd > /dev/null
 }
@@ -85,7 +85,7 @@ list_commands()
 		if [ -n "${short_help[$command]}" ]; then
 			echo -e "\t$command - ${short_help[$command]}"
 		else
-			echo "\t$command"
+			echo -e "\t$command"
 		fi
 	done
 }

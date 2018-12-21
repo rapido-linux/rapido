@@ -99,7 +99,7 @@ ceph fs ls
 --------------
 <1> Use the binaries from compiled Ceph source
 
-For RBD testing (e.g. via 'cut_rbd.sh'), a pool and image must be
+For RBD testing (e.g. via 'rapido cut rbd'), a pool and image must be
 created, e.g.:
 
 [source,shell]
@@ -148,15 +148,16 @@ INSTALL_MOD_PATH=./mods make modules_install			# <1>
 
 == Kernel Client VM Generation
 
-Rapido ships with scripts for Ceph kernel client VM generation:
+Rapido ships with scripts for Ceph kernel client VM generation, which
+can be executed via 'rapido cut <name>', where <name> can be one of:
 
-* 'cut_rbd.sh': generates a simple RBD client VM
-* 'cut_blktests_rbd.sh': generates a RBD client VM, which also includes
-   the https://github.com/osandov/blktests[blktests test suite]
-* 'cut_cephfs.sh': generates a simple CephFS client VM
-* 'cut_fstests_cephfs.sh': generates a CephFS client VM, which also
-  includes the https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git[
-  xfstests test suite]
+* 'rbd': generates a simple RBD client VM
+* 'blktests-rbd': generates a RBD client VM, which also includes the
+  https://github.com/osandov/blktests[blktests test suite]
+* 'cephfs': generates a simple CephFS client VM
+* 'fstests-cephfs': generates a CephFS client VM, which also includes
+  the https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git[xfstests
+  test suite]
 
 The 'cut' scripts use Dracut to generate a VM image with all
 dependencies included for the corresponding Ceph kernel client. The
@@ -176,7 +177,8 @@ http://blog.elastocloud.org/2015/06/rapid-linux-kernel-devtest-with-qemu.html
 
 == Kernel VM Deployment
 
-Once a VM has been generated, it can be booted directly via 'vm.sh' .
+Once a VM image has been generated, it can be booted directly via
+'rapido boot'.
 The same image can be booted twice, to allow for multiple CephFS/RBD
 clients or iSCSI gateways. Network parameters for both VMs are defined
 in 'rapido.conf'.
@@ -188,7 +190,7 @@ Dracut shell. The VMs can be shutdown via the 'shutdown' command.
 
 == Kernel RBD Usage
 
-If the client VM was generated using 'cut_rbd.sh', then
+If the client VM was generated using 'rapido cut rbd', then
 'autorun/rbd.sh' will be executed on boot. 'autorun/rbd.sh' performs
 the following:
 
@@ -199,7 +201,7 @@ the following:
 Once deployed, 'dd' can be used to perform I/O against the mapped RBD
 image.
 
-'cut_blktests_rbd.sh' (and corresponding 'autorun/blktests_rbd.sh')
+'cut/blktests_rbd.sh' (and corresponding 'autorun/blktests_rbd.sh')
 additionally configure and start the blktests test suite, following
 successful mapping of the RBD image. 'BLKTESTS_SRC' and optionally
 'BLKTESTS_AUTORUN_CMD' should be configured in 'rapido.conf' prior to
@@ -213,20 +215,20 @@ echo -n 0 > /sys/bus/rbd/remove
 
 == Kernel CephFS Usage
 
-If the client VM was generated using 'cut_cephfs.sh', then
+If the client VM was generated using 'rapido cut cephfs', then
 'autorun/cephfs.sh' will be executed on boot, performing the following:
 
 * Mounts configfs and debugfs
 * Mounts the 'vstart.sh' provisioned CephFS filesystem under /mnt/test
 
-'cut_fstests_cephfs.sh' with its corresponding
+'cut/fstests_cephfs.sh' with its corresponding
 'autorun/fstests_cephfs.sh' boot script additionally:
 
 * Generates an xfstests configuration under '/fstests/configs/'
 * Starts the xfstests test suite via the optional 'FSTESTS_AUTORUN_CMD'
   'rapido.conf' parameter
 
-xfstests can also be manually invoked from a 'cut_fstests_cephfs.sh' VM
+xfstests can also be manually invoked from an 'fstests-cephfs' VM
 shell via:
 
 [source,shell]

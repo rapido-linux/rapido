@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -12,20 +12,24 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-RAPIDO_DIR="$(realpath -e ${0%/*})"
+RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
+_rt_require_ceph
 _rt_require_dracut_args
 _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs killall nvme \
+		   strace mkfs.xfs \
 		   $LIBS_INSTALL_LIST" \
-	--include "$RAPIDO_DIR/autorun/nvme_rdma.sh" "/.profile" \
+	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
+	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
+	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
+	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
+	--include "$RAPIDO_DIR/autorun/lio_rbd.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "nvme-core nvme-fabrics nvme-rdma nvmet nvmet-rdma \
-		       rdma_rxe zram lzo ib_core ib_uverbs rdma_ucm" \
+	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT
