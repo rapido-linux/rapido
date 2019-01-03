@@ -17,9 +17,10 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args
 _rt_require_fstests
+_rt_require_btrfs_progs
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.btrfs btrfs btrfs-convert btrfstune \
+		   strace mkfs  \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
@@ -32,7 +33,8 @@ _rt_require_fstests
 		   chgrp du fgrep pgrep tar rev kill duperemove \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
-		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
+		   ${FSTESTS_SRC}/src/aio-dio-regress/*
+		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	--include "$RAPIDO_DIR/autorun/fstests_btrfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
