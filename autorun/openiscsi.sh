@@ -31,16 +31,14 @@ mkdir -p /etc/iscsi
 inames=( $INITIATOR_IQNS )
 echo "InitiatorName=${inames[0]}" > /etc/iscsi/initiatorname.iscsi
 
-for i in $(ls ${OPENISCSI_SRC}/libopeniscsiusr/*.so*); do
-	ln -s $i /lib64/ || _fatal
-done
+echo ${OPENISCSI_SRC}/libopeniscsiusr >> /etc/ld.so.conf
+export PATH="${PATH}:${OPENISCSI_SRC}/usr"
 
-${OPENISCSI_SRC}/usr/iscsid || _fatal
+iscsid || _fatal
 
 [ -n "$INITIATOR_DISCOVERY_ADDR" ] \
 	|| _fatal "INITIATOR_DISCOVERY_ADDR config required for SendTargets"
-${OPENISCSI_SRC}/usr/iscsiadm -m discovery -t sendtargets \
-				-p $INITIATOR_DISCOVERY_ADDR || _fatal
+iscsiadm -m discovery -t sendtargets -p $INITIATOR_DISCOVERY_ADDR || _fatal
 # login to all discovered targets
-${OPENISCSI_SRC}/usr/iscsiadm -m node -l all || _fatal
+iscsiadm -m node -l all || _fatal
 set +x

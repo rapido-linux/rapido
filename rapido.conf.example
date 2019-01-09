@@ -139,6 +139,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #FSTESTS_AUTORUN_CMD=""
 #################################
 
+##### cut/fstests_btrfs.sh ######
+# If BTRFS_PROGS_SRC is set, then use (prebuilt) btrfs-progs binaries from this
+# path instead of from the local system.
+# e.g. BTRFS_PROGS_SRC="/home/me/btrfs-progs"
+#BTRFS_PROGS_SRC=""
+#################################
+
 ## autorun/fstests_cifs.sh and autorun/samba_*.sh ##
 # SMB server and mount options for cifs.ko
 # e.g. CIFS_SERVER="smbserver.example.com"
