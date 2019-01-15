@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2016-2019, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -42,8 +42,9 @@ modprobe tcm_loop || _fatal "failed to load LIO kernel module"
 
 _vm_ar_dyn_debug_enable
 
-ln -s /lib64/librbd.so /lib64/librbd.so.1
-ln -s /lib64/librados.so /lib64/librados.so.2
+echo "$TCMU_RUNNER_SRC" >> /etc/ld.so.conf
+echo "${CEPH_SRC}/build/lib" >> /etc/ld.so.conf
+export PATH="${PATH}:${TCMU_RUNNER_SRC}"
 
 sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#admin socket = .*##g; \
@@ -51,7 +52,12 @@ sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#log file = .*#log file = /var/log/\$name.\$pid.log#g" \
 	/etc/ceph/ceph.conf
 
-/bin/tcmu-runner -d --handler-path /lib64/ &
+mkdir -p /etc/tcmu
+echo > /etc/tcmu/tcmu.conf
+
+# LD_LIBRARY_PATH shouldn't be needed with the ld.so.conf entry, but it is.
+export LD_LIBRARY_PATH=${CEPH_SRC}/build/lib
+tcmu-runner -d --handler-path $TCMU_RUNNER_SRC &
 
 [ -d $lio_cfgfs ] \
 	|| _fatal "$lio_cfgfs not present - LIO kernel modules not loaded?"
