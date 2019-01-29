@@ -21,6 +21,8 @@ fi
 
 _vm_ar_dyn_debug_enable
 
+export PATH="${SAMBA_SRC}/bin/:${PATH}"
+
 # use a uid and gid which match the CephFS root owner, so SMB users can perform
 # I/O without needing to chmod.
 _ini_parse "/etc/ceph/ceph.conf" "mds" "mds_root_ino_uid" "mds_root_ino_gid"
@@ -61,8 +63,6 @@ ln -s "$ctdb_events_dir" /usr/local/samba/etc/ctdb/
 # FIXME: 00.ctdb.script calls CTDB, which default to the path below
 ln -s ${SAMBA_SRC}/bin/default/ctdb/ctdb /usr/local/bin/ctdb
 # 00.ctdb.script uses $PATH for tdbtool
-export PATH="${SAMBA_SRC}/bin/default/lib/tdb/:${PATH}"
-export PATH="${SAMBA_SRC}/bin/default/ctdb/:${PATH}"
 
 # disable all event scripts by default. ".script" suffix is for Samba 4.9+
 for es in $(find "$ctdb_events_dir"); do
@@ -116,7 +116,7 @@ EOF
 echo $IP_ADDR1 >> /usr/local/samba/etc/ctdb/nodes
 echo $IP_ADDR2 >> /usr/local/samba/etc/ctdb/nodes
 
-${SAMBA_SRC}/bin/default/ctdb/ctdbd || _fatal
+ctdbd || _fatal
 
 echo "ctdbd started, waiting for ctdb to become OK..."
 ctdb_wait_timeout_s="60"
@@ -132,11 +132,10 @@ done
 [ $i -lt $ctdb_wait_timeout_s ] || _fatal "timeout"
 
 echo "Starting smbd..."
-${SAMBA_SRC}/bin/default/source3/smbd/smbd || _fatal
+smbd || _fatal
 
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
-	| ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd -a $CIFS_USER -s \
-				|| _fatal
+	| smbpasswd -a $CIFS_USER -s || _fatal
 
 ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then

@@ -36,24 +36,24 @@ fi
 		   which perl awk bc touch cut chmod true false \
 		   fio getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd \
-		   ${SAMBA_SRC}/bin/default/source3/smbstatus \
+		   ${SAMBA_SRC}/bin/smbpasswd \
+		   ${SAMBA_SRC}/bin/smbstatus \
 		   ${SAMBA_SRC}/bin/modules/vfs/ceph.so \
-		   ${SAMBA_SRC}/bin/default/source3/smbd/smbd \
-		   ${SAMBA_SRC}/bin/default/lib/tdb/tdbtool \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb-config \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdbd \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb?event \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb?eventd \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_killtcp \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_lock_helper \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_mutex_fcntl_helper \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_packet_parse \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb-path \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_recovery_helper \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_takeover_helper \
-		   ${SAMBA_SRC}/bin/default/ctdb/ctdb_mutex_ceph_rados_helper \
+		   ${SAMBA_SRC}/bin/smbd \
+		   ${SAMBA_SRC}/bin/tdbtool \
+		   ${SAMBA_SRC}/bin/ctdb \
+		   ${SAMBA_SRC}/bin/ctdb-config \
+		   ${SAMBA_SRC}/bin/ctdbd \
+		   ${SAMBA_SRC}/bin/ctdb?event \
+		   ${SAMBA_SRC}/bin/ctdb?eventd \
+		   ${SAMBA_SRC}/bin/ctdb_killtcp \
+		   ${SAMBA_SRC}/bin/ctdb_lock_helper \
+		   ${SAMBA_SRC}/bin/ctdb_mutex_fcntl_helper \
+		   ${SAMBA_SRC}/bin/ctdb_packet_parse \
+		   ${SAMBA_SRC}/bin/ctdb-path \
+		   ${SAMBA_SRC}/bin/ctdb_recovery_helper \
+		   ${SAMBA_SRC}/bin/ctdb_takeover_helper \
+		   ${SAMBA_SRC}/bin/ctdb_mutex_ceph_rados_helper \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CTDB_EVENTS_DIR" "$CTDB_EVENTS_DIR" \
 	--include "${SAMBA_SRC}/ctdb/config/functions" \

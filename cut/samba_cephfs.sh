@@ -26,9 +26,9 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		   which perl awk bc touch cut chmod true false \
 		   fio getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd \
+		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/modules/vfs/ceph.so \
-		   ${SAMBA_SRC}/bin/default/source3/smbd/smbd \
+		   ${SAMBA_SRC}/bin/smbd \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_COMMON_LIB" "/usr/lib64/libceph-common.so.0" \
 	--include "$CEPHFS_LIB" "/usr/lib64/libcephfs.so.2" \

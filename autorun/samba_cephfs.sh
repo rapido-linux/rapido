@@ -21,6 +21,8 @@ fi
 
 set -x
 
+export PATH="${SAMBA_SRC}/bin/:${PATH}"
+
 # use a uid and gid which match the CephFS root owner, so SMB users can perform
 # I/O without needing to chmod.
 _ini_parse "/etc/ceph/ceph.conf" "mds" "mds_root_ino_uid" "mds_root_ino_gid"
@@ -63,13 +65,12 @@ cat > /usr/local/samba/etc/smb.conf << EOF
 	oplocks = no
 EOF
 
-${SAMBA_SRC}/bin/default/source3/smbd/smbd || _fatal
+smbd || _fatal
 
 set +x
 
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
-	| ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd -a $CIFS_USER -s \
-				|| _fatal
+	| smbpasswd -a $CIFS_USER -s || _fatal
 
 ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
