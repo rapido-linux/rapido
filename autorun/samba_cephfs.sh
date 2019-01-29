@@ -54,6 +54,10 @@ cat > /usr/local/samba/etc/smb.conf << EOF
 	ceph: config_file = /etc/ceph/ceph.conf
 	ceph: user_id = $CEPH_USER
 	read only = no
+	# no vfs_ceph flock support - "kernel" is confusing here
+	kernel share modes = no
+	# no vfs_ceph lease delegation support
+	oplocks = no
 EOF
 
 ${SAMBA_SRC}/bin/default/source3/smbd/smbd || _fatal
