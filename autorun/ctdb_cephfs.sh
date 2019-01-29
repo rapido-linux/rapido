@@ -21,11 +21,14 @@ fi
 
 _vm_ar_dyn_debug_enable
 
-# use a non-configurable UID/GID for now
-cifs_xid="579120"
-echo "${CIFS_USER}:x:${cifs_xid}:${cifs_xid}:Samba user:/:/sbin/nologin" \
+# use a uid and gid which match the CephFS root owner, so SMB users can perform
+# I/O without needing to chmod.
+_ini_parse "/etc/ceph/ceph.conf" "mds" "mds_root_ino_uid" "mds_root_ino_gid"
+cifs_uid="${mds_root_ino_uid-0}"
+cifs_gid="${mds_root_ino_gid-0}"
+echo "${CIFS_USER}:x:${cifs_uid}:${cifs_gid}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
-echo "${CIFS_USER}:x:${cifs_xid}:" >> /etc/group
+echo "${CIFS_USER}:x:${cifs_gid}:" >> /etc/group
 
 sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#admin socket = .*##g; \
