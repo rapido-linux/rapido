@@ -56,6 +56,8 @@ fi
 cat > /usr/local/samba/etc/smb.conf << EOF
 [global]
 	workgroup = MYGROUP
+	load printers = no
+	smbd: backgroundqueue = no
 
 [${CIFS_SHARE}]
 	path = /mnt

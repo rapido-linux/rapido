@@ -77,6 +77,8 @@ cat > /usr/local/samba/etc/smb.conf << EOF
 [global]
 	workgroup = MYGROUP
 	clustering = yes
+	load printers = no
+	smbd: backgroundqueue = no
 
 [${CIFS_SHARE}]
 	path = /
