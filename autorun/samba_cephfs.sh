@@ -21,11 +21,16 @@ fi
 
 set -x
 
-# use a non-configurable UID/GID for now
-cifs_xid="579120"
-echo "${CIFS_USER}:x:${cifs_xid}:${cifs_xid}:Samba user:/:/sbin/nologin" \
+export PATH="${SAMBA_SRC}/bin/:${PATH}"
+
+# use a uid and gid which match the CephFS root owner, so SMB users can perform
+# I/O without needing to chmod.
+_ini_parse "/etc/ceph/ceph.conf" "mds" "mds_root_ino_uid" "mds_root_ino_gid"
+cifs_uid="${mds_root_ino_uid-0}"
+cifs_gid="${mds_root_ino_gid-0}"
+echo "${CIFS_USER}:x:${cifs_uid}:${cifs_gid}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
-echo "${CIFS_USER}:x:${cifs_xid}:" >> /etc/group
+echo "${CIFS_USER}:x:${cifs_gid}:" >> /etc/group
 
 _vm_ar_dyn_debug_enable
 
@@ -45,6 +50,8 @@ ln -s ${SAMBA_SRC}/bin/modules/vfs/ /usr/local/samba/lib/vfs
 cat > /usr/local/samba/etc/smb.conf << EOF
 [global]
 	workgroup = MYGROUP
+	load printers = no
+	smbd: backgroundqueue = no
 
 [${CIFS_SHARE}]
 	path = /
@@ -52,15 +59,18 @@ cat > /usr/local/samba/etc/smb.conf << EOF
 	ceph: config_file = /etc/ceph/ceph.conf
 	ceph: user_id = $CEPH_USER
 	read only = no
+	# no vfs_ceph flock support - "kernel" is confusing here
+	kernel share modes = no
+	# no vfs_ceph lease delegation support
+	oplocks = no
 EOF
 
-${SAMBA_SRC}/bin/default/source3/smbd/smbd || _fatal
+smbd || _fatal
 
 set +x
 
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
-	| ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd -a $CIFS_USER -s \
-				|| _fatal
+	| smbpasswd -a $CIFS_USER -s || _fatal
 
 ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then

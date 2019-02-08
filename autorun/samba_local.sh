@@ -22,6 +22,7 @@ fi
 set -x
 
 filesystem="btrfs"
+export PATH="${SAMBA_SRC}/bin/:${PATH}"
 
 # use a non-configurable UID/GID for now
 cifs_xid="579120"
@@ -56,6 +57,8 @@ fi
 cat > /usr/local/samba/etc/smb.conf << EOF
 [global]
 	workgroup = MYGROUP
+	load printers = no
+	smbd: backgroundqueue = no
 
 [${CIFS_SHARE}]
 	path = /mnt
@@ -64,13 +67,12 @@ cat > /usr/local/samba/etc/smb.conf << EOF
 	store dos attributes = yes
 EOF
 
-${SAMBA_SRC}/bin/default/source3/smbd/smbd || _fatal
+smbd || _fatal
 
 set +x
 
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
-	| ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd -a $CIFS_USER -s \
-				|| _fatal
+	| smbpasswd -a $CIFS_USER -s || _fatal
 
 ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then

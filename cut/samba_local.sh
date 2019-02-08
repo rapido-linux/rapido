@@ -23,9 +23,9 @@ _rt_require_conf_dir SAMBA_SRC
 		   which perl awk bc touch cut chmod true false \
 		   fio getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   ${SAMBA_SRC}/bin/default/source3/utils/smbpasswd \
+		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
-		   ${SAMBA_SRC}/bin/default/source3/smbd/smbd" \
+		   ${SAMBA_SRC}/bin/smbd" \
 	--include "$RAPIDO_DIR/autorun/samba_local.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
