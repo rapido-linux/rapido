@@ -20,8 +20,7 @@ _rt_require_dracut_args
 _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.xfs \
-		   which perl awk bc touch cut chmod true false \
+		   strace stat which touch cut chmod true false \
 		   fio getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
 		   $LIBS_INSTALL_LIST" \
