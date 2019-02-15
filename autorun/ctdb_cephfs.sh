@@ -26,9 +26,9 @@ export PATH="${SAMBA_SRC}/bin/:${PATH}"
 
 # use a uid and gid which match the CephFS root owner, so SMB users can perform
 # I/O without needing to chmod.
-echo "${CIFS_USER}:x:${CEPH_ROOT_INO_UID}:${CEPH_ROOT_INO_GID}:Samba user:/:/sbin/nologin" \
+echo "${CIFS_USER}:x:${CEPH_ROOT_INO_UID-0}:${CEPH_ROOT_INO_GID-0}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
-echo "${CIFS_USER}:x:${CEPH_ROOT_INO_GID}:" >> /etc/group
+echo "${CIFS_USER}:x:${CEPH_ROOT_INO_GID-0}:" >> /etc/group
 
 sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#admin socket = .*##g; \
