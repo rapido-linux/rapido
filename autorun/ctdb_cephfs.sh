@@ -18,7 +18,7 @@ if [ ! -f /vm_autorun.env ]; then
 fi
 
 . /vm_autorun.env
-. /vm_ceph.env
+. /vm_ceph.env || _fatal
 
 _vm_ar_dyn_debug_enable
 
