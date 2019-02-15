@@ -18,6 +18,7 @@ if [ ! -f /vm_autorun.env ]; then
 fi
 
 . /vm_autorun.env
+. /vm_ceph.env
 
 set -x
 
@@ -29,21 +30,10 @@ cat > /etc/hosts <<EOF
 127.0.0.1	$hostname_fqn	$hostname_short
 EOF
 
-_ini_parse "/etc/ceph/keyring" "client.${CEPH_USER}" "key"
-[ -z "$key" ] && _fatal "client.${CEPH_USER} key not found in keyring"
-if [ -z "$CEPH_MON_NAME" ]; then
-	# pass global section and use mon_host
-	_ini_parse "/etc/ceph/ceph.conf" "global" "mon_host"
-	MON_ADDRESS="$mon_host"
-else
-	_ini_parse "/etc/ceph/ceph.conf" "mon.${CEPH_MON_NAME}" "mon_addr"
-	MON_ADDRESS="$mon_addr"
-fi
-
 _vm_ar_dyn_debug_enable
 
 mkdir -p /mnt/test
-mount -t ceph ${MON_ADDRESS}:/ /mnt/test -o name=${CEPH_USER},secret=${key} \
+mount -t ceph ${CEPH_MON_ADDRESS_V1}:/ /mnt/test -o name=${CEPH_USER},secret=${CEPH_USER_KEY} \
 	|| _fatal
 
 [ -n "${FSTESTS_SRC}" ] || _fatal "FSTESTS_SRC unset"
@@ -53,8 +43,8 @@ cfg="${FSTESTS_SRC}/configs/$(hostname -s).config"
 cat > $cfg << EOF
 MODULAR=0
 TEST_DIR=/mnt/test
-TEST_DEV=${MON_ADDRESS}:/
-TEST_FS_MOUNT_OPTS="-o name=${CEPH_USER},secret=${key}"
+TEST_DEV=${CEPH_MON_ADDRESS_V1}:/
+TEST_FS_MOUNT_OPTS="-o name=${CEPH_USER},secret=${CEPH_USER_KEY}"
 FSTYP="ceph"
 EOF
 
