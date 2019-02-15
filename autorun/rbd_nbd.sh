@@ -18,6 +18,7 @@ if [ ! -f /vm_autorun.env ]; then
 fi
 
 . /vm_autorun.env
+. /vm_ceph.env
 
 set -x
 
@@ -38,19 +39,7 @@ sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 [ -x "$rbd_nbd_bin" ] || _fatal "rbd-nbd executable missing at $rbd_nbd_bin"
 
-# stolen from _vm_ar_rbd_map()
-_ini_parse "/etc/ceph/keyring" "client.${CEPH_USER}" "key"
-[ -z "$key" ] && _fatal "client.${CEPH_USER} key not found in keyring"
-if [ -z "$CEPH_MON_NAME" ]; then
-	# pass global section and use mon_host
-	_ini_parse "/etc/ceph/ceph.conf" "global" "mon_host"
-	mon="$mon_host"
-else
-	_ini_parse "/etc/ceph/ceph.conf" "mon.${CEPH_MON_NAME}" "mon_addr"
-	mon="$mon_addr"
-fi
-
 $rbd_nbd_bin map ${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE} --id ${CEPH_USER} \
-	-m $mon --key=${key} || _fatal "rbd-nbd map failed"
+	-m ${CEPH_MON_ADDRESS_V1} --key=${CEPH_USER_KEY} || _fatal "rbd-nbd map failed"
 
 set +x
