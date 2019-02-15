@@ -18,6 +18,7 @@ if [ ! -f /vm_autorun.env ]; then
 fi
 
 . /vm_autorun.env
+. /vm_ceph.env
 
 set -x
 

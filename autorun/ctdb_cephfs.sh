@@ -18,6 +18,7 @@ if [ ! -f /vm_autorun.env ]; then
 fi
 
 . /vm_autorun.env
+. /vm_ceph.env
 
 _vm_ar_dyn_debug_enable
 
@@ -25,12 +26,9 @@ export PATH="${SAMBA_SRC}/bin/:${PATH}"
 
 # use a uid and gid which match the CephFS root owner, so SMB users can perform
 # I/O without needing to chmod.
-_ini_parse "/etc/ceph/ceph.conf" "mds" "mds_root_ino_uid" "mds_root_ino_gid"
-cifs_uid="${mds_root_ino_uid-0}"
-cifs_gid="${mds_root_ino_gid-0}"
-echo "${CIFS_USER}:x:${cifs_uid}:${cifs_gid}:Samba user:/:/sbin/nologin" \
+echo "${CIFS_USER}:x:${CEPH_ROOT_INO_UID}:${CEPH_ROOT_INO_GID}:Samba user:/:/sbin/nologin" \
 	>> /etc/passwd
-echo "${CIFS_USER}:x:${cifs_gid}:" >> /etc/group
+echo "${CIFS_USER}:x:${CEPH_ROOT_INO_GID}:" >> /etc/group
 
 sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#admin socket = .*##g; \

@@ -15,7 +15,12 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
+vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
+# remove tmp file once we're done
+trap "rm $vm_ceph_conf" 0 1 2 3 15
+
 _rt_require_ceph
+_rt_write_ceph_config $vm_ceph_conf
 _rt_require_dracut_args
 _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 
@@ -30,6 +35,7 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 	--include "$RAPIDO_DIR/autorun/cephfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "ceph libceph" \
 	--modules "bash base network ifcfg" \
 	$DRACUT_EXTRA_ARGS \
