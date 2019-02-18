@@ -29,7 +29,7 @@ _rt_require_blktests
 		   lsblk strace which awk bc touch cut chmod true false mktemp \
 		   killall id sort uniq date expr tac diff head dirname seq \
 		   basename tee egrep hexdump sync fio logger cmp stat nproc \
-		   xfs_io modinfo blkdiscard realpath timeout" \
+		   xfs_io modinfo blkdiscard realpath timeout ip ping" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
@@ -40,6 +40,6 @@ _rt_require_blktests
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "scsi_debug null_blk loop" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

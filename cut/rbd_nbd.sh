@@ -31,7 +31,7 @@ rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 [ -x "$rbd_nbd_bin" ] || _fail "rbd-nbd executable missing at $rbd_nbd_bin"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep \
+		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep ip ping \
 		   $LIBS_INSTALL_LIST $rbd_nbd_bin" \
 	--include "${RAPIDO_DIR}/autorun/rbd_nbd.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
@@ -40,6 +40,6 @@ rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "nbd" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

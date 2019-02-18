@@ -23,7 +23,7 @@ _rt_require_lib "libkeyutils.so.1 libfuse.so libcryptopp-5.6.2.so.0 libhandle.so
 		   strace mkfs mkfs.xfs \
 		   which perl awk bc touch cut chmod true false \
 		   fio getfattr setfattr chacl attr killall sync \
-		   id sort uniq date expr tac diff head dirname seq \
+		   id sort uniq date expr tac diff head dirname seq ip ping \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_FUSE_BIN" "/bin/ceph-fuse" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
@@ -32,6 +32,6 @@ _rt_require_lib "libkeyutils.so.1 libfuse.so libcryptopp-5.6.2.so.0 libhandle.so
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "fuse" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

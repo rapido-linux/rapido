@@ -19,14 +19,14 @@ _rt_require_dracut_args
 _rt_require_conf_dir TGT_SRC
 
 "$DRACUT" \
-	--install "grep ps \
+	--install "grep ps ip ping \
 		   ${TGT_SRC}/usr/tgtd \
 		   ${TGT_SRC}/usr/tgtadm" \
 	--include "${RAPIDO_DIR}/autorun/tgt_local.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "zram lzo" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
