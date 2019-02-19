@@ -25,7 +25,7 @@ _rt_require_dracut_args
 _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs \
+		   strace mkfs.xfs ip ping \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
@@ -36,6 +36,6 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "nvme-core nvme-fabrics nvme-loop nvmet" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

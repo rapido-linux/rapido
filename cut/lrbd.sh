@@ -37,7 +37,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 
 # ldconfig needed by pyudev ctypes.util.find_library
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df \
-		   $py3_files env ldconfig \
+		   $py3_files env ldconfig ip ping \
 		   dbus-daemon /etc/dbus-1/system.conf $rbd_bin $rados_cython \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
@@ -52,8 +52,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
-	--modules "bash base network ifcfg systemd systemd-initrd \
-		   dracut-systemd" \
+	--modules "bash base systemd systemd-initrd dracut-systemd" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

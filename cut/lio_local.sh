@@ -19,13 +19,13 @@ _rt_require_dracut_args
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs truncate losetup dmsetup \
-		   /usr/lib/udev/rules.d/95-dm-notify.rules" \
+		   /usr/lib/udev/rules.d/95-dm-notify.rules ip ping" \
 	--include "$RAPIDO_DIR/autorun/lio_local.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_iblock \
 		       target_core_file dm-delay loop" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

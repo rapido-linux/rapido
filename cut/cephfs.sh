@@ -27,7 +27,7 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat which touch cut chmod true false \
 		   fio getfattr setfattr chacl attr killall sync \
-		   id sort uniq date expr tac diff head dirname seq \
+		   id sort uniq date expr tac diff head dirname seq ip ping \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_MOUNT_BIN" "/sbin/mount.ceph" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
@@ -37,6 +37,6 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "ceph libceph" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

@@ -22,14 +22,6 @@ fi
 
 set -x
 
-hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
-hostname_short="${hostname_fqn%%.*}"
-
-# need hosts file for hostname -s
-cat > /etc/hosts <<EOF
-127.0.0.1	$hostname_fqn	$hostname_short
-EOF
-
 _vm_ar_dyn_debug_enable
 
 mkdir -p /mnt/cephfs

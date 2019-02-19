@@ -19,14 +19,14 @@ _rt_require_dracut_args
 _rt_require_conf_dir OPENISCSI_SRC
 
 "$DRACUT" \
-	--install "grep ps dd mkfs.xfs \
+	--install "grep ps dd mkfs.xfs ip ping \
 		   ${OPENISCSI_SRC}/usr/iscsid \
 		   ${OPENISCSI_SRC}/libopeniscsiusr/libopeniscsiusr.so \
 		   ${OPENISCSI_SRC}/usr/iscsiadm" \
 	--include "${RAPIDO_DIR}/autorun/openiscsi.sh" "/.profile" \
 	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
 	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	--drivers "iscsi_tcp" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"

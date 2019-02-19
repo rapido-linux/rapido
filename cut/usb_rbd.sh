@@ -21,7 +21,7 @@ _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   eject strace mkfs.vfat mountpoint \
-		   mktemp touch sync cryptsetup dmsetup scp ssh \
+		   mktemp touch sync cryptsetup dmsetup scp ssh ip ping \
 		   /usr/lib/udev/rules.d/10-dm.rules \
 		   /usr/lib/udev/rules.d/13-dm-disk.rules \
 		   /usr/lib/udev/rules.d/95-dm-notify.rules \
@@ -39,6 +39,6 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RBD_USB_SRC/rbd-usb.conf" "/etc/rbd-usb/rbd-usb.conf" \
 	--add-drivers "target_core_mod target_core_iblock usb_f_tcm \
 		       usb_f_mass_storage zram dm-crypt" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

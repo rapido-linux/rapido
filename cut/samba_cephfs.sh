@@ -30,7 +30,7 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		   strace mkfs mkfs.xfs \
 		   which perl awk bc touch cut chmod true false \
 		   fio getfattr setfattr chacl attr killall sync \
-		   id sort uniq date expr tac diff head dirname seq \
+		   id sort uniq date expr tac diff head dirname seq ip ping \
 		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/modules/vfs/ceph.so \
 		   ${SAMBA_SRC}/bin/smbd \
@@ -44,7 +44,7 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

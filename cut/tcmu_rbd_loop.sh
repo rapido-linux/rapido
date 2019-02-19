@@ -22,7 +22,7 @@ _rt_require_ceph
 _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep \
+		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen ip ping \
 		   ${CEPH_SRC}/build/lib/librbd.so \
 		   ${CEPH_SRC}/build/lib/libceph-common.so \
 		   ${CEPH_SRC}/build/lib/librados.so \
@@ -35,6 +35,6 @@ _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--add-drivers "target_core_mod target_core_user tcm_loop" \
-	--modules "bash base network ifcfg" \
+	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT
