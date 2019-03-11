@@ -18,6 +18,7 @@ if [ ! -f /vm_autorun.env ]; then
 fi
 
 . /vm_autorun.env
+. /vm_ceph.env || _fatal
 
 set -x
 
@@ -31,5 +32,5 @@ sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#log file = .*#log file = /var/log/\$name.\$pid.log#g" \
 	/etc/ceph/ceph.conf
 mkdir -p /mnt/cephfs
-ceph-fuse /mnt/cephfs
+$CEPH_FUSE_BIN /mnt/cephfs || _fatal
 set +x
