@@ -29,8 +29,8 @@ mount_args="-ocredentials=${creds_path}"
 [ -n "$CIFS_MOUNT_OPTS" ] && mount_args="${mount_args},${CIFS_MOUNT_OPTS}"
 set -x
 
-mkdir -p /mnt/test
-mount -t cifs //${CIFS_SERVER}/${CIFS_SHARE} /mnt/test \
+mkdir -p /mnt/cifs
+mount -t cifs //${CIFS_SERVER}/${CIFS_SHARE} /mnt/cifs \
 	"$mount_args" || _fatal
-
+cd /mnt/cifs || _fatal
 set +x
