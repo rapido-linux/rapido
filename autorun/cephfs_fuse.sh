@@ -33,4 +33,5 @@ sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	/etc/ceph/ceph.conf
 mkdir -p /mnt/cephfs
 $CEPH_FUSE_BIN /mnt/cephfs || _fatal
+cd /mnt/cephfs || _fatal
 set +x

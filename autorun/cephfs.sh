@@ -25,5 +25,7 @@ set -x
 _vm_ar_dyn_debug_enable
 
 mkdir -p /mnt/cephfs
-mount -t ceph ${CEPH_MON_ADDRESS_V1}:/ /mnt/cephfs -o name=${CEPH_USER},secret=${CEPH_USER_KEY}
+mount -t ceph ${CEPH_MON_ADDRESS_V1}:/ /mnt/cephfs \
+	-o name=${CEPH_USER},secret=${CEPH_USER_KEY} || _fatal
+cd /mnt/cephfs || _fatal
 set +x
