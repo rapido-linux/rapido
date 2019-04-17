@@ -12,8 +12,7 @@ KERNEL_SRC=""
 KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
 
 # bridge device provisioned by "rapido setup-network" (br_setup.sh).
-# e.g. BR_DEV="br0"
-BR_DEV="br0"
+BR_DEV="rapido-br"
 
 # If specified, a physical network interface to be connected to the bridge.
 # This should only be necessary if you wish to connect to the rapido VMs from a
