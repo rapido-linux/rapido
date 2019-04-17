@@ -39,7 +39,7 @@ _rt_require_fstests
 	--include "$RAPIDO_DIR/autorun/fstests_xfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo dm-snapshot dm-flakey xfs" \
+	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey xfs" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"

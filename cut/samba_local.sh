@@ -29,7 +29,7 @@ _rt_require_conf_dir SAMBA_SRC
 	--include "$RAPIDO_DIR/autorun/samba_local.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo xfs btrfs" \
+	--add-drivers "zram lzo lzo-rle xfs btrfs" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
