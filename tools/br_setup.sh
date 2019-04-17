@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2016-2019, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -14,6 +14,8 @@
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
+
+_rt_require_conf_setting BR_DEV TAP_USER TAP_DEV0 TAP_DEV1
 
 # cleanup on premature exit by executing whatever has been prepended to @unwind
 unwind=""
