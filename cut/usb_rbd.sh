@@ -38,7 +38,7 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RBD_USB_SRC/rbd-usb.env" "/usr/lib/rbd-usb.env" \
 	--include "$RBD_USB_SRC/rbd-usb.conf" "/etc/rbd-usb/rbd-usb.conf" \
 	--add-drivers "target_core_mod target_core_iblock usb_f_tcm \
-		       usb_f_mass_storage zram dm-crypt" \
+		       usb_f_mass_storage zram lzo lzo-rle dm-crypt" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

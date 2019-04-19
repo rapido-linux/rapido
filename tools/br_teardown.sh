@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
+# Copyright (C) SUSE LINUX GmbH 2017-2019, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -14,6 +14,8 @@
 
 RAPIDO_DIR="`dirname $0`/.."
 . "${RAPIDO_DIR}/runtime.vars"
+
+_rt_require_conf_setting BR_DEV TAP_DEV0 TAP_DEV1
 
 set -x
 
