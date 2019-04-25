@@ -227,3 +227,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # when issuing a SendTargets discovery request.
 #INITIATOR_DISCOVERY_ADDR=""
 ################################
+
+########## cut/ltp.sh ##########
+# LTP_DIR should correspond to the ltp directory tree after make install.
+# e.g. LTP_DIR="/opt/ltp"
+#LTP_DIR=""
+# LTP_AUTORUN_CMD can be set to automatically run one or more testcases from
+# within the ltp directory.
+# e.g. LTP_AUTORUN_CMD="./runltp"
+#LTP_AUTORUN_CMD=""
+################################
