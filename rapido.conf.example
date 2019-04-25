@@ -227,3 +227,12 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # when issuing a SendTargets discovery request.
 #INITIATOR_DISCOVERY_ADDR=""
 ################################
+
+########## cut/ltp.sh ##########
+# LTP_BIN should correspond to the ltp binary tree after make install 
+# make sure you run LTP's configure script with a prefix somewhere under your
+# home directory
+#LTP_BIN=
+# LTP_AUTORUN_CMD can be set to automatically run one or more ltp testcases
+#LTP_AUTORUN_CMD
+################################
