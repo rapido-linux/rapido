@@ -12,6 +12,14 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
+# This script autocompletes "rapido" subcommands and "rapido cut" image
+# generators.
+# Source it in your bashrc:
+#   . <rapido_dir>/tools/bash_completion
+#
+# or create a bash_completion.d link:
+#   ln -s <rapido_dir>/tools/bash_completion /etc/bash_completion.d/rapido
+
 __rapido()
 {
 	local bin cur prev comps
