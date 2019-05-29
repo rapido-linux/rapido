@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# Copyright (C) SUSE LINUX GmbH 2019, all rights reserved.
+#
+# This library is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 2.1 of the License, or
+# (at your option) version 3.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+
+# This script autocompletes "rapido" subcommands and "rapido cut" image
+# generators.
+# Source it in your bashrc:
+#   . <rapido_dir>/tools/bash_completion
+#
+# or create a bash_completion.d link:
+#   ln -s <rapido_dir>/tools/bash_completion /etc/bash_completion.d/rapido
+
+__rapido()
+{
+	local bin cur prev comps
+	bin="$1"
+
+	# we only want to complete the rapido script, not dirs, etc.
+	[ -f "$bin" ] || return 0
+	[ -x "$bin" ] || return 0
+
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	if [[ ${prev} =~ "cut" ]]; then
+		# XXX invocations may be considered unsafe
+		comps="$(${bin} list)"
+		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
+		return 0
+	fi
+
+	if [[ ${cur} == * ]]; then
+		comps="$(${bin} help|sed -n 's/^\s\(\S*\) - .*/\1/p')"
+		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
+		return 0
+	fi
+}
+
+complete -F __rapido rapido
+complete -F __rapido ./rapido

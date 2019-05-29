@@ -1,0 +1,17 @@
+= Rapido Tools and Utilities
+
+== Bash Tab Autocompletion
+
+The 'tools/bash_completion' script can be used for tab autocompletion of
+'rapido' subcommands and 'rapido cut' image generators.
+Source it in your bashrc:
+[source,shell]
+--------------
+ . <rapido_dir>/tools/bash_completion
+--------------
+
+Alternatively, create a symlink in the 'bash_completion.d' directory:
+[source,shell]
+--------------
+ ln -s <rapido_dir>/tools/bash_completion /etc/bash_completion.d/rapido
+--------------

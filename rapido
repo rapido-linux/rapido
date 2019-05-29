@@ -80,7 +80,7 @@ rapido_list()
 
 list_commands()
 {
-	commands=$(declare -F | grep -o " rapido_[a-zA-Z_]*" | sed 's/^ rapido_//;s/_/-/g')
+	commands=$(declare -F | sed -n 's/.* rapido_\([a-zA-Z_]*\).*/\1/;T;s/_/-/g;p')
 	for command in $commands; do
 		if [ -n "${short_help[$command]}" ]; then
 			echo -e "\t$command - ${short_help[$command]}"
