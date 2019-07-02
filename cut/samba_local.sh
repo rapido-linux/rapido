@@ -18,10 +18,10 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args
 _rt_require_conf_dir SAMBA_SRC
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+"$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.btrfs mkfs.xfs \
-		   which perl awk bc touch cut chmod true false \
-		   fio getfattr setfattr chacl attr killall sync \
+		   stat which touch cut chmod true false \
+		   getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq ip ping \
 		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
