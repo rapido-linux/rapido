@@ -91,8 +91,6 @@ function _vm_start
 	exit $?
 }
 
-set -x
-
 [ -z "$(_vm_is_running 1)" ] && _vm_start 1
 [ -z "$(_vm_is_running 2)" ] && _vm_start 2
 # _vm_start exits when done, so we only get here if none were started
