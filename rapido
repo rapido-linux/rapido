@@ -28,6 +28,12 @@ rapido_setup_network()
 	${RAPIDO_DIR}/tools/br_setup.sh
 }
 
+short_help["vm"]="Boot previously prepared test"
+rapido_vm()
+{
+	${RAPIDO_DIR}/vm.sh
+}
+
 short_help["boot"]="Boot previously prepared test"
 rapido_boot()
 {
