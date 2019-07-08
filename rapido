@@ -28,7 +28,7 @@ rapido_setup_network()
 	${RAPIDO_DIR}/tools/br_setup.sh
 }
 
-short_help["vm"]="Boot previously prepared test"
+# vm is an alias for boot
 rapido_vm()
 {
 	${RAPIDO_DIR}/vm.sh
@@ -90,8 +90,6 @@ list_commands()
 	for command in $commands; do
 		if [ -n "${short_help[$command]}" ]; then
 			echo -e "\t$command - ${short_help[$command]}"
-		else
-			echo -e "\t$command"
 		fi
 	done
 }
