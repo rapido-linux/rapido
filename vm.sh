@@ -69,12 +69,19 @@ function _vm_start
 			-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap}"
 	fi
 
-	# cut_ script may have specified some parameters for qemu (9p share)
+	# cut_ script may have specified some parameters for qemu
 	local qemu_cut_args="$(_rt_xattr_qemu_args_get ${DRACUT_OUT})"
 	local qemu_more_args="$qemu_netdev $QEMU_EXTRA_ARGS $qemu_cut_args"
 
 	local vm_resources="$(_rt_xattr_vm_resources_get ${DRACUT_OUT})"
 	[ -n "$vm_resources" ] || vm_resources="-smp cpus=2 -m 512"
+
+	# rapido.conf might have specified a shared folder for qemu
+	local virtfs_share=""
+	if [ -n "$VIRTFS_FOLDER" ]; then
+		virtfs_share="-virtfs \
+		local,path=$VIRTFS_FOLDER,mount_tag=host0,security_model=mapped,id=host0"
+	fi
 
 	[ -f "$kernel_img" ] \
 	   || _fail "no kernel image present at ${kernel_img}. Build needed?"
@@ -87,6 +94,7 @@ function _vm_start
 			 rd.systemd.unit=emergency \
 		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
 		-pidfile "$vm_pid_file" \
+		$virtfs_share \
 		$qemu_more_args
 	exit $?
 }
