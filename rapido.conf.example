@@ -31,6 +31,10 @@ BR_ADDR="192.168.155.1/24"
 # e.g. TAP_USER="me"
 TAP_USER=""
 
+# Shared host folder, will be /host in guest
+# e.g. VIRTFS_FOLDER="/tmp/rapido/"
+#VIRTFS_FOLDER=""
+
 # extra qemu-kvm arguments to append for both VMs:
 # "-nographic" sees the emulated serial port redirected to the invoking console.
 # "-display none -daemonize" can be used to run VMs in the background, without
