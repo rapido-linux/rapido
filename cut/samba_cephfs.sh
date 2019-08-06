@@ -31,6 +31,7 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		   getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq ip ping \
 		   ${SAMBA_SRC}/bin/smbpasswd \
+		   ${SAMBA_SRC}/bin/smbstatus \
 		   ${SAMBA_SRC}/bin/modules/vfs/ceph.so \
 		   ${SAMBA_SRC}/bin/smbd \
 		   $LIBS_INSTALL_LIST" \
