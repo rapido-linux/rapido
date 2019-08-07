@@ -28,7 +28,7 @@ _rt_require_lib "libsoftokn3.so \
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat truncate touch cut chmod fio getfattr setfattr \
-		   chacl attr killall sync dirname seq ip ping \
+		   getfacl setfacl killall sync dirname seq ip ping \
 		   $CEPH_FUSE_BIN \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
