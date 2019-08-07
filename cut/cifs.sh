@@ -25,7 +25,7 @@ _rt_require_dracut_args
 	--include "$RAPIDO_DIR/autorun/cifs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "cifs ccm ctr" \
+	--add-drivers "cifs ccm gcm ctr" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
