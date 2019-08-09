@@ -67,9 +67,10 @@ rapido_cut()
 		exit
 	fi
 
-	exec ./$cut_script
-
+	./$cut_script
+	local cut_status=$?
 	popd > /dev/null
+	[ $cut_status -ne 0 ] && exit $cut_status
 }
 
 short_help["list"]="List testcases"
