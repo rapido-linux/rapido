@@ -40,16 +40,33 @@ rapido_boot()
 	${RAPIDO_DIR}/vm.sh
 }
 
-short_help["cut"]="Prepare testcase for booting"
+short_help["cut"]="Prepare testcase and boot it"
 rapido_cut()
 {
-	local testname="$1"
+	local boot_img="yes"
+	local option=""
+	while getopts "B" option; do
+		case $option in
+		B)
+			unset boot_img
+			;;
+		*)
+			echo "Invalid cut parameter"
+			exit 1
+			;;
+		esac
+	done
+
+	# shift away any processed params, so we're left with testname
+	shift $(($OPTIND - 1))
+	local testname=$1
 
 	if [ -z "$testname" -o x"$testname" = "xhelp" ]; then
 		progname="$(basename $0)"
 		funcname="$(echo ${FUNCNAME[0]} | sed 's/^rapido_//;s/_/-/g')" 
-		echo "Usage ${progname} ${funcname} testname"
+		echo "Usage: ${progname} ${funcname} [-B] testname"
 		echo ""
+		echo "-B:	cut testcase image only, don't boot it"
 		echo "Where testname is one of the following:"
 		rapido_list
 		exit
@@ -71,6 +88,7 @@ rapido_cut()
 	local cut_status=$?
 	popd > /dev/null
 	[ $cut_status -ne 0 ] && exit $cut_status
+	[ -n "$boot_img" ] && ${RAPIDO_DIR}/vm.sh
 }
 
 short_help["list"]="List testcases"
