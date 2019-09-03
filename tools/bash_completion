@@ -22,26 +22,38 @@
 
 __rapido()
 {
-	local bin cur prev comps
+	local bin cut_dir cur prev comps
 	bin="$1"
 
 	# we only want to complete the rapido script, not dirs, etc.
 	[ -f "$bin" ] || return 0
 	[ -x "$bin" ] || return 0
 
+	cut_dir="$(dirname $bin)/cut"
+	[ -d "${cut_dir}" ] || return 0
+
 	COMPREPLY=()
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
+	if [[ ${prev} =~ "-B" ]]; then
+		# -B subparameter is provided (for cut?)
+		prev="${COMP_WORDS[COMP_CWORD-2]}"
+	else
+		# cut should include "-B" completion
+		comps="-B"
+	fi
+
 	if [[ ${prev} =~ "cut" ]]; then
-		# XXX invocations may be considered unsafe
-		comps="$(${bin} list)"
+		pushd "${cut_dir}" &> /dev/null || return 0
+		comps="${comps} $(ls *.sh | sed 's/\.sh$//;s/_/-/g')"
+		popd &> /dev/null
 		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
 		return 0
 	fi
 
 	if [[ ${cur} == * ]]; then
-		comps="$(${bin} help|sed -n 's/^\s\(\S*\) - .*/\1/p')"
+		comps="boot cut help list setup-network teardown-network"
 		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
 		return 0
 	fi
