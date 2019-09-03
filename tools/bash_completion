@@ -36,6 +36,14 @@ __rapido()
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
+	if [[ ${prev} =~ "-B" ]]; then
+		# -B subparameter is provided (for cut?)
+		prev="${COMP_WORDS[COMP_CWORD-2]}"
+	else
+		# cut should include "-B" completion
+		comps="-B"
+	fi
+
 	if [[ ${prev} =~ "cut" ]]; then
 		pushd "${cut_dir}" &> /dev/null || return 0
 		comps="${comps} $(ls *.sh | sed 's/\.sh$//;s/_/-/g')"
