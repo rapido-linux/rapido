@@ -17,7 +17,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_zram_params
+ZRAM_INITRD_SIZE="1G"
+ZRAM_INITRD_MNT="${RAPIDO_DIR}/initrds"
 
 ZRAM_BACKUP_DIR=`mktemp --tmpdir -d zram_backup.XXXXXXXXXX` || _fail
 trap "rm -f ${ZRAM_BACKUP_DIR}/readme.txt && rmdir $ZRAM_BACKUP_DIR" 0 1 2 3 15
