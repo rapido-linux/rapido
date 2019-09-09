@@ -65,7 +65,7 @@ function _vm_start
 				|| _fail "IP_ADDR${vm_num} not configured"
 			kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
 		fi
-		qemu_netdev="-device e1000,netdev=nw1,mac=${mac_addr} \
+		qemu_netdev="-device virtio-net,netdev=nw1,mac=${mac_addr} \
 			-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap}"
 	fi
 
