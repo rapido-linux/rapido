@@ -56,6 +56,10 @@ TEST_FS_MOUNT_OPTS="$mount_args"
 FSTYP="cifs"
 EOF
 
+mkdir -p home/fsgqa
+groupadd fsgqa
+useradd -g fsgqa fsgqa
+
 set +x
 
 if [ -n "$FSTESTS_AUTORUN_CMD" ]; then

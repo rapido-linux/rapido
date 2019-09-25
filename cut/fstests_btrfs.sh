@@ -30,16 +30,20 @@ _rt_require_btrfs_progs
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io \
-		   chgrp du fgrep pgrep tar rev kill duperemove \
+		   chgrp du fgrep pgrep tar rev kill duperemove useradd groupadd \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*
 		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
+	--include "/lib64/security/pam_permit.so" "/lib64/security/pam_permit.so" \
+	--include "/etc/pam.d/useradd" "/etc/pam.d/useradd" \
+	--include "/etc/pam.d/groupadd" "/etc/pam.d/groupadd" \
 	--include "$RAPIDO_DIR/autorun/fstests_btrfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq" \
+	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
+			xxhash_generic" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"

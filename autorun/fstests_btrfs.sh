@@ -62,6 +62,10 @@ SCRATCH_MNT=/mnt/scratch
 SCRATCH_DEV_POOL="/dev/zram1 /dev/zram2 /dev/zram3 /dev/zram4"
 EOF
 
+mkdir -p home/fsgqa
+groupadd fsgqa
+useradd -g fsgqa fsgqa
+
 set +x
 
 echo "$filesystem filesystem ready for FSQA"

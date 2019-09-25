@@ -48,6 +48,10 @@ TEST_FS_MOUNT_OPTS="-o name=${CEPH_USER},secret=${CEPH_USER_KEY}"
 FSTYP="ceph"
 EOF
 
+mkdir -p home/fsgqa
+groupadd fsgqa
+useradd -g fsgqa fsgqa
+
 set +x
 
 if [ -n "$FSTESTS_AUTORUN_CMD" ]; then

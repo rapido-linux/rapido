@@ -36,12 +36,15 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io \
-		   chgrp du fgrep pgrep tar rev kill ip ping \
+		   chgrp du fgrep pgrep tar rev kill ip ping useradd groupadd \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/* \
 		   $LIBS_INSTALL_LIST" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
+	--include "/lib64/security/pam_permit.so" "/lib64/security/pam_permit.so" \
+	--include "/etc/pam.d/useradd" "/etc/pam.d/useradd" \
+	--include "/etc/pam.d/groupadd" "/etc/pam.d/groupadd" \
 	--include "$CEPH_MOUNT_BIN" "/sbin/mount.ceph" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
