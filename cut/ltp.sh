@@ -30,6 +30,7 @@ _rt_require_conf_dir LTP_DIR
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--include "$LTP_DIR" "$LTP_DIR"  \
+	--include "${KERNEL_SRC}/.config" /.config \
 	--add-drivers "loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
