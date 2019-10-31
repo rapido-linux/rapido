@@ -29,7 +29,7 @@ _rt_require_btrfs_progs
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
-		   xfs_mkfile xfs_db xfs_io \
+		   xfs_mkfile xfs_db xfs_io wipefs \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
