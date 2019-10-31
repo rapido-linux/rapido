@@ -32,8 +32,8 @@ cat > /etc/hosts <<EOF
 127.0.0.1	$hostname_fqn	$hostname_short
 EOF
 
-# use a 4-dev scratch pool for btrfs
-num_devs="5"
+# use a 5-dev scratch pool for btrfs
+num_devs="6"
 modprobe zram num_devices="${num_devs}" || _fatal "failed to load zram module"
 
 _vm_ar_dyn_debug_enable
@@ -59,7 +59,7 @@ MODULAR=0
 TEST_DIR=/mnt/test
 TEST_DEV=/dev/zram0
 SCRATCH_MNT=/mnt/scratch
-SCRATCH_DEV_POOL="/dev/zram1 /dev/zram2 /dev/zram3 /dev/zram4"
+SCRATCH_DEV_POOL="/dev/zram1 /dev/zram2 /dev/zram3 /dev/zram4 /dev/zram5"
 EOF
 
 set +x
