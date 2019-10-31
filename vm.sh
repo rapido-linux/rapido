@@ -15,7 +15,11 @@
 RAPIDO_DIR="`dirname $0`"
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_qemu_kvm_bin
+if lsmod | grep -q vboxguest ; then
+	_rt_require_qemu
+else
+	_rt_require_qemu_kvm_bin
+fi
 
 function _vm_is_running
 {
@@ -86,7 +90,7 @@ function _vm_start
 	[ -f "$kernel_img" ] \
 	   || _fail "no kernel image present at ${kernel_img}. Build needed?"
 
-	$QEMU_KVM_BIN \
+	$QEMU_BIN \
 		$vm_resources \
 		-kernel "$kernel_img" \
 		-initrd "$DRACUT_OUT" \
