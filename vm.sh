@@ -83,7 +83,7 @@ function _vm_start
 	fi
 
 	$QEMU_BIN \
-		-machine accel=kvm $QEMU_ARCH_VARS \
+		$QEMU_ARCH_VARS \
 		$vm_resources \
 		-kernel "$QEMU_KERNEL_IMG" \
 		-initrd "$DRACUT_OUT" \
