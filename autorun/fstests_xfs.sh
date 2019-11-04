@@ -21,17 +21,9 @@ fi
 
 set -x
 
-hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
-hostname_short="${hostname_fqn%%.*}"
-filesystem="xfs"
-
-# need hosts file for hostname -s
-cat > /etc/hosts <<EOF
-127.0.0.1	$hostname_fqn	$hostname_short
-EOF
-
 modprobe zram num_devices="2" || _fatal "failed to load zram module"
 
+_vm_ar_hosts_create
 _vm_ar_dyn_debug_enable
 
 echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"

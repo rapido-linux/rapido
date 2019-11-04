@@ -23,14 +23,9 @@ set -x
 
 [ -n "$BTRFS_PROGS_SRC" ] && export PATH="${PATH}:${BTRFS_PROGS_SRC}"
 
-hostname_fqn="`cat /proc/sys/kernel/hostname`" || _fatal "hostname unavailable"
-hostname_short="${hostname_fqn%%.*}"
-filesystem="btrfs"
+_vm_ar_hosts_create
 
-# need hosts file for hostname -s
-cat > /etc/hosts <<EOF
-127.0.0.1	$hostname_fqn	$hostname_short
-EOF
+filesystem="btrfs"
 
 # use a 5-dev scratch pool for btrfs
 num_devs="6"
