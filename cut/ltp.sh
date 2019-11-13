@@ -20,14 +20,16 @@ _rt_require_conf_dir LTP_DIR
 _rt_mem_resources_set "2048M"	# 2 vCPUs, 2G RAM
 
 "$DRACUT" \
-	--install "tail blockdev ps rmdir resize dd grep find df mkfs which \
-		perl awk bc touch cut chmod true false unlink mktemp getfattr \
-		setfattr attr killall hexdump sync id sort uniq date expr tac \
-		diff head dirname seq basename tee egrep yes dmsetup chattr \
-		lsattr cmp stat hostname getconf md5sum od wc tr xargs sysctl \
-		link truncate quota quotacheck quotaon vgremove chgrp du fgrep \
-		pgrep pkill tar rev kill fdformat ldd free losetup chown sed \
-		cat lsmod ip ping tc \
+	--install " \
+		attr awk basename bc blockdev cat chattr chgrp chmod chown cmp cut \
+		date dd df diff dirname dmsetup du egrep expr false fdformat fdisk \
+		fgrep find free gdb getconf getfattr grep head hexdump hostname id ip \
+		kill killall ldd link losetup lsattr lsmod ltrace md5sum mkfs mkfs.bfs \
+		mkfs.btrfs mkfs.cramfs mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.fat mkfs.jfs \
+		mkfs.minix mkfs.msdos mkfs.ntfs mkfs.vfat mkfs.xfs mktemp od parted \
+		perl pgrep ping ping6 pkill ps quota quotacheck quotaon resize rev \
+		rmdir sed seq setfattr sort stat strace sync sysctl tac tail tar tc \
+		tee touch tr true truncate uniq unlink vgremove wc which xargs xxd yes \
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
 	--include "$LTP_DIR" "$LTP_DIR"  \
 	--include "${KERNEL_SRC}/.config" /.config \
