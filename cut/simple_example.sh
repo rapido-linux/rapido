@@ -45,8 +45,8 @@ _rt_require_dracut_args
 	$DRACUT_OUT || _fail "dracut failed"
 
 # VMs can be deployed with or without a virtual network adapter. The default is
-# to deploy *with* network, in which case the "network" and "ifcfg" Dracut
-# modules should be added above.
+# to deploy *with* network, in which case the ip and ping binaries should be
+# added to the Dracut --install parameter above.
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"		# *disable* network
 
 # VMs are booted with 2 vCPUs and 512M RAM by default. These defaults can be
