@@ -29,7 +29,7 @@ _rt_require_btrfs_progs
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
-		   xfs_mkfile xfs_db xfs_io wipefs \
+		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup\
 		   chgrp du fgrep pgrep tar rev kill duperemove \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
@@ -39,7 +39,7 @@ _rt_require_btrfs_progs
 	--include "$RAPIDO_DIR/autorun/fstests_btrfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq" \
+	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
