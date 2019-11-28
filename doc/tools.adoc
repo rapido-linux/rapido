@@ -15,3 +15,39 @@ Alternatively, create a symlink in the 'bash_completion.d' directory:
 --------------
  ln -s <rapido_dir>/tools/bash_completion /etc/bash_completion.d/rapido
 --------------
+
+
+== Live QEMU Debugging with GDB
+
+When started with a '-gdb <dev>' parameter, QEMU starts a GDB server
+alongside the corresponding VM which can be use for live debugging.
+The 'tools/qemu_gdb.sh' script can be used to connect to the QEMU GDB
+server and load debug symbols and helper commands present in the
+'KERNEL_SRC' tree:
+[source,shell]
+--------------
+ vim rapido.conf    # append "-gdb tcp:127.0.0.1:1234" to QEMU_EXTRA_ARGS
+ ./rapido cut simple-example
+ ./tools/qemu_gdb.sh
+ Reading symbols from /home/ddiss/kernel/linux/vmlinux...
+ Remote debugging using tcp:127.0.0.1:1234
+ default_idle () at arch/x86/kernel/process.c:701
+ 701     }
+ (gdb) lx-ps
+ 0xffffffff81c114c0 <init_task> 0 swapper/0
+ 0xffff88801dc90000 1 init
+ ...
+--------------
+
+
+== Avoid Disk I/O for Image Generation
+
+Rapido initramfs images are intended to be short-lived, so writing them
+to persistent disk is unnecessary.
+The 'tools/zram_setup.sh' script can be used to provision and mount a
+ramdisk under the '<rapido_dir>/initrds' directory, sparing your SSD of
+some unnecessary write cycles.
+[source,shell]
+--------------
+ sudo tools/zram_setup.sh
+--------------
