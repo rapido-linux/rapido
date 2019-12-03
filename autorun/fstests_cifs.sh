@@ -47,6 +47,7 @@ TEST_DIR=/mnt/test
 TEST_DEV=//${CIFS_SERVER}/${CIFS_SHARE}
 TEST_FS_MOUNT_OPTS="$mount_args"
 FSTYP="cifs"
+USE_KMEMLEAK=yes
 EOF
 
 set +x

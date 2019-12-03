@@ -46,6 +46,7 @@ TEST_DIR=/mnt/test
 TEST_DEV=/dev/zram0
 SCRATCH_MNT=/mnt/scratch
 SCRATCH_DEV=/dev/zram1
+USE_KMEMLEAK=yes
 EOF
 
 set +x

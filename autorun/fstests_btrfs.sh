@@ -55,6 +55,7 @@ TEST_DIR=/mnt/test
 TEST_DEV=/dev/zram0
 SCRATCH_MNT=/mnt/scratch
 SCRATCH_DEV_POOL="/dev/zram1 /dev/zram2 /dev/zram3 /dev/zram4 /dev/zram5"
+USE_KMEMLEAK=yes
 EOF
 
 set +x
