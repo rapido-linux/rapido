@@ -89,7 +89,8 @@ function _vm_start
 		-initrd "$DRACUT_OUT" \
 		-append "rapido.vm_num=${vm_num} ip=${kern_ip_addr} \
 			 rd.systemd.unit=emergency \
-		         rd.shell=1 console=$QEMU_KERNEL_CONSOLE rd.lvm=0 rd.luks=0" \
+		         rd.shell=1 console=$QEMU_KERNEL_CONSOLE rd.lvm=0 rd.luks=0 \
+			 $QEMU_EXTRA_KERNEL_PARAMS" \
 		-pidfile "$vm_pid_file" \
 		$virtfs_share \
 		$qemu_more_args
