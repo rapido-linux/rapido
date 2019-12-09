@@ -1,0 +1,74 @@
+#!/usr/bin/expect -f
+#
+# Copyright (C) SUSE LLC 2019, all rights reserved.
+#
+# This library is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 2.1 of the License, or
+# (at your option) version 3.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+
+# boot two simple-example runners in parallel and check hostnames
+
+set timeout 60
+spawn ./rapido cut -B simple-example
+expect {
+	timeout {exit 1}
+	eof
+}
+
+# boot first vm and wait for welcome
+spawn ./rapido boot
+set r1_sid $spawn_id
+
+expect {
+	-i $r1_sid
+	timeout {exit 1}; eof {exit 2}
+	"Rapido scratch VM running. Have a lot of fun..."
+}
+
+# check that first vm has been assigned vm_num=1
+send -i $r1_sid "cat /proc/cmdline\r"
+expect {
+	-i $r1_sid
+	timeout {exit 1}; eof {exit 2}
+	"rapido.vm_num=1"
+}
+
+# boot second vm and wait for welcome
+spawn ./rapido boot
+set r2_sid $spawn_id
+
+expect {
+	-i $r2_sid
+	timeout {exit 1}; eof {exit 2}
+	"Rapido scratch VM running. Have a lot of fun..."
+}
+
+# check that second vm has been assigned vm_num=2
+send -i $r2_sid "cat /proc/cmdline\r"
+expect {
+	-i $r2_sid
+	timeout {exit 1}; eof {exit 2}
+	"rapido.vm_num=2"
+}
+
+# shutdown first vm and wait for eof
+send -i $r1_sid "shutdown\r"
+expect {
+	-i $r1_sid
+	timeout {exit 1}
+	eof
+}
+
+# shutdown second vm and wait for eof
+send -i $r2_sid "shutdown\r"
+expect {
+	-i $r2_sid
+	timeout {exit 1}
+	eof
+}
