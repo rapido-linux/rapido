@@ -28,6 +28,7 @@ BLKTESTS_DIR="/blktests"
 modprobe zram num_devices="1" || _fatal "failed to load zram module"
 
 _vm_ar_dyn_debug_enable
+_vm_ar_configfs_mount
 
 echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
 
