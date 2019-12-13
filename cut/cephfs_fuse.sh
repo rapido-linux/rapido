@@ -27,7 +27,7 @@ _rt_require_lib "libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
-		   strace stat truncate touch cut chmod fio getfattr setfattr \
+		   strace stat truncate touch cut chmod getfattr setfattr \
 		   getfacl setfacl killall sync dirname seq ip ping \
 		   $CEPH_FUSE_BIN \
 		   $LIBS_INSTALL_LIST" \

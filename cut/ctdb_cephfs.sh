@@ -39,7 +39,7 @@ fi
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace xargs timeout \
 		   which perl awk bc touch cut chmod true false \
-		   fio getfattr setfattr chacl attr killall sync \
+		   getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq ip ping \
 		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/smbstatus \
