@@ -245,3 +245,8 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # e.g. LTP_AUTORUN_CMD="./runltp"
 #LTP_AUTORUN_CMD=""
 ################################
+
+######## autorun/nvme_tcp_initiator.sh ########
+# NVMe over TCP target details used for mapping
+#NVME_TARGET_TCP="$IP_ADDR1"
+###############################################
