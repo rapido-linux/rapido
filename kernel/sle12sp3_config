@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.4.159 Kernel Configuration
+# Linux/x86 4.4.180 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -364,7 +364,7 @@ CONFIG_SWIOTLB=y
 CONFIG_IOMMU_HELPER=y
 # CONFIG_MAXSMP is not set
 CONFIG_NR_CPUS=8
-# CONFIG_SCHED_SMT is not set
+CONFIG_SCHED_SMT=y
 CONFIG_SCHED_MC=y
 CONFIG_PREEMPT_NONE=y
 # CONFIG_PREEMPT_VOLUNTARY is not set
@@ -1160,6 +1160,7 @@ CONFIG_UNIX98_PTYS=y
 # CONFIG_NOZOMI is not set
 # CONFIG_N_GSM is not set
 # CONFIG_TRACE_SINK is not set
+CONFIG_LDISC_AUTOLOAD=y
 CONFIG_DEVMEM=y
 # CONFIG_DEVKMEM is not set
 
@@ -1452,8 +1453,6 @@ CONFIG_ARM_GIC_MAX_NR=1
 # CONFIG_LIBNVDIMM is not set
 # CONFIG_NVMEM is not set
 # CONFIG_STM is not set
-# CONFIG_STM_DUMMY is not set
-# CONFIG_STM_SOURCE_CONSOLE is not set
 # CONFIG_INTEL_TH is not set
 
 #
@@ -2050,6 +2049,7 @@ CONFIG_CRC32_SLICEBY8=y
 # CONFIG_CRC32_SLICEBY4 is not set
 # CONFIG_CRC32_SARWATE is not set
 # CONFIG_CRC32_BIT is not set
+# CONFIG_CRC64 is not set
 # CONFIG_CRC7 is not set
 CONFIG_LIBCRC32C=y
 # CONFIG_CRC8 is not set

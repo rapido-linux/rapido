@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
+# Copyright (C) SUSE LLC 2019, all rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published
@@ -21,23 +21,21 @@ trap "rm $vm_ceph_conf" 0 1 2 3 15
 
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
-_rt_write_ceph_bin_paths $vm_ceph_conf
 _rt_require_dracut_args
-_rt_require_lib "libsoftokn3.so \
-		 libfreeblpriv3.so"	# NSS_InitContext() fails without
+_rt_require_lib "libkeyutils.so.1"
 
-"$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
-		   strace stat truncate touch cut chmod getfattr setfattr \
-		   getfacl setfacl killall sync dirname seq ip ping \
-		   $CEPH_FUSE_BIN \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		   strace mkfs.xfs ip ping \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/autorun/cephfs_fuse.sh" "/.profile" \
+	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
+	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
+	--include "$RAPIDO_DIR/autorun/nvme_tcp_rbd.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
-	--add-drivers "fuse" \
+	--add-drivers "nvme-core nvme-fabrics nvmet-tcp nvmet" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT
