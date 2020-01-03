@@ -39,6 +39,7 @@ TEST_DIR=/mnt/test
 TEST_DEV=${CEPH_MON_ADDRESS_V1}:/
 TEST_FS_MOUNT_OPTS="-o name=${CEPH_USER},secret=${CEPH_USER_KEY}"
 FSTYP="ceph"
+USE_KMEMLEAK=yes
 EOF
 
 set +x

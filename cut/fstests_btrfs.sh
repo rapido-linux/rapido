@@ -20,17 +20,18 @@ _rt_require_fstests
 _rt_require_btrfs_progs
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs  \
+		   strace mkfs  free \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   basename tee egrep yes \
+		   basename tee egrep yes mkswap timeout \
 		   fstrim fio logger dmsetup chattr lsattr cmp stat \
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup\
 		   chgrp du fgrep pgrep tar rev kill duperemove \
+		   swapon swapoff \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*
@@ -39,11 +40,12 @@ _rt_require_btrfs_progs
 	--include "$RAPIDO_DIR/autorun/fstests_btrfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq loop" \
+	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
+		       loop scsi_debug dm-log-writes" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
 # need enough memory for five 1G zram devices
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "4096M"
+_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "8192M"

@@ -26,7 +26,7 @@ _rt_require_fstests
 _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs \
+		   strace mkfs free \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
