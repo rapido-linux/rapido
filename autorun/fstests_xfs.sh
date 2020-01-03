@@ -27,6 +27,8 @@ modprobe zram num_devices="${num_devs}" || _fatal "failed to load zram module"
 _vm_ar_hosts_create
 _vm_ar_dyn_debug_enable
 
+filesystem="xfs"
+
 [ -n "${FSTESTS_ZRAM_SIZE}" ] || FSTESTS_ZRAM_SIZE="1G"
 
 for i in $(seq 0 $((num_devs - 1))); do
