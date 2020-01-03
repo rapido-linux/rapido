@@ -177,6 +177,8 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # available at https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
 # e.g. FSTESTS_SRC="/home/me/xfstests-dev"
 #FSTESTS_SRC=""
+# e.g. FSTESTS_ZRAM_SIZE="2G"
+#FSTESTS_ZRAM_SIZE=""
 ##################################
 
 ####### autorun/blktests_*.sh #######

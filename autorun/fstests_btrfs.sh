@@ -33,8 +33,10 @@ modprobe zram num_devices="${num_devs}" || _fatal "failed to load zram module"
 
 _vm_ar_dyn_debug_enable
 
+[ -n "${FSTESTS_ZRAM_SIZE}" ] || FSTESTS_ZRAM_SIZE="1G"
+
 for i in $(seq 0 $((num_devs - 1))); do
-	echo "1G" > /sys/block/zram${i}/disksize \
+	echo "${FSTESTS_ZRAM_SIZE}" > /sys/block/zram${i}/disksize \
 		|| _fatal "failed to set zram disksize"
 done
 

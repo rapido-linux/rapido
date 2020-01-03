@@ -21,13 +21,18 @@ fi
 
 set -x
 
-modprobe zram num_devices="2" || _fatal "failed to load zram module"
+num_devs="2"
+modprobe zram num_devices="${num_devs}" || _fatal "failed to load zram module"
 
 _vm_ar_hosts_create
 _vm_ar_dyn_debug_enable
 
-echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
-echo "1G" > /sys/block/zram1/disksize || _fatal "failed to set zram disksize"
+[ -n "${FSTESTS_ZRAM_SIZE}" ] || FSTESTS_ZRAM_SIZE="1G"
+
+for i in $(seq 0 $((num_devs - 1))); do
+	echo "${FSTESTS_ZRAM_SIZE}" > /sys/block/zram${i}/disksize \
+		|| _fatal "failed to set zram disksize"
+done
 
 mkdir -p /mnt/test
 mkdir -p /mnt/scratch
