@@ -172,11 +172,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #CIFS_PW=""
 ####################################################
 
-######## cut/fstests_*.sh #########
+######## fstests_*.sh #########
 # FSTESTS_SRC should correspond to a checkout and build of the xfstests source
 # available at https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
 # e.g. FSTESTS_SRC="/home/me/xfstests-dev"
 #FSTESTS_SRC=""
+# If defined, fstests_xfs.sh and fstests_btrfs.sh will provision zram devices
+# with FSTESTS_ZRAM_SIZE disksize, instead of the default "1G".
 # e.g. FSTESTS_ZRAM_SIZE="2G"
 #FSTESTS_ZRAM_SIZE=""
 ##################################
