@@ -23,7 +23,6 @@ _rt_require_dracut_args
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_conf_dir SAMBA_SRC
-_rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat which touch cut chmod true false \
@@ -31,11 +30,7 @@ _rt_require_lib "libkeyutils.so.1 libhandle.so.1 libssl.so.1"
 		   id sort uniq date expr tac diff head dirname seq ip ping \
 		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/smbstatus \
-		   ${SAMBA_SRC}/bin/smbd \
-		   $LIBS_INSTALL_LIST" \
-	--include "$CEPH_MOUNT_BIN" "/sbin/mount.ceph" \
-	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
-	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
+		   ${SAMBA_SRC}/bin/smbd" \
 	--include "$RAPIDO_DIR/autorun/samba_kernel_cephfs.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
