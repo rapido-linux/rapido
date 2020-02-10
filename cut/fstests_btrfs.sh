@@ -31,7 +31,7 @@ _rt_require_btrfs_progs
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup\
 		   chgrp du fgrep pgrep tar rev kill duperemove \
-		   swapon swapoff \
+		   swapon swapoff xfs_freeze fsck \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*
