@@ -28,7 +28,7 @@ _rt_require_fstests
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
-		   xfs_mkfile xfs_db xfs_io \
+		   xfs_mkfile xfs_db xfs_io fsck \
 		   xfs_mdrestore xfs_bmap xfs_fsr xfsdump xfs_freeze xfs_info \
 		   xfs_logprint xfs_repair xfs_growfs xfs_quota xfs_metadump \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
