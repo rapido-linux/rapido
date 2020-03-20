@@ -197,6 +197,19 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #BLKTESTS_SRC=""
 ##################################
 
+####### autorun/zonefstests_*.sh #######
+# If defined, run the following command from within the zonefstests source directory
+# following VM boot-up.
+# e.g. ZONEFSTESTS_AUTORUN_CMD="./zonefs-tests.sh /dev/nullb0 && shutdown"
+#ZONEFSTESTS_AUTORUN_CMD=""
+#################################
+
+######## cut/zonefstests_*.sh #########
+# ZONEFSTOOLS_SRC should correspond to a checkout and build of the
+# zonefs-tools source available at https://github.com/damien-lemoal/zonefs-tools.git
+# e.g. ZONEFSTOOLS_SRC="/home/me/zonefs-tools"
+##################################
+
 ######## cut/usb_rbd.sh #########
 # RBD_USB_SRC should correspond to a checkout and build of
 # https://github.com/ddiss/rbd-usb.
