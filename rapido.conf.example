@@ -51,7 +51,7 @@ QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 # e.g. QEMU_EXTRA_KERNEL_PARAMS="loglevel=0"
 #QEMU_EXTRA_KERNEL_PARAMS=""
 
-# extra dracut args, e.g. "--debug"
+# extra dracut args, e.g. "--debug --nostrip"
 #DRACUT_EXTRA_ARGS=""
 
 # Directory with dracut source code.
