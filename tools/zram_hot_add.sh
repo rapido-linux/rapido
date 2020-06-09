@@ -37,7 +37,7 @@ function _usage()
 	exit 1
 }
 
-modprobe zram
+modprobe zram num_devices=0
 [ -e /sys/class/zram-control/hot_add ] \
 	|| _fail "zram hot_add sysfs path missing (old kernel?)"
 
