@@ -84,6 +84,7 @@ rapido_cut()
 		exit
 	fi
 
+	rm -f "${RAPIDO_DIR}/initrds/myinitrd"
 	./$cut_script
 	local cut_status=$?
 	popd > /dev/null
