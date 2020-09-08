@@ -14,10 +14,7 @@
 
 export_blockdevs="/dev/vda /dev/vdb"
 
-if [ ! -f /vm_autorun.env ]; then
-	echo "Error: autorun scripts must be run from within an initramfs VM"
-	exit 1
-fi
+_vm_ar_env_check || exit 1
 
 set -x
 

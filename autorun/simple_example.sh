@@ -16,10 +16,7 @@
 # are sourced by vm_autorun.env and have access to rapido.conf variables.
 
 # protect against running (harmful) scripts outside of Rapido VMs
-if [ ! -f /vm_autorun.env ]; then
-	echo "Error: autorun scripts must be run from within an initramfs VM"
-	exit 1
-fi
+_vm_ar_env_check || exit 1
 
 # echo shell commands as they are executed
 set -x
