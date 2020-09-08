@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_cifs.sh"
 _rt_require_fstests
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
@@ -34,7 +34,6 @@ _rt_require_fstests
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	--include "$RAPIDO_DIR/autorun/fstests_cifs.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "cifs ccm ctr" \
 	--modules "bash base" \

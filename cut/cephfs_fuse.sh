@@ -22,7 +22,7 @@ trap "rm $vm_ceph_conf" 0 1 2 3 15
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_write_ceph_bin_paths $vm_ceph_conf
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/cephfs_fuse.sh"
 _rt_require_lib "libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 
@@ -33,7 +33,6 @@ _rt_require_lib "libsoftokn3.so \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/autorun/cephfs_fuse.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "fuse" \

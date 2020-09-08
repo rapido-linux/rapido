@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_btrfs.sh"
 _rt_require_fstests
 _rt_require_btrfs_progs
 
@@ -37,7 +37,6 @@ _rt_require_btrfs_progs
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*
 		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	--include "$RAPIDO_DIR/autorun/fstests_btrfs.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
 		       loop scsi_debug dm-log-writes xxhash_generic" \

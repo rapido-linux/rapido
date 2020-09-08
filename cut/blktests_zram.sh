@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/blktests_zram.sh"
 _rt_require_blktests
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
@@ -25,7 +25,6 @@ _rt_require_blktests
 		   basename tee egrep hexdump sync fio logger cmp stat nproc \
 		   xfs_io modinfo blkdiscard realpath timeout nvme" \
 	--include "$BLKTESTS_SRC" "/blktests" \
-	--include "$RAPIDO_DIR/autorun/blktests_zram.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle scsi_debug null_blk loop nvme nvme-loop" \
 	--modules "bash base" \

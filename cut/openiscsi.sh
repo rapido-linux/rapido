@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "${RAPIDO_DIR}/autorun/openiscsi.sh"
 _rt_require_conf_dir OPENISCSI_SRC
 
 "$DRACUT" \
@@ -23,7 +23,6 @@ _rt_require_conf_dir OPENISCSI_SRC
 		   ${OPENISCSI_SRC}/usr/iscsid \
 		   ${OPENISCSI_SRC}/libopeniscsiusr/libopeniscsiusr.so \
 		   ${OPENISCSI_SRC}/usr/iscsiadm" \
-	--include "${RAPIDO_DIR}/autorun/openiscsi.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--modules "bash base" \
 	--drivers "iscsi_tcp" \

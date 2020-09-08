@@ -16,7 +16,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_ceph
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/usb_rbd.sh"
 _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
@@ -30,7 +30,6 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
-	--include "$RAPIDO_DIR/autorun/usb_rbd.sh" "/.profile" \
 	--include "$RBD_USB_SRC/rbd-usb.sh" "/bin/rbd-usb.sh" \
 	--include "$RBD_USB_SRC/conf-fs.sh" "/bin/conf-fs.sh" \
 	--include "$RBD_USB_SRC/rbd-usb.env" "/usr/lib/rbd-usb.env" \

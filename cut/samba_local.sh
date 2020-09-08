@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/samba_local.sh"
 _rt_require_conf_dir SAMBA_SRC
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
@@ -27,7 +27,6 @@ _rt_require_conf_dir SAMBA_SRC
 		   ${SAMBA_SRC}/bin/smbstatus \
 		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
 		   ${SAMBA_SRC}/bin/smbd" \
-	--include "$RAPIDO_DIR/autorun/samba_local.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle xfs btrfs" \
 	--modules "bash base" \

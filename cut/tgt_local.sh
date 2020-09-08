@@ -15,14 +15,13 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "${RAPIDO_DIR}/autorun/tgt_local.sh"
 _rt_require_conf_dir TGT_SRC
 
 "$DRACUT" \
 	--install "grep ps ip ping \
 		   ${TGT_SRC}/usr/tgtd \
 		   ${TGT_SRC}/usr/tgtadm" \
-	--include "${RAPIDO_DIR}/autorun/tgt_local.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
 	--modules "bash base" \

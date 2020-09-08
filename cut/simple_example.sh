@@ -15,7 +15,9 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+# Call _rt_require_dracut_args() providing a script path that will be run on
+# VM boot. It exports variables used in the dracut invocation below.
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh"
 
 # The job of Rapido cut scripts is to generate a VM image. This is done using
 # Dracut with the following parameters...
@@ -36,7 +38,6 @@ _rt_require_dracut_args
 # debugging, etc.
 "$DRACUT" \
 	--install "ps rmdir dd mkfs.xfs" \
-	--include "$RAPIDO_DIR/autorun/simple_example.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
 	--modules "bash base" \

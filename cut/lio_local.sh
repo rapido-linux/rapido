@@ -15,12 +15,11 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lio_local.sh"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs truncate losetup dmsetup \
 		   /usr/lib/udev/rules.d/95-dm-notify.rules ip ping" \
-	--include "$RAPIDO_DIR/autorun/lio_local.sh" "/.profile" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_iblock \
 		       target_core_file dm-delay loop" \
