@@ -32,8 +32,7 @@ _rt_require_dracut_args
 		   strace mkfs mkfs.xfs parted partprobe sgdisk hdparm \
 		   timeout id chown chmod env killall getopt basename" \
 	--include "$RAPIDO_DIR/autorun/mpath_local.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi virtio_pci sd_mod" \
 	--modules "bash base systemd systemd-initrd dracut-systemd multipath" \
 	$DRACUT_EXTRA_ARGS \

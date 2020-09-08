@@ -22,8 +22,7 @@ _rt_require_lib "libkeyutils.so.1"
 		   strace mkfs.xfs killall nvme ip ping \
 		   $LIBS_INSTALL_LIST" \
 	--include "$RAPIDO_DIR/autorun/nvme_rdma.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "nvme-core nvme-fabrics nvme-rdma nvmet nvmet-rdma \
 		       rdma_rxe zram lzo lzo-rle ib_core ib_uverbs rdma_ucm \
 		       crc32_generic" \

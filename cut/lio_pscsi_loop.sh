@@ -26,8 +26,7 @@ _rt_require_dracut_args
 		   mkfs mkfs.xfs parted partprobe sgdisk hdparm uuidgen \
 		   env lsscsi awk" \
 	--include "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "/.profile" \
-	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
-	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi target_core_pscsi tcm_loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

@@ -26,8 +26,7 @@ _rt_require_blktests
 		   xfs_io modinfo blkdiscard realpath timeout nvme" \
 	--include "$BLKTESTS_SRC" "/blktests" \
 	--include "$RAPIDO_DIR/autorun/blktests_zram.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle scsi_debug null_blk loop nvme nvme-loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

@@ -28,8 +28,7 @@ _rt_require_conf_dir SAMBA_SRC
 		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
 		   ${SAMBA_SRC}/bin/smbd" \
 	--include "$RAPIDO_DIR/autorun/samba_local.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle xfs btrfs" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

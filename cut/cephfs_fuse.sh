@@ -34,8 +34,7 @@ _rt_require_lib "libsoftokn3.so \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RAPIDO_DIR/autorun/cephfs_fuse.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "fuse" \
 	--modules "bash base" \

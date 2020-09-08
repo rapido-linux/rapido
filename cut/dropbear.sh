@@ -22,8 +22,7 @@ _rt_require_lib "libkeyutils.so.1"
 		   strace mkfs.xfs dropbear chmod ip ping \
 		   $LIBS_INSTALL_LIST" \
 	--include "$RAPIDO_DIR/autorun/dropbear.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

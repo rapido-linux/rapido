@@ -30,10 +30,9 @@ _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 		   ${TCMU_RUNNER_SRC}/handler_rbd.so \
 		   $LIBS_INSTALL_LIST" \
 	--include "${RAPIDO_DIR}/autorun/tcmu_rbd_loop.sh" "/.profile" \
-	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
-	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_user tcm_loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

@@ -28,8 +28,7 @@ _rt_require_dracut_args
 		   getfattr setfattr getfacl setfacl killall sync \
 		   id sort uniq date expr tac diff head dirname seq ip ping" \
 	--include "$RAPIDO_DIR/autorun/cephfs.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "ceph libceph" \
 	--modules "bash base" \

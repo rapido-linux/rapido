@@ -32,8 +32,7 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	--include "$RAPIDO_DIR/autorun/nvme_tcp_rbd.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "nvme-core nvme-fabrics nvmet-tcp nvmet" \
 	--modules "bash base" \

@@ -23,8 +23,7 @@ _rt_require_conf_dir TGT_SRC
 		   ${TGT_SRC}/usr/tgtd \
 		   ${TGT_SRC}/usr/tgtadm" \
 	--include "${RAPIDO_DIR}/autorun/tgt_local.sh" "/.profile" \
-	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
-	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

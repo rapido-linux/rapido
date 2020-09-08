@@ -20,8 +20,7 @@ _rt_require_dracut_args
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs ip ping" \
 	--include "$RAPIDO_DIR/autorun/nvme_tcp_initiator.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "nvme-core nvme-fabrics nvme-tcp" \
 	--modules "bash base" \

@@ -34,11 +34,10 @@ rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep ip ping \
 		   $LIBS_INSTALL_LIST $rbd_nbd_bin" \
 	--include "${RAPIDO_DIR}/autorun/rbd_nbd.sh" "/.profile" \
-	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
-	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "nbd" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

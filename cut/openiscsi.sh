@@ -24,8 +24,7 @@ _rt_require_conf_dir OPENISCSI_SRC
 		   ${OPENISCSI_SRC}/libopeniscsiusr/libopeniscsiusr.so \
 		   ${OPENISCSI_SRC}/usr/iscsiadm" \
 	--include "${RAPIDO_DIR}/autorun/openiscsi.sh" "/.profile" \
-	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
-	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--modules "bash base" \
 	--drivers "iscsi_tcp" \
 	$DRACUT_EXTRA_ARGS \

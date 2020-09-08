@@ -36,8 +36,7 @@ _rt_require_blktests
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	--include "$BLKTESTS_SRC" "/blktests" \
 	--include "$RAPIDO_DIR/autorun/blktests_rbd.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "scsi_debug null_blk loop" \
 	--modules "bash base" \
