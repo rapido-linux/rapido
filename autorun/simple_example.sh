@@ -12,15 +12,14 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-# autorun scripts are run immediately once the Rapido scratch VM has booted...
+# autorun scripts are run once the Rapido scratch VM has booted. The scripts
+# are sourced by vm_autorun.env and have access to rapido.conf variables.
 
 # protect against running (harmful) scripts outside of Rapido VMs
 if [ ! -f /vm_autorun.env ]; then
 	echo "Error: autorun scripts must be run from within an initramfs VM"
 	exit 1
 fi
-
-. /vm_autorun.env
 
 # echo shell commands as they are executed
 set -x

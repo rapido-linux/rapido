@@ -18,8 +18,6 @@ if [ ! -f /vm_autorun.env ]; then
 	exit 1
 fi
 
-. /vm_autorun.env
-
 _vm_ar_dyn_debug_enable
 
 set -x

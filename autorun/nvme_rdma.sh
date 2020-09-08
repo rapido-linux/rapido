@@ -17,8 +17,6 @@ if [ ! -f /vm_autorun.env ]; then
 	exit 1
 fi
 
-. /vm_autorun.env
-
 function _zram_hot_add() {
 	[ -e /sys/class/zram-control/hot_add ] \
 		|| _fatal "zram hot_add sysfs path missing (old kernel?)"

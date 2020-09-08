@@ -17,8 +17,6 @@ if [ ! -f /vm_autorun.env ]; then
 	exit 1
 fi
 
-. /vm_autorun.env
-
 # block ssh client shells from triggering the dracut autorun script
 if [ -n "$SSH_CLIENT" ]; then
 	export PS1="dropbear:\${PWD}# "

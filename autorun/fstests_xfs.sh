@@ -17,8 +17,6 @@ if [ ! -f /vm_autorun.env ]; then
 	exit 1
 fi
 
-. /vm_autorun.env
-
 set -x
 
 num_devs="2"

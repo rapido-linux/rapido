@@ -17,8 +17,6 @@ if [ ! -f /vm_autorun.env ]; then
 	exit 1
 fi
 
-. /vm_autorun.env
-
 set -x
 
 modprobe zram num_devices="1" || _fatal "failed to load zram module"

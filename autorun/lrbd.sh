@@ -20,8 +20,6 @@ if [ ! -f /vm_autorun.env ]; then
 	exit 1
 fi
 
-. /vm_autorun.env
-
 # explitly load LIO core only, see dbroot comment below...
 modprobe target_core_mod
 
