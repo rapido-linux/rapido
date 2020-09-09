@@ -14,8 +14,6 @@
 
 _vm_ar_env_check || exit 1
 
-. /vm_ceph.env || _fatal
-
 _vm_ar_dyn_debug_enable
 
 export PATH="${SAMBA_SRC}/bin/:${PATH}"

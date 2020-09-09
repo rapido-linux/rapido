@@ -14,8 +14,6 @@
 
 _vm_ar_env_check || exit 1
 
-. /vm_ceph.env || _fatal
-
 set -x
 
 _vm_ar_hosts_create
