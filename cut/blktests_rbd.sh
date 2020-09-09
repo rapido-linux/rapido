@@ -19,7 +19,7 @@ vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
 trap "rm $vm_ceph_conf" 0 1 2 3 15
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/blktests_rbd.sh"
+_rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/blktests_rbd.sh"
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_blktests
@@ -36,7 +36,6 @@ _rt_require_blktests
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	--include "$BLKTESTS_SRC" "/blktests" \
 	$DRACUT_RAPIDO_INCLUDES \
-	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "scsi_debug null_blk loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
