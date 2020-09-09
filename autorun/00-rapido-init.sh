@@ -14,8 +14,6 @@
 # This script runs as the first Dracut entry point during /init.
 # $DRACUT_SYSTEMD is set when run via systemd.
 
-echo "Rapido: starting autorun script..."
-
 _ctty=
 for i in $(cat /proc/cmdline); do
 	case "$i" in
