@@ -37,7 +37,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh"
 # DRACUT_EXTRA_ARGS in rapido.conf allows for extra custom Dracut parameters for
 # debugging, etc.
 "$DRACUT" \
-	--install "ps rmdir dd mkfs.xfs" \
+	--install "resize ps rmdir dd mkfs.xfs" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
 	--modules "bash base" \
