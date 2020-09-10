@@ -21,16 +21,13 @@ trap "rm $vm_ceph_conf" 0 1 2 3 15
 
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
-_rt_require_dracut_args
+_rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/cephfs.sh"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat which touch cut chmod true false \
 		   getfattr setfattr getfacl setfacl killall sync \
 		   id sort uniq date expr tac diff head dirname seq ip ping" \
-	--include "$RAPIDO_DIR/autorun/cephfs.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--include "$vm_ceph_conf" "/vm_ceph.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "ceph libceph" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

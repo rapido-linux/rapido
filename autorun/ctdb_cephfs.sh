@@ -12,13 +12,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-if [ ! -f /vm_autorun.env ]; then
-	echo "Error: autorun scripts must be run from within an initramfs VM"
-	exit 1
-fi
-
-. /vm_autorun.env
-. /vm_ceph.env || _fatal
+_vm_ar_env_check || exit 1
 
 _vm_ar_dyn_debug_enable
 

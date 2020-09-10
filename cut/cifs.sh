@@ -15,16 +15,14 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/cifs.sh"
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df \
 		   mount.cifs ip ping getfacl setfacl truncate du \
 		   which touch cut chmod true false unlink \
 		   getfattr setfattr chacl attr killall sync \
 		   dirname seq basename fstrim chattr lsattr stat" \
-	--include "$RAPIDO_DIR/autorun/cifs.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "cifs ccm gcm ctr" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

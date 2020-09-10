@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lrbd.sh"
 _rt_require_ceph
 _rt_require_conf_dir LRBD_SRC TARGETCLI_SRC RTSLIB_SRC CONFIGSHELL_SRC
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
@@ -48,9 +48,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 	--include "$RTSLIB_SRC" "/rtslib/" \
 	--include "$TARGETCLI_SRC" "/targetcli/" \
 	--include "$CONFIGSHELL_SRC" "/configshell/" \
-	--include "$RAPIDO_DIR/autorun/lrbd.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
 	--modules "bash base systemd systemd-initrd dracut-systemd" \
 	$DRACUT_EXTRA_ARGS \

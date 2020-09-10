@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/mpath_local.sh"
 
 # the VM should be deployed with two virtio SCSI devices which share the same
 # backing <file> and <serial> parameters. E.g.
@@ -31,9 +31,7 @@ _rt_require_dracut_args
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs parted partprobe sgdisk hdparm \
 		   timeout id chown chmod env killall getopt basename" \
-	--include "$RAPIDO_DIR/autorun/mpath_local.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi virtio_pci sd_mod" \
 	--modules "bash base systemd systemd-initrd dracut-systemd multipath" \
 	$DRACUT_EXTRA_ARGS \

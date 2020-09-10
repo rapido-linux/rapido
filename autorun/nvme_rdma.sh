@@ -12,12 +12,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-if [ ! -f /vm_autorun.env ]; then
-	echo "Error: autorun scripts must be run from within an initramfs VM"
-	exit 1
-fi
-
-. /vm_autorun.env
+_vm_ar_env_check || exit 1
 
 function _zram_hot_add() {
 	[ -e /sys/class/zram-control/hot_add ] \

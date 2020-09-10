@@ -21,7 +21,7 @@ trap "rm $vm_ceph_conf" 0 1 2 3 15
 
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
-_rt_require_dracut_args
+_rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/rbd.sh"
 _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
@@ -31,10 +31,7 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
-	--include "$RAPIDO_DIR/autorun/rbd.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--include "$vm_ceph_conf" "/vm_ceph.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

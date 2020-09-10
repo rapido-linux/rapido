@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "${RAPIDO_DIR}/autorun/tcmu_rbd_loop.sh"
 _rt_require_conf_dir TCMU_RUNNER_SRC CEPH_SRC
 _rt_require_ceph
 # NSS_InitContext() fails without the following...
@@ -29,11 +29,9 @@ _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 		   ${TCMU_RUNNER_SRC}/tcmu-runner \
 		   ${TCMU_RUNNER_SRC}/handler_rbd.so \
 		   $LIBS_INSTALL_LIST" \
-	--include "${RAPIDO_DIR}/autorun/tcmu_rbd_loop.sh" "/.profile" \
-	--include "${RAPIDO_DIR}/rapido.conf" "/rapido.conf" \
-	--include "${RAPIDO_DIR}/vm_autorun.env" "/vm_autorun.env" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_user tcm_loop" \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

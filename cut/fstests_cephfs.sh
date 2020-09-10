@@ -19,7 +19,7 @@ vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
 trap "rm $vm_ceph_conf" 0 1 2 3 15
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/fstests_cephfs.sh"
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_fstests
@@ -40,10 +40,7 @@ _rt_require_fstests
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	--include "$RAPIDO_DIR/autorun/fstests_cephfs.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--include "$vm_ceph_conf" "/vm_ceph.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"

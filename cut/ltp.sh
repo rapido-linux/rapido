@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/ltp.sh"
 _rt_require_conf_dir LTP_DIR
 
 "$DRACUT" \
@@ -28,9 +28,7 @@ _rt_require_conf_dir LTP_DIR
 		pgrep pkill tar rev kill fdformat ldd free losetup chown sed \
 		cat lsmod ip ping tc \
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
-	--include "$RAPIDO_DIR/autorun/ltp.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--include "$LTP_DIR" "$LTP_DIR"  \
 	--add-drivers "loop" \
 	--modules "bash base" \

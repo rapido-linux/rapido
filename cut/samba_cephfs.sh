@@ -19,7 +19,7 @@ vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
 trap "rm $vm_ceph_conf" 0 1 2 3 15
 
-_rt_require_dracut_args
+_rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/samba_cephfs.sh"
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_conf_dir SAMBA_SRC
@@ -40,10 +40,7 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 	--include "$CEPH_RADOS_LIB" "/usr/lib64/librados.so.2" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	--include "$RAPIDO_DIR/autorun/samba_cephfs.sh" "/.profile" \
-	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
-	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
-	--include "$vm_ceph_conf" "/vm_ceph.env" \
+	$DRACUT_RAPIDO_INCLUDES \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
