@@ -26,11 +26,6 @@ _rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/ctdb_cephfs.sh"
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 
-# autorun/ctdb_cephfs.sh deploys a three-node CTDB cluster
-if [ -z "$MAC_ADDR1" ] || [ -z "$MAC_ADDR2" ] || [ -z "$MAC_ADDR3" ]; then
-	_fail "$0 requires three VM network adapters in rapido.conf"
-fi
-
 # XXX a few paths changed for Samba 4.9+:
 # - ctdb_eventd -> ctdb-eventd
 # - ctdb_event -> ctdb-event
@@ -54,7 +49,6 @@ fi
 		   ${SAMBA_SRC}/bin/ctdb_killtcp \
 		   ${SAMBA_SRC}/bin/ctdb_lock_helper \
 		   ${SAMBA_SRC}/bin/ctdb_mutex_fcntl_helper \
-		   ${SAMBA_SRC}/bin/ctdb_packet_parse \
 		   ${SAMBA_SRC}/bin/ctdb-path \
 		   ${SAMBA_SRC}/bin/ctdb_recovery_helper \
 		   ${SAMBA_SRC}/bin/ctdb_takeover_helper \
