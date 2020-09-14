@@ -98,7 +98,7 @@ EOF
 
 reclock_usr="client.${CEPH_USER}"
 reclock_bin="${SAMBA_SRC}/bin/default/ctdb/ctdb_mutex_ceph_rados_helper"
-reclock_pool="cephfs_metadata_a"	# vstart default CephFS metadata pool
+reclock_pool="cephfs.a.meta"	# vstart default CephFS metadata pool
 reclock_obj="ctdb-mutex"
 cat > /usr/local/samba/etc/ctdb/ctdb.conf << EOF
 [cluster]
