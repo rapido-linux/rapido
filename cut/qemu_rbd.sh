@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/vm_autorun.env"
+_rt_require_dracut_args
 _rt_require_ceph
 _rt_require_lib "libkeyutils.so.1"
 
