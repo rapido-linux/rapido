@@ -50,7 +50,7 @@ function _vm_start
 		eval local tap='$TAP_DEV'$((vm_num - 1))
 		[ -n "$tap" ] \
 			|| _fail "TAP_DEV$((vm_num - 1)) not configured"
-		eval local is_dhcp='$IP_ADDR'${vm_num}'_DHCP'
+		eval local is_dhcp='$VM'${vm_num}'_IP_ADDR1_DHCP'
 		if [ "$is_dhcp" = "1" ]; then
 			kern_ip_addr="dhcp"
 		else
