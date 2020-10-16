@@ -12,9 +12,9 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-# This script removes all addresses from $BR_IF, creates $BR1_DEV and
-# subsequently adds all previous $BR_IF addresses to the new $BR1_DEV.
-# The routing table is also replaced, with all $BR_IF routes transferring
+# This script removes all addresses from $BR1_IF, creates $BR1_DEV and
+# subsequently adds all previous $BR1_IF addresses to the new $BR1_DEV.
+# The routing table is also replaced, with all $BR1_IF routes transferring
 # to $BR1_DEV.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
@@ -59,44 +59,44 @@ function _apply_addrs() {
 
 [ -z "$BR1_ADDR" ] || _fail "BR1_ADDR setting incompatible with ip takeover"
 [ -n "$BR1_DEV" ] || _fail "BR1_DEV required for IP takeover"
-[ -n "$BR_IF" ] || _fail "BR_IF required for IP takeover"
+[ -n "$BR1_IF" ] || _fail "BR1_IF required for IP takeover"
 
 set -x
 
-BR_IF_DUMP_DIR=`mktemp --tmpdir -d ${BR_IF}_addr_dump.XXXXXXXXXX` || exit 1
+BR1_IF_DUMP_DIR=`mktemp --tmpdir -d ${BR1_IF}_addr_dump.XXXXXXXXXX` || exit 1
 
 # cleanup on premature exit by executing whatever has been prepended to @unwind
-unwind="rmdir $BR_IF_DUMP_DIR"
+unwind="rmdir $BR1_IF_DUMP_DIR"
 trap "eval \$unwind" 0 1 2 3 15
 
-ip -6 addr list dev $BR_IF \
+ip -6 addr list dev $BR1_IF \
 	| sed -n 's#\(scope \w*\).*$#\1#; s#\s*inet6\s*##p' \
-	> ${BR_IF_DUMP_DIR}/inet6_addrs || exit 1
-unwind="rm -f ${BR_IF_DUMP_DIR}/inet6_addrs; ${unwind}"
+	> ${BR1_IF_DUMP_DIR}/inet6_addrs || exit 1
+unwind="rm -f ${BR1_IF_DUMP_DIR}/inet6_addrs; ${unwind}"
 
-ip -4 addr list dev $BR_IF \
+ip -4 addr list dev $BR1_IF \
 	| sed -n 's#\(scope \w*\).*$#\1#; s#\s*inet\s*##p' \
-	> ${BR_IF_DUMP_DIR}/inet4_addrs || exit 1
-unwind="rm -f ${BR_IF_DUMP_DIR}/inet4_addrs; ${unwind}"
+	> ${BR1_IF_DUMP_DIR}/inet4_addrs || exit 1
+unwind="rm -f ${BR1_IF_DUMP_DIR}/inet4_addrs; ${unwind}"
 
-ip route list dev $BR_IF > ${BR_IF_DUMP_DIR}/routes
-unwind="rm -f ${BR_IF_DUMP_DIR}/routes; ${unwind}"
+ip route list dev $BR1_IF > ${BR1_IF_DUMP_DIR}/routes
+unwind="rm -f ${BR1_IF_DUMP_DIR}/routes; ${unwind}"
 
-_apply_routes del "$BR_IF" "${BR_IF_DUMP_DIR}/routes" || exit 1
+_apply_routes del "$BR1_IF" "${BR1_IF_DUMP_DIR}/routes" || exit 1
 
-_apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
-_apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
+_apply_addrs del "$BR1_IF" "${BR1_IF_DUMP_DIR}/inet6_addrs" || exit 1
+_apply_addrs del "$BR1_IF" "${BR1_IF_DUMP_DIR}/inet4_addrs" || exit 1
 
 # use regular bridge setup helper to provision BR1_DEV and taps
 ${RAPIDO_DIR}/tools/br_setup.sh || exit 1
 unwind="${RAPIDO_DIR}/tools/br_teardown.sh; ${unwind}"
 
-_apply_addrs add "$BR1_DEV" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
-_apply_addrs add "$BR1_DEV" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
+_apply_addrs add "$BR1_DEV" "${BR1_IF_DUMP_DIR}/inet6_addrs" || exit 1
+_apply_addrs add "$BR1_DEV" "${BR1_IF_DUMP_DIR}/inet4_addrs" || exit 1
 
-_apply_routes add "$BR1_DEV" "${BR_IF_DUMP_DIR}/routes" || exit 1
+_apply_routes add "$BR1_DEV" "${BR1_IF_DUMP_DIR}/routes" || exit 1
 
-rm ${BR_IF_DUMP_DIR}/routes ${BR_IF_DUMP_DIR}/*addrs
-rmdir ${BR_IF_DUMP_DIR}
+rm ${BR1_IF_DUMP_DIR}/routes ${BR1_IF_DUMP_DIR}/*addrs
+rmdir ${BR1_IF_DUMP_DIR}
 # success! clear unwind
 unwind="echo success"

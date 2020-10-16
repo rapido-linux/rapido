@@ -30,10 +30,10 @@ if [ -n "$BR1_ADDR" ]; then
 	echo -n " with address $BR1_ADDR"
 fi
 
-if [ -n "$BR_IF" ]; then
-	ip link set $BR_IF master $BR1_DEV || exit 1
-	unwind="ip link set $BR_IF nomaster; ${unwind}"
-	echo -n ", connected to $BR_IF"
+if [ -n "$BR1_IF" ]; then
+	ip link set $BR1_IF master $BR1_DEV || exit 1
+	unwind="ip link set $BR1_IF nomaster; ${unwind}"
+	echo -n ", connected to $BR1_IF"
 fi
 echo
 

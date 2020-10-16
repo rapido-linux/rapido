@@ -17,8 +17,8 @@ BR1_DEV="rapido-br"
 # If specified, a physical network interface to be connected to the bridge.
 # This should only be necessary if you wish to connect to the rapido VMs from a
 # remote host.
-# e.g. BR_IF="eth0"
-#BR_IF=""
+# e.g. BR1_IF="eth0"
+#BR1_IF=""
 
 # if specified, an address to configure for the bridge device
 BR1_ADDR="192.168.155.1/24"

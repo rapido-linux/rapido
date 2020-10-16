@@ -41,8 +41,8 @@ ip tuntap delete dev $TAP_DEV1 mode tap || exit 1
 ip link set $TAP_DEV0 nomaster || exit 1
 ip tuntap delete dev $TAP_DEV0 mode tap || exit 1
 
-if [ -n "$BR_IF" ]; then
-	ip link set $BR_IF nomaster || exit 1
+if [ -n "$BR1_IF" ]; then
+	ip link set $BR1_IF nomaster || exit 1
 fi
 
 if [ -n "$BR1_ADDR" ]; then
