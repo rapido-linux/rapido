@@ -39,8 +39,6 @@ function _vm_start
 		_fail "a maximum of two network connected VMs are supported"
 	fi
 
-	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
-	# moving to a VM${vm_num}_MAC_ADDR or ini style config would make sense
 	local qemu_netdev=""
 	local kern_ip_addr=""
 	if [ -n "$(_rt_xattr_vm_networkless_get ${DRACUT_OUT})" ]; then
@@ -48,7 +46,7 @@ function _vm_start
 		kern_ip_addr="none"
 		qemu_netdev="-net none"	# override default (-net nic -net user)
 	else
-		eval local mac_addr='$MAC_ADDR'${vm_num}
+		eval local mac_addr='$VM'${vm_num}'_MAC_ADDR1'
 		eval local tap='$TAP_DEV'$((vm_num - 1))
 		[ -n "$tap" ] \
 			|| _fail "TAP_DEV$((vm_num - 1)) not configured"

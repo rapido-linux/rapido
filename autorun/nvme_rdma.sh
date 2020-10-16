@@ -58,7 +58,7 @@ echo eth0 > /sys/module/rdma_rxe/parameters/add
 nvmet_cfs="/sys/kernel/config/nvmet/"
 nvmet_subsystem="nvmf-test"
 
-ip link show eth0 | grep $MAC_ADDR1
+ip link show eth0 | grep $VM1_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	export_blockdev=$(_zram_hot_add "1G")
 	[ -b "$export_blockdev" ] || _fatal "$export_blockdev device not available"

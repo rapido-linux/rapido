@@ -145,7 +145,7 @@ mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${IP_ADDR2}:3260 \
 	|| _fatal
 
 # only enable portal for corresponding MAC/IP
-ip link show eth0 | grep $MAC_ADDR1
+ip link show eth0 | grep $VM1_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/enable
 	echo "target ready at: iscsi://${IP_ADDR1}:3260/${TARGET_IQN}/"

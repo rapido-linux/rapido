@@ -143,11 +143,11 @@ find_fcoedev() {
 	done
 }
 
-ip link show eth0 | grep $MAC_ADDR1
+ip link show eth0 | grep $VM1_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	file_path=/var/target/lun
 	file_size_b=1073741824
-	target_wwn="20:00:$MAC_ADDR1"
+	target_wwn="20:00:$VM1_MAC_ADDR1"
 	initiator_wwn="20:00:$MAC_ADDR2"
 
 	create_fcoe "eth0"
@@ -155,7 +155,7 @@ if [ $? -eq 0 ]; then
 	create_target ${target_wwn}
 	create_acl ${target_wwn} ${initiator_wwn}
 
-	echo "${file_path} exported via FCoE on $MAC_ADDR1"
+	echo "${file_path} exported via FCoE on $VM1_MAC_ADDR1"
 fi
 
 ip link show eth0 | grep $MAC_ADDR2
@@ -164,7 +164,7 @@ if [ $? -eq 0 ]; then
 	udevadm settle
 
 	bdev=$(find_fcoedev)
-	echo "Remote FCoE $MAC_ADDR1 mapped to /dev/$bdev"
+	echo "Remote FCoE $VM1_MAC_ADDR1 mapped to /dev/$bdev"
 fi
 
 set +x

@@ -69,7 +69,7 @@ set +x
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
 	| smbpasswd -a $CIFS_USER -s || _fatal
 
-ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
+ip link show eth0 | grep $VM1_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
 	echo "Samba share ready at: //${IP_ADDR1}/${CIFS_SHARE}/"
 fi

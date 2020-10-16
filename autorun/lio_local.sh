@@ -235,7 +235,7 @@ for iblock_dev in $export_blockdevs; do
 done
 
 # standalone iSCSI target - listen on ports 3260 and 3261 of assigned address
-ip link show eth0 | grep $MAC_ADDR1
+ip link show eth0 | grep $VM1_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR1}:3260 \
 		|| _fatal

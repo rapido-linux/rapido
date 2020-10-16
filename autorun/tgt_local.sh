@@ -23,7 +23,7 @@ _vm_ar_dyn_debug_enable
 echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
 
 addr=""
-ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
+ip link show eth0 | grep $VM1_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
 	addr="${IP_ADDR1}"
 fi
