@@ -41,7 +41,7 @@ function _zram_setup() {
 
 	mkfs.xfs $zram_dev || _fail
 
-	mount $zram_dev $zram_mnt || _fail
+	mount -o discard $zram_dev $zram_mnt || _fail
 	chown $zram_mnt_owner $zram_mnt || _fail
 
 	echo "mounted $zram_dev for $zram_mnt_owner at $zram_mnt"
