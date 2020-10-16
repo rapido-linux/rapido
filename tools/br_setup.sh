@@ -24,10 +24,10 @@ trap "eval \$unwind" 0 1 2 3 15
 ip link add $BR1_DEV type bridge || _fail "failed to add $BR1_DEV"
 unwind="ip link delete $BR1_DEV type bridge; ${unwind}"
 echo -n "+ created bridge $BR1_DEV"
-if [ -n "$BR_ADDR" ]; then
-	ip addr add $BR_ADDR dev $BR1_DEV || exit 1
-	unwind="ip addr del $BR_ADDR dev $BR1_DEV; ${unwind}"
-	echo -n " with address $BR_ADDR"
+if [ -n "$BR1_ADDR" ]; then
+	ip addr add $BR1_ADDR dev $BR1_DEV || exit 1
+	unwind="ip addr del $BR1_ADDR dev $BR1_DEV; ${unwind}"
+	echo -n " with address $BR1_ADDR"
 fi
 
 if [ -n "$BR_IF" ]; then

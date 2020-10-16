@@ -46,7 +46,7 @@ sudo tools/br_setup.sh
 # + created tap1
 --------------
 <1> The device name and address are configured in 'rapido.conf' via
-    'BR1_DEV' and 'BR_ADDR' respectively
+    'BR1_DEV' and 'BR1_ADDR' respectively
 <2> The 'TAP_USER' 'rapido.conf' parameter specifies the owner of the
     TAP interfaces. This should correspond to the user running Ceph.
 
@@ -71,7 +71,7 @@ OSD=3 MON=1 RGW=0 MDS=1 ../src/vstart.sh -i 192.168.155.1 -n	# <3>
 <1> Include 'rapido.conf' for 'CEPH_SRC' definition, etc.
 <2> See http://docs.ceph.com/docs/master/install/build-ceph/ for help
     with building Ceph
-<3> The IP address should match the bridge interface address 'BR_ADDR'
+<3> The IP address should match the bridge interface address 'BR1_ADDR'
     defined in 'rapido.conf'.
     A '--memstore' parameter can optionally be added to the 'vstart.sh'
     invocation if memory backed OSDs are desired.

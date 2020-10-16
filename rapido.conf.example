@@ -21,7 +21,7 @@ BR1_DEV="rapido-br"
 #BR_IF=""
 
 # if specified, an address to configure for the bridge device
-BR_ADDR="192.168.155.1/24"
+BR1_ADDR="192.168.155.1/24"
 
 # if specified, start a dhcp server, listening on $BR1_DEV
 # e.g. BR_DHCP_SRV_RANGE="192.168.155.10,192.168.155.20,12h"

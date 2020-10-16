@@ -57,7 +57,7 @@ function _apply_addrs() {
 	done < $addrs_file
 }
 
-[ -z "$BR_ADDR" ] || _fail "BR_ADDR setting incompatible with ip takeover"
+[ -z "$BR1_ADDR" ] || _fail "BR1_ADDR setting incompatible with ip takeover"
 [ -n "$BR1_DEV" ] || _fail "BR1_DEV required for IP takeover"
 [ -n "$BR_IF" ] || _fail "BR_IF required for IP takeover"
 

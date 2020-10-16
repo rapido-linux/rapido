@@ -45,7 +45,7 @@ if [ -n "$BR_IF" ]; then
 	ip link set $BR_IF nomaster || exit 1
 fi
 
-if [ -n "$BR_ADDR" ]; then
-	ip addr del $BR_ADDR dev $BR1_DEV || exit 1
+if [ -n "$BR1_ADDR" ]; then
+	ip addr del $BR1_ADDR dev $BR1_DEV || exit 1
 fi
 ip link delete $BR1_DEV type bridge || exit 1
