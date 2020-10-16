@@ -46,7 +46,7 @@ sudo tools/br_setup.sh
 # + created tap1
 --------------
 <1> The device name and address are configured in 'rapido.conf' via
-    'BR_DEV' and 'BR_ADDR' respectively
+    'BR1_DEV' and 'BR_ADDR' respectively
 <2> The 'TAP_USER' 'rapido.conf' parameter specifies the owner of the
     TAP interfaces. This should correspond to the user running Ceph.
 

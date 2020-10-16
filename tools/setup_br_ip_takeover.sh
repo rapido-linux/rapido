@@ -12,10 +12,10 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
-# This script removes all addresses from $BR_IF, creates $BR_DEV and
-# subsequently adds all previous $BR_IF addresses to the new $BR_DEV.
+# This script removes all addresses from $BR_IF, creates $BR1_DEV and
+# subsequently adds all previous $BR_IF addresses to the new $BR1_DEV.
 # The routing table is also replaced, with all $BR_IF routes transferring
-# to $BR_DEV.
+# to $BR1_DEV.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
@@ -58,7 +58,7 @@ function _apply_addrs() {
 }
 
 [ -z "$BR_ADDR" ] || _fail "BR_ADDR setting incompatible with ip takeover"
-[ -n "$BR_DEV" ] || _fail "BR_DEV required for IP takeover"
+[ -n "$BR1_DEV" ] || _fail "BR1_DEV required for IP takeover"
 [ -n "$BR_IF" ] || _fail "BR_IF required for IP takeover"
 
 set -x
@@ -87,14 +87,14 @@ _apply_routes del "$BR_IF" "${BR_IF_DUMP_DIR}/routes" || exit 1
 _apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
 _apply_addrs del "$BR_IF" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
 
-# use regular bridge setup helper to provision BR_DEV and taps
+# use regular bridge setup helper to provision BR1_DEV and taps
 ${RAPIDO_DIR}/tools/br_setup.sh || exit 1
 unwind="${RAPIDO_DIR}/tools/br_teardown.sh; ${unwind}"
 
-_apply_addrs add "$BR_DEV" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
-_apply_addrs add "$BR_DEV" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
+_apply_addrs add "$BR1_DEV" "${BR_IF_DUMP_DIR}/inet6_addrs" || exit 1
+_apply_addrs add "$BR1_DEV" "${BR_IF_DUMP_DIR}/inet4_addrs" || exit 1
 
-_apply_routes add "$BR_DEV" "${BR_IF_DUMP_DIR}/routes" || exit 1
+_apply_routes add "$BR1_DEV" "${BR_IF_DUMP_DIR}/routes" || exit 1
 
 rm ${BR_IF_DUMP_DIR}/routes ${BR_IF_DUMP_DIR}/*addrs
 rmdir ${BR_IF_DUMP_DIR}

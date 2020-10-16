@@ -12,7 +12,7 @@ KERNEL_SRC=""
 KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
 
 # bridge device provisioned by "rapido setup-network" (br_setup.sh).
-BR_DEV="rapido-br"
+BR1_DEV="rapido-br"
 
 # If specified, a physical network interface to be connected to the bridge.
 # This should only be necessary if you wish to connect to the rapido VMs from a
@@ -23,7 +23,7 @@ BR_DEV="rapido-br"
 # if specified, an address to configure for the bridge device
 BR_ADDR="192.168.155.1/24"
 
-# if specified, start a dhcp server, listening on $BR_DEV
+# if specified, start a dhcp server, listening on $BR1_DEV
 # e.g. BR_DHCP_SRV_RANGE="192.168.155.10,192.168.155.20,12h"
 #BR_DHCP_SRV_RANGE=""
 
