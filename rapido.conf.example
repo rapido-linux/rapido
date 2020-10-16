@@ -19,14 +19,32 @@ BR1_DEV="rapido-br"
 # created by libvirt, to talk to other VMs.
 #BR1_DEV_SKIP_PROVISON="1"
 
+# If defined, a second bridge device provisioned by "rapido setup-network"
+# (br_setup.sh).
+#BR2_DEV=""
+
+# If defined, the second bridge device provision will be skipped. Use it when
+# you want to connect the vm to an already existing bridge, for example,
+# created by libvirt, to talk to other VMs.
+#BR2_DEV_SKIP_PROVISON="1"
+
 # If specified, a physical network interface to be connected to the bridge.
 # This should only be necessary if you wish to connect to the rapido VMs from a
 # remote host.
 # e.g. BR1_IF="eth0"
 #BR1_IF=""
 
+# If specified, a physical network interface to be connected to the bridge.
+# This should only be necessary if you wish to connect to the rapido VMs from a
+# remote host.
+# e.g. BR1_IF="eth0"
+#BR2_IF=""
+
 # if specified, an address to configure for the bridge device
 BR1_ADDR="192.168.155.1/24"
+
+# if specified, an address to configure for the bridge device
+#BR2_ADDR="192.168.160.1/24"
 
 # if specified, start a dhcp server, listening on $BR1_DEV
 # e.g. BR1_DHCP_SRV_RANGE="192.168.155.10,192.168.155.20,12h"

@@ -38,6 +38,10 @@ if [ -z "$BR1_DEV_SKIP_PROVISON" ]; then
 	ip link set dev $BR1_DEV down || exit 1
 fi
 
+if [ -n "$BR2_DEV" ] && [ -z "$BR2_DEV_SKIP_PROVISON" ]; then
+	ip link set dev $BR2_DEV down || exit 1
+fi
+
 ip link set $VM2_TAP_DEV1 nomaster || exit 1
 ip tuntap delete dev $VM2_TAP_DEV1 mode tap || exit 1
 
@@ -53,4 +57,16 @@ if [ -z "$BR1_DEV_SKIP_PROVISON" ]; then
 		ip addr del $BR1_ADDR dev $BR1_DEV || exit 1
 	fi
 	ip link delete $BR1_DEV type bridge || exit 1
+fi
+
+if [ -n "$BR2_DEV" ] && [ -z "$BR2_DEV_SKIP_PROVISON" ]; then
+	if [ -n "$BR2_IF" ]; then
+		ip link set $BR2_IF nomaster || exit 1
+	fi
+
+	if [ -n "$BR2_ADDR" ]; then
+		ip addr del $BR2_ADDR dev $BR2_DEV || exit 1
+	fi
+	ip link delete $BR2_DEV type bridge || exit 1
+
 fi
