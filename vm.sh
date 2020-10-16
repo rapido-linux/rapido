@@ -57,9 +57,9 @@ function _vm_start
 			eval local hostname='$HOSTNAME'${vm_num}
 			[ -n "$hostname" ] \
 				|| _fail "HOSTNAME${vm_num} not configured"
-			eval local ip_addr='$IP_ADDR'${vm_num}
+			eval local ip_addr='$VM'${vm_num}'_IP_ADDR1'
 			[ -n "$ip_addr" ] \
-				|| _fail "IP_ADDR${vm_num} not configured"
+				|| _fail "VM${vm_num}_IP_ADDR1 not configured"
 			kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
 		fi
 		qemu_netdev="-device virtio-net,netdev=nw1,mac=${mac_addr} \

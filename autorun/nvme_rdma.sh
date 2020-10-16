@@ -77,22 +77,22 @@ if [ $? -eq 0 ]; then
 	mkdir ${nvmet_cfs}/ports/1 || _fatal
 
 	echo rdma > ${nvmet_cfs}/ports/1/addr_trtype || _fatal
-	echo $IP_ADDR1 > ${nvmet_cfs}/ports/1/addr_traddr || _fatal
+	echo $VM1_IP_ADDR1 > ${nvmet_cfs}/ports/1/addr_traddr || _fatal
 	echo ipv4 > ${nvmet_cfs}/ports/1/addr_adrfam || _fatal
 	echo 4420 > ${nvmet_cfs}/ports/1/addr_trsvcid || _fatal
 	ln -s ${nvmet_cfs}/subsystems/${nvmet_subsystem} \
 		${nvmet_cfs}/ports/1/subsystems/${nvmet_subsystem} || _fatal
 
 	set +x
-	echo "$export_blockdev mapped via NVMe over Fabrics RDMA on $IP_ADDR1"
+	echo "$export_blockdev mapped via NVMe over Fabrics RDMA on $VM1_IP_ADDR1"
 fi
 
 ip link show eth0 | grep $VM2_MAC_ADDR1
 if [ $? -eq 0 ]; then
-	nvme connect -t rdma -a $IP_ADDR1 -s 4420 -n nvmf-test || _fatal
+	nvme connect -t rdma -a $VM1_IP_ADDR1 -s 4420 -n nvmf-test || _fatal
 	udevadm settle
 	nvmedev=$(ls /dev/ | grep -Eo /dev/nvme[0-9]n[0-0])
 	set +x
-	echo "Remote NVMe over RDMA $IP_ADDR1 mapped to $nvmedev"
+	echo "Remote NVMe over RDMA $VM1_IP_ADDR1 mapped to $nvmedev"
 fi
 

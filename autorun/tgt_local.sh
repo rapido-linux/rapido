@@ -25,7 +25,7 @@ echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
 addr=""
 ip link show eth0 | grep $VM1_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
-	addr="${IP_ADDR1}"
+	addr="${VM1_IP_ADDR1}"
 fi
 
 ip link show eth0 | grep $VM2_MAC_ADDR1 &> /dev/null

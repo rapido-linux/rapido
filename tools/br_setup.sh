@@ -59,8 +59,8 @@ unwind="ip link set dev $TAP_DEV1 down; ${unwind}"
 
 if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 	hosts=
-	[ -n "$IP_ADDR1" ] && \
-		hosts="$hosts --dhcp-host=$VM1_MAC_ADDR1,$IP_ADDR1,${HOSTNAME1:-vm1}"
+	[ -n "$VM1_IP_ADDR1" ] && \
+		hosts="$hosts --dhcp-host=$VM1_MAC_ADDR1,$VM1_IP_ADDR1,${HOSTNAME1:-vm1}"
 	[ -n "$IP_ADDR2" ] && \
 		hosts="$hosts --dhcp-host=$VM2_MAC_ADDR1,$IP_ADDR2,${HOSTNAME2:-vm2}"
 	dnsmasq --no-hosts --no-resolv \

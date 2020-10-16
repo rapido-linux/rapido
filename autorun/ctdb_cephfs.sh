@@ -105,7 +105,7 @@ cat > /usr/local/samba/etc/ctdb/ctdb.conf << EOF
     recovery lock = !${reclock_bin} ceph $reclock_usr $reclock_pool $reclock_obj
 EOF
 
-echo $IP_ADDR1 >> /usr/local/samba/etc/ctdb/nodes
+echo $VM1_IP_ADDR1 >> /usr/local/samba/etc/ctdb/nodes
 echo $IP_ADDR2 >> /usr/local/samba/etc/ctdb/nodes
 
 ctdbd || _fatal
@@ -131,7 +131,7 @@ echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
 
 ip link show eth0 | grep $VM1_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
-	echo "Samba share ready at: //${IP_ADDR1}/${CIFS_SHARE}/"
+	echo "Samba share ready at: //${VM1_IP_ADDR1}/${CIFS_SHARE}/"
 fi
 ip link show eth0 | grep $VM2_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then

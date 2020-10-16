@@ -77,7 +77,7 @@ cat > lrbd.conf.json << EOF
   "portals": [
       {
           "name": "portal1",
-          "addresses": [ "$IP_ADDR1" ]
+          "addresses": [ "$VM1_IP_ADDR1" ]
       },
       {
           "name": "portal2",
