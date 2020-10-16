@@ -24,8 +24,8 @@ BR1_DEV="rapido-br"
 BR1_ADDR="192.168.155.1/24"
 
 # if specified, start a dhcp server, listening on $BR1_DEV
-# e.g. BR_DHCP_SRV_RANGE="192.168.155.10,192.168.155.20,12h"
-#BR_DHCP_SRV_RANGE=""
+# e.g. BR1_DHCP_SRV_RANGE="192.168.155.10,192.168.155.20,12h"
+#BR1_DHCP_SRV_RANGE=""
 
 # Tap VM network device owner
 # e.g. TAP_USER="me"

@@ -19,10 +19,10 @@ _rt_require_conf_setting BR1_DEV TAP_DEV0 TAP_DEV1
 
 set -x
 
-if [ -n "$BR_DHCP_SRV_RANGE" ]; then
+if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 	dnsmasq_pid=`ps -eo pid,args | grep -v grep | grep dnsmasq \
 			| grep -- --interface=$BR1_DEV \
-			| grep -- --dhcp-range=$BR_DHCP_SRV_RANGE \
+			| grep -- --dhcp-range=$BR1_DHCP_SRV_RANGE \
 			| awk '{print $1}'`
 	if [ -z "$dnsmasq_pid" ]; then
 		echo "failed to find dnsmasq process"

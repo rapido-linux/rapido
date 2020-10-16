@@ -57,7 +57,7 @@ unwind="ip link set dev $TAP_DEV0 down; ${unwind}"
 ip link set dev $TAP_DEV1 up || exit 1
 unwind="ip link set dev $TAP_DEV1 down; ${unwind}"
 
-if [ -n "$BR_DHCP_SRV_RANGE" ]; then
+if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 	hosts=
 	[ -n "$IP_ADDR1" ] && \
 		hosts="$hosts --dhcp-host=$MAC_ADDR1,$IP_ADDR1,${HOSTNAME1:-vm1}"
@@ -68,7 +68,7 @@ if [ -n "$BR_DHCP_SRV_RANGE" ]; then
 		--bind-interfaces \
 		--interface="$BR1_DEV" \
 		--except-interface=lo \
-		--dhcp-range="$BR_DHCP_SRV_RANGE" \
+		--dhcp-range="$BR1_DHCP_SRV_RANGE" \
 		${hosts} || exit 1
 	unwind="kill $(cat /var/run/rapido-dnsmasq-$$.pid); ${unwind}"
 	echo "+ started DHCP server"
