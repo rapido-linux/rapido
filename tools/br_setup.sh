@@ -21,21 +21,24 @@ _rt_require_conf_setting BR1_DEV TAP_USER VM1_TAP_DEV1 VM2_TAP_DEV1
 unwind=""
 trap "eval \$unwind" 0 1 2 3 15
 
-ip link add $BR1_DEV type bridge || _fail "failed to add $BR1_DEV"
-unwind="ip link delete $BR1_DEV type bridge; ${unwind}"
-echo -n "+ created bridge $BR1_DEV"
-if [ -n "$BR1_ADDR" ]; then
-	ip addr add $BR1_ADDR dev $BR1_DEV || exit 1
-	unwind="ip addr del $BR1_ADDR dev $BR1_DEV; ${unwind}"
-	echo -n " with address $BR1_ADDR"
-fi
+if [ -z "$BR1_DEV_SKIP_PROVISON" ]; then
+	ip link add $BR1_DEV type bridge || _fail "failed to add $BR1_DEV"
+	unwind="ip link delete $BR1_DEV type bridge; ${unwind}"
+	echo -n "+ created bridge $BR1_DEV"
 
-if [ -n "$BR1_IF" ]; then
-	ip link set $BR1_IF master $BR1_DEV || exit 1
-	unwind="ip link set $BR1_IF nomaster; ${unwind}"
-	echo -n ", connected to $BR1_IF"
+	if [ -n "$BR1_ADDR" ]; then
+		ip addr add $BR1_ADDR dev $BR1_DEV || exit 1
+		unwind="ip addr del $BR1_ADDR dev $BR1_DEV; ${unwind}"
+		echo -n " with address $BR1_ADDR"
+	fi
+
+	if [ -n "$BR1_IF" ]; then
+		ip link set $BR1_IF master $BR1_DEV || exit 1
+		unwind="ip link set $BR1_IF nomaster; ${unwind}"
+		echo -n ", connected to $BR1_IF"
+	fi
+	echo
 fi
-echo
 
 # setup tap interfaces for VMs
 ip tuntap add dev $VM1_TAP_DEV1 mode tap user $TAP_USER || exit 1
@@ -50,8 +53,11 @@ ip link set $VM2_TAP_DEV1 master $BR1_DEV || exit 1
 unwind="ip link set $VM2_TAP_DEV1 nomaster; ${unwind}"
 echo "+ created $VM2_TAP_DEV1"
 
-ip link set dev $BR1_DEV up || exit 1
-unwind="ip link set dev $BR1_DEV down; ${unwind}"
+if [ -z "$BR1_DEV_SKIP_PROVISON" ]; then
+	ip link set dev $BR1_DEV up || exit 1
+	unwind="ip link set dev $BR1_DEV down; ${unwind}"
+fi
+
 ip link set dev $VM1_TAP_DEV1 up || exit 1
 unwind="ip link set dev $VM1_TAP_DEV1 down; ${unwind}"
 ip link set dev $VM2_TAP_DEV1 up || exit 1

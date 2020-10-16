@@ -14,6 +14,11 @@ KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
 # bridge device provisioned by "rapido setup-network" (br_setup.sh).
 BR1_DEV="rapido-br"
 
+# If defined, the first bridge device provision will be skipped. Use it when
+# you want to connect the vm to an already existing bridge, for example,
+# created by libvirt, to talk to other VMs.
+#BR1_DEV_SKIP_PROVISON="1"
+
 # If specified, a physical network interface to be connected to the bridge.
 # This should only be necessary if you wish to connect to the rapido VMs from a
 # remote host.
