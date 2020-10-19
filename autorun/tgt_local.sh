@@ -30,7 +30,7 @@ fi
 
 ip link show eth0 | grep $VM2_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
-	addr="${IP_ADDR2}"
+	addr="${VM2_IP_ADDR1}"
 fi
 
 [ -z "$addr" ] && _fatal "VM network config missing"

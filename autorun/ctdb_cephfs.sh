@@ -106,7 +106,7 @@ cat > /usr/local/samba/etc/ctdb/ctdb.conf << EOF
 EOF
 
 echo $VM1_IP_ADDR1 >> /usr/local/samba/etc/ctdb/nodes
-echo $IP_ADDR2 >> /usr/local/samba/etc/ctdb/nodes
+echo $VM2_IP_ADDR1 >> /usr/local/samba/etc/ctdb/nodes
 
 ctdbd || _fatal
 
@@ -135,6 +135,6 @@ if [ $? -eq 0 ]; then
 fi
 ip link show eth0 | grep $VM2_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
-	echo "Samba share ready at: //${IP_ADDR2}/${CIFS_SHARE}/"
+	echo "Samba share ready at: //${VM2_IP_ADDR1}/${CIFS_SHARE}/"
 fi
 echo "Logs at /usr/local/samba/var/log/log.ctdb & /usr/local/samba/var/log.smbd"

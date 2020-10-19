@@ -96,7 +96,7 @@ VM2_MAC_ADDR1=""
 #IP_ADDR2_DHCP="1"
 
 # Static IP address assigned to the VM during boot
-IP_ADDR2="192.168.155.102"
+VM2_IP_ADDR1="192.168.155.102"
 
 # Static hostname assigned to the VM
 HOSTNAME2="rapido2"

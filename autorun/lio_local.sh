@@ -248,13 +248,13 @@ fi
 
 ip link show eth0 | grep $VM2_MAC_ADDR1
 if [ $? -eq 0 ]; then
-	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR2}:3260 \
+	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${VM2_IP_ADDR1}:3260 \
 		|| _fatal
-	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${IP_ADDR2}:3261 \
+	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${VM2_IP_ADDR1}:3261 \
 		|| _fatal
 
-	echo "target ready at: iscsi://${IP_ADDR2}:3260/${TARGET_IQN}/"
-	echo "target ready at: iscsi://${IP_ADDR2}:3261/${TARGET_IQN}/"
+	echo "target ready at: iscsi://${VM2_IP_ADDR1}:3260/${TARGET_IQN}/"
+	echo "target ready at: iscsi://${VM2_IP_ADDR1}:3261/${TARGET_IQN}/"
 fi
 echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/enable
 echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/enable
