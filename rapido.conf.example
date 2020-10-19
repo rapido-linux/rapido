@@ -93,7 +93,7 @@ TAP_DEV1="tap1"
 VM2_MAC_ADDR1=""
 
 # When set to "1", use DHCP to obtain IP and hostname.
-#IP_ADDR2_DHCP="1"
+#VM2_IP_ADDR1_DHCP="1"
 
 # Static IP address assigned to the VM during boot
 VM2_IP_ADDR1="192.168.155.102"
