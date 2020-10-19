@@ -50,6 +50,14 @@ function _vm_start
 			|| _fail "VM${vm_num}_TAP_DEV1 not configured"
 		qemu_netdev="-device virtio-net,netdev=nw1,mac=${mac_addr} \
 			-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap}"
+
+		eval local mac_addr='$VM'${vm_num}'_MAC_ADDR2'
+		eval local tap='$VM'${vm_num}'_TAP_DEV2'
+		if [ -n "$mac_addr" ] && [ -n "$tap" ]; then
+			qemu_netdev="$qemu_netdev \
+				-device virtio-net,netdev=nw2,mac=${mac_addr} \
+				-netdev tap,id=nw2,script=no,downscript=no,ifname=${tap}"
+		fi
 	fi
 
 	# cut_ script may have specified some parameters for qemu
