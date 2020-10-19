@@ -71,7 +71,7 @@ QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 VM1_TAP_DEV1="tap0"
 
 # MAC address assigned to the VM
-# e.g. VM1_MAC_ADDR1="b8:ac:24:45:c5:01"
+# e.g. VM1_MAC_ADDR1="b8:ac:24:45:01:01"
 VM1_MAC_ADDR1=""
 
 # When set to "1", use DHCP to obtain IP and hostname.
@@ -89,7 +89,7 @@ VM1_HOSTNAME="rapido1"
 VM2_TAP_DEV1="tap1"
 
 # MAC address assigned to the VM
-# e.g. VM2_MAC_ADDR1="b8:ac:24:45:c5:02"
+# e.g. VM2_MAC_ADDR1="b8:ac:24:45:02:01"
 VM2_MAC_ADDR1=""
 
 # When set to "1", use DHCP to obtain IP and hostname.
