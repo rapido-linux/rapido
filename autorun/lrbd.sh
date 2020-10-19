@@ -68,8 +68,8 @@ cat > lrbd.conf.json << EOF
   "targets": [
       {
         "hosts": [
-            { "host": "$HOSTNAME1", "portal": "portal1" },
-            { "host": "$HOSTNAME2", "portal": "portal2" }
+            { "host": "$VM1_HOSTNAME", "portal": "portal1" },
+            { "host": "$VM2_HOSTNAME", "portal": "portal2" }
         ],
         "target": "$TARGET_IQN"
       }

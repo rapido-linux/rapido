@@ -54,9 +54,9 @@ function _vm_start
 		if [ "$is_dhcp" = "1" ]; then
 			kern_ip_addr="dhcp"
 		else
-			eval local hostname='$HOSTNAME'${vm_num}
+			eval local hostname='$VM'${vm_num}'_HOSTNAME'
 			[ -n "$hostname" ] \
-				|| _fail "HOSTNAME${vm_num} not configured"
+				|| _fail "VM${vm_num}_HOSTNAME not configured"
 			eval local ip_addr='$VM'${vm_num}'_IP_ADDR1'
 			[ -n "$ip_addr" ] \
 				|| _fail "VM${vm_num}_IP_ADDR1 not configured"
