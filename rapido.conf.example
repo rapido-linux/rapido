@@ -107,6 +107,16 @@ VM1_IP_ADDR1="192.168.155.101"
 # used by vm.sh, and connected to the second bridge device (BR2_DEV).
 #VM1_TAP_DEV2="tap2"
 
+# MAC address assigned to the VM
+# e.g. VM1_MAC_ADDR1="b8:ac:24:45:01:02"
+#VM1_MAC_ADDR2=""
+
+# When set to "1", use DHCP to obtain IP and hostname.
+#VM1_IP_ADDR2_DHCP="1"
+
+# IP address assigned to the VM during boot
+#VM1_IP_ADDR2="192.168.160.101"
+
 # Static hostname assigned to the VM
 VM1_HOSTNAME="rapido1"
 #############################
@@ -128,6 +138,16 @@ VM2_IP_ADDR1="192.168.155.102"
 # If defined, second tap tunnel interface provisioned by br_setup.sh,
 # used by vm.sh, and connected to the second bridge device (BR2_DEV).
 #VM2_TAP_DEV2="tap3"
+
+# MAC address assigned to the VM
+# e.g. VM2_MAC_ADDR1="b8:ac:24:45:02:02"
+#VM2_MAC_ADDR2=""
+
+# When set to "1", use DHCP to obtain IP and hostname.
+#VM2_IP_ADDR2_DHCP="1"
+
+# Static IP address assigned to the VM during boot
+#VM2_IP_ADDR2="192.168.160.102"
 
 # Static hostname assigned to the VM
 VM2_HOSTNAME="rapido2"
