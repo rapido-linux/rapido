@@ -63,7 +63,7 @@ ip link show eth0 | grep $VM1_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
 	echo "Samba share ready at: //${IP_ADDR1}/${CIFS_SHARE}/"
 fi
-ip link show eth0 | grep $MAC_ADDR2 &> /dev/null
+ip link show eth0 | grep $VM2_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
 	echo "Samba share ready at: //${IP_ADDR2}/${CIFS_SHARE}/"
 fi

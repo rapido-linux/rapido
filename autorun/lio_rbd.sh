@@ -151,7 +151,7 @@ if [ $? -eq 0 ]; then
 	echo "target ready at: iscsi://${IP_ADDR1}:3260/${TARGET_IQN}/"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2
+ip link show eth0 | grep $VM2_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/enable
 	echo "target ready at: iscsi://${IP_ADDR2}:3260/${TARGET_IQN}/"

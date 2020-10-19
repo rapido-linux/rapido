@@ -89,8 +89,8 @@ HOSTNAME1="rapido1"
 TAP_DEV1="tap1"
 
 # MAC address assigned to the VM
-# e.g. MAC_ADDR2="b8:ac:24:45:c5:02"
-MAC_ADDR2=""
+# e.g. VM2_MAC_ADDR1="b8:ac:24:45:c5:02"
+VM2_MAC_ADDR1=""
 
 # When set to "1", use DHCP to obtain IP and hostname.
 #IP_ADDR2_DHCP="1"

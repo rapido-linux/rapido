@@ -87,7 +87,7 @@ if [ $? -eq 0 ]; then
 	echo "$export_blockdev mapped via NVMe over Fabrics RDMA on $IP_ADDR1"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2
+ip link show eth0 | grep $VM2_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	nvme connect -t rdma -a $IP_ADDR1 -s 4420 -n nvmf-test || _fatal
 	udevadm settle

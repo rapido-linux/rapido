@@ -148,7 +148,7 @@ if [ $? -eq 0 ]; then
 	file_path=/var/target/lun
 	file_size_b=1073741824
 	target_wwn="20:00:$VM1_MAC_ADDR1"
-	initiator_wwn="20:00:$MAC_ADDR2"
+	initiator_wwn="20:00:$VM2_MAC_ADDR1"
 
 	create_fcoe "eth0"
 	create_fileio ${file_path} ${file_size_b}
@@ -158,7 +158,7 @@ if [ $? -eq 0 ]; then
 	echo "${file_path} exported via FCoE on $VM1_MAC_ADDR1"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2
+ip link show eth0 | grep $VM2_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	fipvlan -csum vn2vn eth0 || _fatal
 	udevadm settle

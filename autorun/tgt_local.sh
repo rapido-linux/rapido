@@ -28,7 +28,7 @@ if [ $? -eq 0 ]; then
 	addr="${IP_ADDR1}"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2 &> /dev/null
+ip link show eth0 | grep $VM2_MAC_ADDR1 &> /dev/null
 if [ $? -eq 0 ]; then
 	addr="${IP_ADDR2}"
 fi

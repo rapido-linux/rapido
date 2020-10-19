@@ -246,7 +246,7 @@ if [ $? -eq 0 ]; then
 	echo "target ready at: iscsi://${IP_ADDR1}:3261/${TARGET_IQN}/"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2
+ip link show eth0 | grep $VM2_MAC_ADDR1
 if [ $? -eq 0 ]; then
 	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR2}:3260 \
 		|| _fatal
