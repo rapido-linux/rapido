@@ -40,28 +40,14 @@ function _vm_start
 	fi
 
 	local qemu_netdev=""
-	local kern_ip_addr=""
 	if [ -n "$(_rt_xattr_vm_networkless_get ${DRACUT_OUT})" ]; then
 		# this image doesn't require network access
-		kern_ip_addr="none"
 		qemu_netdev="-net none"	# override default (-net nic -net user)
 	else
 		eval local mac_addr='$VM'${vm_num}'_MAC_ADDR1'
 		eval local tap='$VM'${vm_num}'_TAP_DEV1'
 		[ -n "$tap" ] \
 			|| _fail "VM${vm_num}_TAP_DEV1 not configured"
-		eval local is_dhcp='$VM'${vm_num}'_IP_ADDR1_DHCP'
-		if [ "$is_dhcp" = "1" ]; then
-			kern_ip_addr="dhcp"
-		else
-			eval local hostname='$VM'${vm_num}'_HOSTNAME'
-			[ -n "$hostname" ] \
-				|| _fail "VM${vm_num}_HOSTNAME not configured"
-			eval local ip_addr='$VM'${vm_num}'_IP_ADDR1'
-			[ -n "$ip_addr" ] \
-				|| _fail "VM${vm_num}_IP_ADDR1 not configured"
-			kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
-		fi
 		qemu_netdev="-device virtio-net,netdev=nw1,mac=${mac_addr} \
 			-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap}"
 	fi
@@ -85,8 +71,7 @@ function _vm_start
 		$vm_resources \
 		-kernel "$QEMU_KERNEL_IMG" \
 		-initrd "$DRACUT_OUT" \
-		-append "rapido.vm_num=${vm_num} ip=${kern_ip_addr} \
-			 rd.systemd.unit=emergency.target \
+		-append "rapido.vm_num=${vm_num} rd.systemd.unit=emergency.target \
 		         rd.shell=1 console=$QEMU_KERNEL_CONSOLE rd.lvm=0 rd.luks=0 \
 			 $QEMU_EXTRA_KERNEL_PARAMS" \
 		-pidfile "$vm_pid_file" \
