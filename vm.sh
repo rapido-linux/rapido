@@ -47,9 +47,9 @@ function _vm_start
 		qemu_netdev="-net none"	# override default (-net nic -net user)
 	else
 		eval local mac_addr='$VM'${vm_num}'_MAC_ADDR1'
-		eval local tap='$TAP_DEV'$((vm_num - 1))
+		eval local tap='$VM'${vm_num}'_TAP_DEV1'
 		[ -n "$tap" ] \
-			|| _fail "TAP_DEV$((vm_num - 1)) not configured"
+			|| _fail "VM${vm_num}_TAP_DEV1 not configured"
 		eval local is_dhcp='$VM'${vm_num}'_IP_ADDR1_DHCP'
 		if [ "$is_dhcp" = "1" ]; then
 			kern_ip_addr="dhcp"

@@ -15,7 +15,7 @@
 RAPIDO_DIR="`dirname $0`/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_conf_setting BR1_DEV TAP_DEV0 TAP_DEV1
+_rt_require_conf_setting BR1_DEV VM1_TAP_DEV1 VM2_TAP_DEV1
 
 set -x
 
@@ -31,15 +31,15 @@ if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 	kill "$dnsmasq_pid"
 fi
 
-ip link set dev $TAP_DEV1 down || exit 1
-ip link set dev $TAP_DEV0 down || exit 1
+ip link set dev $VM2_TAP_DEV1 down || exit 1
+ip link set dev $VM1_TAP_DEV1 down || exit 1
 ip link set dev $BR1_DEV down || exit 1
 
-ip link set $TAP_DEV1 nomaster || exit 1
-ip tuntap delete dev $TAP_DEV1 mode tap || exit 1
+ip link set $VM2_TAP_DEV1 nomaster || exit 1
+ip tuntap delete dev $VM2_TAP_DEV1 mode tap || exit 1
 
-ip link set $TAP_DEV0 nomaster || exit 1
-ip tuntap delete dev $TAP_DEV0 mode tap || exit 1
+ip link set $VM1_TAP_DEV1 nomaster || exit 1
+ip tuntap delete dev $VM1_TAP_DEV1 mode tap || exit 1
 
 if [ -n "$BR1_IF" ]; then
 	ip link set $BR1_IF nomaster || exit 1

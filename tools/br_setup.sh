@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_conf_setting BR1_DEV TAP_USER TAP_DEV0 TAP_DEV1
+_rt_require_conf_setting BR1_DEV TAP_USER VM1_TAP_DEV1 VM2_TAP_DEV1
 
 # cleanup on premature exit by executing whatever has been prepended to @unwind
 unwind=""
@@ -38,24 +38,24 @@ fi
 echo
 
 # setup tap interfaces for VMs
-ip tuntap add dev $TAP_DEV0 mode tap user $TAP_USER || exit 1
-unwind="ip tuntap delete dev $TAP_DEV0 mode tap; ${unwind}"
-ip link set $TAP_DEV0 master $BR1_DEV || exit 1
-unwind="ip link set $TAP_DEV0 nomaster; ${unwind}"
-echo "+ created $TAP_DEV0"
+ip tuntap add dev $VM1_TAP_DEV1 mode tap user $TAP_USER || exit 1
+unwind="ip tuntap delete dev $VM1_TAP_DEV1 mode tap; ${unwind}"
+ip link set $VM1_TAP_DEV1 master $BR1_DEV || exit 1
+unwind="ip link set $VM1_TAP_DEV1 nomaster; ${unwind}"
+echo "+ created $VM1_TAP_DEV1"
 
-ip tuntap add dev $TAP_DEV1 mode tap user $TAP_USER || exit 1
-unwind="ip tuntap delete dev $TAP_DEV1 mode tap; ${unwind}"
-ip link set $TAP_DEV1 master $BR1_DEV || exit 1
-unwind="ip link set $TAP_DEV1 nomaster; ${unwind}"
-echo "+ created $TAP_DEV1"
+ip tuntap add dev $VM2_TAP_DEV1 mode tap user $TAP_USER || exit 1
+unwind="ip tuntap delete dev $VM2_TAP_DEV1 mode tap; ${unwind}"
+ip link set $VM2_TAP_DEV1 master $BR1_DEV || exit 1
+unwind="ip link set $VM2_TAP_DEV1 nomaster; ${unwind}"
+echo "+ created $VM2_TAP_DEV1"
 
 ip link set dev $BR1_DEV up || exit 1
 unwind="ip link set dev $BR1_DEV down; ${unwind}"
-ip link set dev $TAP_DEV0 up || exit 1
-unwind="ip link set dev $TAP_DEV0 down; ${unwind}"
-ip link set dev $TAP_DEV1 up || exit 1
-unwind="ip link set dev $TAP_DEV1 down; ${unwind}"
+ip link set dev $VM1_TAP_DEV1 up || exit 1
+unwind="ip link set dev $VM1_TAP_DEV1 down; ${unwind}"
+ip link set dev $VM2_TAP_DEV1 up || exit 1
+unwind="ip link set dev $VM2_TAP_DEV1 down; ${unwind}"
 
 if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 	hosts=
