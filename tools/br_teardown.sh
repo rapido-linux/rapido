@@ -31,6 +31,18 @@ if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 	kill "$dnsmasq_pid"
 fi
 
+if [ -n "$BR2_DEV" ] && [ -n "$BR2_DHCP_SRV_RANGE" ]; then
+	dnsmasq_pid=`ps -eo pid,args | grep -v grep | grep dnsmasq \
+			| grep -- --interface=$BR2_DEV \
+			| grep -- --dhcp-range=$BR2_DHCP_SRV_RANGE \
+			| awk '{print $1}'`
+	if [ -z "$dnsmasq_pid" ]; then
+		echo "failed to find dnsmasq process"
+		exit 1
+	fi
+	kill "$dnsmasq_pid"
+fi
+
 ip link set dev $VM2_TAP_DEV1 down || exit 1
 if [ -n "$VM2_TAP_DEV2" ]; then
 	ip link set dev $VM2_TAP_DEV2 down || exit 1

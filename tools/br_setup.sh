@@ -136,7 +136,24 @@ if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 		--dhcp-range="$BR1_DHCP_SRV_RANGE" \
 		${hosts} || exit 1
 	unwind="kill $(cat /var/run/rapido-dnsmasq-$$.pid); ${unwind}"
-	echo "+ started DHCP server"
+	echo "+ started DHCP server in interface ${BR1_DEV}"
+fi
+
+if [ -n "$BR2_DEV" ] && [ -n "$BR2_DHCP_SRV_RANGE" ]; then
+	hosts=
+	[ -n "$VM1_IP_ADDR2" ] && \
+		hosts="$hosts --dhcp-host=$VM1_MAC_ADDR2,$VM1_IP_ADDR2,${VM1_HOSTNAME:-vm1}"
+	[ -n "$VM2_IP_ADDR2" ] && \
+		hosts="$hosts --dhcp-host=$VM2_MAC_ADDR2,$VM2_IP_ADDR2,${VM2_HOSTNAME:-vm2}"
+	dnsmasq --no-hosts --no-resolv \
+		--pid-file=/var/run/rapido-dnsmasq-$$.pid \
+		--bind-interfaces \
+		--interface="$BR2_DEV" \
+		--except-interface=lo \
+		--dhcp-range="$BR2_DHCP_SRV_RANGE" \
+		${hosts} || exit 1
+	unwind="kill $(cat /var/run/rapido-dnsmasq-$$.pid); ${unwind}"
+	echo "+ started DHCP server in interface ${BR2_DEV}"
 fi
 
 # success! clear unwind
