@@ -32,7 +32,13 @@ if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 fi
 
 ip link set dev $VM2_TAP_DEV1 down || exit 1
+if [ -n "$VM2_TAP_DEV2" ]; then
+	ip link set dev $VM2_TAP_DEV2 down || exit 1
+fi
 ip link set dev $VM1_TAP_DEV1 down || exit 1
+if [ -n "$VM1_TAP_DEV2" ]; then
+	ip link set dev $VM1_TAP_DEV2 down || exit 1
+fi
 
 if [ -z "$BR1_DEV_SKIP_PROVISON" ]; then
 	ip link set dev $BR1_DEV down || exit 1
@@ -44,9 +50,17 @@ fi
 
 ip link set $VM2_TAP_DEV1 nomaster || exit 1
 ip tuntap delete dev $VM2_TAP_DEV1 mode tap || exit 1
+if [ -n "$VM2_TAP_DEV2" ]; then
+	ip link set $VM2_TAP_DEV2 nomaster || exit 1
+	ip tuntap delete dev $VM2_TAP_DEV2 mode tap || exit 1
+fi
 
 ip link set $VM1_TAP_DEV1 nomaster || exit 1
 ip tuntap delete dev $VM1_TAP_DEV1 mode tap || exit 1
+if [ -n "$VM1_TAP_DEV2" ]; then
+	ip link set $VM1_TAP_DEV2 nomaster || exit 1
+	ip tuntap delete dev $VM1_TAP_DEV2 mode tap || exit 1
+fi
 
 if [ -z "$BR1_DEV_SKIP_PROVISON" ]; then
 	if [ -n "$BR1_IF" ]; then

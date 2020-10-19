@@ -66,11 +66,35 @@ ip link set $VM1_TAP_DEV1 master $BR1_DEV || exit 1
 unwind="ip link set $VM1_TAP_DEV1 nomaster; ${unwind}"
 echo "+ created $VM1_TAP_DEV1"
 
+if [ -n "$VM1_TAP_DEV2" ]; then
+	if [ -z "$BR2_DEV" ]; then
+		echo "VM1_TAP_DEV2 requires BR2_DEV to be defined"
+		exit 1
+	fi
+	ip tuntap add dev $VM1_TAP_DEV2 mode tap user $TAP_USER || exit 1
+	unwind="ip tuntap delete dev $VM1_TAP_DEV2 mode tap; ${unwind}"
+	ip link set $VM1_TAP_DEV2 master $BR2_DEV || exit 1
+	unwind="ip link set $VM1_TAP_DEV2 nomaster; ${unwind}"
+	echo "+ created $VM1_TAP_DEV2"
+fi
+
 ip tuntap add dev $VM2_TAP_DEV1 mode tap user $TAP_USER || exit 1
 unwind="ip tuntap delete dev $VM2_TAP_DEV1 mode tap; ${unwind}"
 ip link set $VM2_TAP_DEV1 master $BR1_DEV || exit 1
 unwind="ip link set $VM2_TAP_DEV1 nomaster; ${unwind}"
 echo "+ created $VM2_TAP_DEV1"
+
+if [ -n "$VM2_TAP_DEV2" ]; then
+	if [ -z "$BR2_DEV" ]; then
+		echo "VM2_TAP_DEV2 requires BR2_DEV to be defined"
+		exit 1
+	fi
+	ip tuntap add dev $VM2_TAP_DEV2 mode tap user $TAP_USER || exit 1
+	unwind="ip tuntap delete dev $VM2_TAP_DEV2 mode tap; ${unwind}"
+	ip link set $VM2_TAP_DEV2 master $BR2_DEV || exit 1
+	unwind="ip link set $VM2_TAP_DEV2 nomaster; ${unwind}"
+	echo "+ created $VM2_TAP_DEV2"
+fi
 
 if [ -z "$BR1_DEV_SKIP_PROVISON" ]; then
 	ip link set dev $BR1_DEV up || exit 1
@@ -84,8 +108,19 @@ fi
 
 ip link set dev $VM1_TAP_DEV1 up || exit 1
 unwind="ip link set dev $VM1_TAP_DEV1 down; ${unwind}"
+
+if [ -n "$VM1_TAP_DEV2" ]; then
+	ip link set dev $VM1_TAP_DEV2 up || exit 1
+	unwind="ip link set dev $VM1_TAP_DEV2 down; ${unwind}"
+fi
+
 ip link set dev $VM2_TAP_DEV1 up || exit 1
 unwind="ip link set dev $VM2_TAP_DEV1 down; ${unwind}"
+
+if [ -n "$VM2_TAP_DEV2" ]; then
+	ip link set dev $VM2_TAP_DEV2 up || exit 1
+	unwind="ip link set dev $VM2_TAP_DEV2 down; ${unwind}"
+fi
 
 if [ -n "$BR1_DHCP_SRV_RANGE" ]; then
 	hosts=
