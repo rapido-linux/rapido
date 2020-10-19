@@ -28,9 +28,10 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/mpath_local.sh"
 # Once booted, you can simulate path failure by switching to the QEMU console
 # (ctrl-a c) and running "drive_del hda"
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.xfs parted partprobe sgdisk hdparm \
-		   timeout id chown chmod env killall getopt basename" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALL \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		strace mkfs mkfs.xfs parted partprobe sgdisk hdparm \
+		timeout id chown chmod env killall getopt basename" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi virtio_pci sd_mod" \
 	--modules "bash base systemd systemd-initrd dracut-systemd multipath" \

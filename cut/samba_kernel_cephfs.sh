@@ -25,13 +25,14 @@ _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_conf_dir SAMBA_SRC
 
-"$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
-		   strace stat which touch cut chmod true false \
-		   getfattr setfattr getfacl setfacl killall sync \
-		   id sort uniq date expr tac diff head dirname seq ip ping \
-		   ${SAMBA_SRC}/bin/smbpasswd \
-		   ${SAMBA_SRC}/bin/smbstatus \
-		   ${SAMBA_SRC}/bin/smbd" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALL \
+		tail ps rmdir resize dd vim grep find df sha256sum \
+		strace stat which touch cut chmod true false \
+		getfattr setfattr getfacl setfacl killall sync \
+		id sort uniq date expr tac diff head dirname seq ip ping \
+		${SAMBA_SRC}/bin/smbpasswd \
+		${SAMBA_SRC}/bin/smbstatus \
+		${SAMBA_SRC}/bin/smbd" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "ceph libceph" \
 	--modules "bash base" \

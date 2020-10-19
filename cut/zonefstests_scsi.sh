@@ -18,9 +18,9 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/zonefstests_scsi.sh"
 _rt_require_conf_dir ZONEFSTOOLS_SRC
 
-"$DRACUT" \
-	--install "ps rmdir dd id basename stat wc grep blkzone cut fio \
-		   rm truncate ${ZONEFSTOOLS_SRC}/src/mkzonefs" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALL \
+		ps rmdir dd id basename stat wc grep blkzone cut fio \
+		rm truncate ${ZONEFSTOOLS_SRC}/src/mkzonefs" \
 	--include "$ZONEFSTOOLS_SRC/tests/" "/zonefs-tests" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "scsi_debug zonefs" \

@@ -19,13 +19,14 @@ _rt_require_ceph
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/usb_rbd.sh"
 _rt_require_lib "libkeyutils.so.1"
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   eject strace mkfs.vfat mountpoint \
-		   mktemp touch sync cryptsetup dmsetup scp ssh ip ping \
-		   /usr/lib/udev/rules.d/10-dm.rules \
-		   /usr/lib/udev/rules.d/13-dm-disk.rules \
-		   /usr/lib/udev/rules.d/95-dm-notify.rules \
-		   $LIBS_INSTALL_LIST" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALL \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		eject strace mkfs.vfat mountpoint \
+		mktemp touch sync cryptsetup dmsetup scp ssh ip ping \
+		/usr/lib/udev/rules.d/10-dm.rules \
+		/usr/lib/udev/rules.d/13-dm-disk.rules \
+		/usr/lib/udev/rules.d/95-dm-notify.rules \
+		$LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \

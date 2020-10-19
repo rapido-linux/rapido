@@ -19,9 +19,10 @@ _rt_require_dracut_args
 _rt_require_ceph
 _rt_require_lib "libkeyutils.so.1"
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs lsscsi \
-		   $LIBS_INSTALL_LIST" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALL \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		strace mkfs.xfs lsscsi \
+		$LIBS_INSTALL_LIST" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--modules "bash base" \
 	$DRACUT_EXTRA_ARGS \

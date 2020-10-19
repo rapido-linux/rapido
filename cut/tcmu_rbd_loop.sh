@@ -21,14 +21,15 @@ _rt_require_ceph
 # NSS_InitContext() fails without the following...
 _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen ip ping \
-		   ${CEPH_SRC}/build/lib/librbd.so \
-		   ${CEPH_SRC}/build/lib/libceph-common.so \
-		   ${CEPH_SRC}/build/lib/librados.so \
-		   ${TCMU_RUNNER_SRC}/tcmu-runner \
-		   ${TCMU_RUNNER_SRC}/handler_rbd.so \
-		   $LIBS_INSTALL_LIST" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALL \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		strace mkfs.xfs mkfs.btrfs sync dirname uuidgen ip ping \
+		${CEPH_SRC}/build/lib/librbd.so \
+		${CEPH_SRC}/build/lib/libceph-common.so \
+		${CEPH_SRC}/build/lib/librados.so \
+		${TCMU_RUNNER_SRC}/tcmu-runner \
+		${TCMU_RUNNER_SRC}/handler_rbd.so \
+		$LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	$DRACUT_RAPIDO_INCLUDES \

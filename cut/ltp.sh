@@ -18,8 +18,8 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/ltp.sh"
 _rt_require_conf_dir LTP_DIR
 
-"$DRACUT" \
-	--install "tail blockdev ps rmdir resize dd grep find df mkfs which \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALL \
+		tail blockdev ps rmdir resize dd grep find df mkfs which \
 		perl awk bc touch cut chmod true false unlink mktemp getfattr \
 		setfattr attr killall hexdump sync id sort uniq date expr tac \
 		diff head dirname seq basename tee egrep yes dmsetup chattr \
