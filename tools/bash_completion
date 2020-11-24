@@ -43,6 +43,12 @@ __rapido()
 
 	rcmd="${COMP_WORDS[1]}"	# rapido command should be at offset 1
 	if [[ ${rcmd} =~ "cut" ]]; then
+		if [[ " ${COMP_WORDS[COMP_CWORD-1]} " =~ " -f " ]]; then
+			# -f takes a filename parameter, so complete that only
+			COMPREPLY=( $(compgen -o filenames -A file -- ${cur}) )
+			return 0
+		fi
+
 		seen_boot=0
 		max_off=2
 		for (( i=2; i<=$COMP_CWORD; i++ )); do
@@ -52,12 +58,16 @@ __rapido()
 				seen_boot=1
 				(( max_off++ ))
 				;;
+			"-f")
+				(( max_off+=2 ))
+				(( i++ ))	# skip any file name
+				;;
 			esac
 		done
 
 		(( $COMP_CWORD > $max_off )) && return 0
 
-		(( seen_boot == 0 )) && comps="-B"
+		(( seen_boot == 0 )) && comps="-f -B" || comps="-f"
 		pushd "${cut_dir}" &> /dev/null || return 0
 		comps="${comps} $(ls *.sh | sed 's/\.sh$//;s/_/-/g')"
 		popd &> /dev/null
