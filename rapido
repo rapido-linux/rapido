@@ -45,10 +45,15 @@ rapido_cut()
 {
 	local boot_img="yes"
 	local option=""
-	while getopts "B" option; do
+	local post_autorun_files=()
+	while getopts "Bf:" option; do
 		case $option in
 		B)
 			unset boot_img
+			;;
+		f)
+			# existence checked via _rt_require_dracut_args()
+			post_autorun_files+=($(realpath "$OPTARG"))
 			;;
 		*)
 			echo "Invalid cut parameter"
@@ -64,9 +69,10 @@ rapido_cut()
 	if [ -z "$testname" -o x"$testname" = "xhelp" ]; then
 		progname="$(basename $0)"
 		funcname="$(echo ${FUNCNAME[0]} | sed 's/^rapido_//;s/_/-/g')" 
-		echo "Usage: ${progname} ${funcname} [-B] testname"
+		echo "Usage: ${progname} ${funcname} [-B] [-f file] testname"
 		echo ""
-		echo "-B:	cut testcase image only, don't boot it"
+		echo "-B:		cut testcase image only, don't boot it"
+		echo "-f <file>:	run script file within the VM upon boot"
 		echo "Where testname is one of the following:"
 		rapido_list
 		exit
@@ -85,7 +91,7 @@ rapido_cut()
 	fi
 
 	rm -f "${RAPIDO_DIR}/initrds/myinitrd"
-	./$cut_script
+	./$cut_script "${post_autorun_files[@]}"
 	local cut_status=$?
 	popd > /dev/null
 	[ $cut_status -ne 0 ] && exit $cut_status
