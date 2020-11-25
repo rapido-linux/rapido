@@ -49,6 +49,9 @@ __rapido()
 			return 0
 		fi
 
+		# don't attempt to complete -x <cmd> string
+		[[ " ${COMP_WORDS[COMP_CWORD-1]} " =~ " -x " ]] && return 0
+
 		seen_boot=0
 		max_off=2
 		for (( i=2; i<=$COMP_CWORD; i++ )); do
@@ -62,12 +65,16 @@ __rapido()
 				(( max_off+=2 ))
 				(( i++ ))	# skip any file name
 				;;
+			"-x")
+				(( max_off+=2 ))
+				(( i++ ))	# skip script
+				;;
 			esac
 		done
 
 		(( $COMP_CWORD > $max_off )) && return 0
-
-		(( seen_boot == 0 )) && comps="-f -B" || comps="-f"
+		comps="-f -x"
+		(( seen_boot == 0 )) && comps="$comps -B"
 		pushd "${cut_dir}" &> /dev/null || return 0
 		comps="${comps} $(ls *.sh | sed 's/\.sh$//;s/_/-/g')"
 		popd &> /dev/null
