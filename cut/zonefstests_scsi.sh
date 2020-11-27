@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/zonefstests_scsi.sh"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/zonefstests_scsi.sh" "$@"
 _rt_require_conf_dir ZONEFSTOOLS_SRC
 
 "$DRACUT" \

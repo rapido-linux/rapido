@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "${RAPIDO_DIR}/autorun/tgt_local.sh"
+_rt_require_dracut_args "${RAPIDO_DIR}/autorun/tgt_local.sh" "$@"
 _rt_require_conf_dir TGT_SRC
 
 "$DRACUT" \
