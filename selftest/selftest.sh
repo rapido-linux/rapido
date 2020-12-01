@@ -75,9 +75,6 @@ _run_tests() {
 	echo "All $tnum tests passed"
 }
 
-[ -f "${RAPIDO_DIR}/rapido.conf" ] \
-	&& _fail "refusing to run with existing rapido.conf"
-
 FILTER="$1"
 if [ -n "$FILTER" ]; then
 	[ "$FILTER" == "${FILTER#*/}" ] || _fail "filter can't include /"
@@ -91,10 +88,7 @@ fi
 [ -z "$QEMU_EXTRA_KERNEL_PARAMS" ] || _fail "QEMU_EXTRA_KERNEL_PARAMS is set"
 
 _generate_conf "${TD}/rapido.conf"
-
-ln -s ${TD}/rapido.conf "${RAPIDO_DIR}/rapido.conf" \
-	|| _fail "failed to link config"
-CLEANUP="${CLEANUP}; rm -f ${RAPIDO_DIR}/rapido.conf"
+export RAPIDO_CONF="${TD}/rapido.conf"
 
 pushd "${RAPIDO_DIR}"
 
