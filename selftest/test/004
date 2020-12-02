@@ -1,0 +1,78 @@
+#!/usr/bin/expect -f
+#
+# Copyright (C) SUSE LLC 2020, all rights reserved.
+#
+# This library is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 2.1 of the License, or
+# (at your option) version 3.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+
+# exercise -f and -x post-autorun parameters
+
+log_user 0
+log_file -a $::env(RAPIDO_SELFTEST_TMPDIR)/004.log
+
+set ::cleanup_pids {}
+exit -onexit {
+	foreach pid $::cleanup_pids {
+		send_log "killing $pid"
+		exec kill -9 $pid
+	}
+}
+
+set timeout 60
+set ar_str_sh "echo post autorun script passed as string"
+set ar_file_sh $::env(RAPIDO_SELFTEST_TMPDIR)/004-postautorun.sh
+exec echo "echo post autorun script passed as file" > $ar_file_sh
+spawn ./rapido cut -x "$ar_str_sh" -f $ar_file_sh simple-example
+lappend ::cleanup_pids [exp_pid -i $spawn_id]
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"Rapido scratch VM running. Have a lot of fun..."
+}
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"post autorun script passed as string"
+}
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"post autorun script passed as file"
+}
+
+send "shutdown\r"
+expect {
+	timeout {exit 1}
+	eof {wait}
+}
+set ::cleanup_pids {}
+
+# same again, but change order of execution
+spawn ./rapido cut -f $ar_file_sh -x "$ar_str_sh" -f $ar_file_sh simple-example
+lappend ::cleanup_pids [exp_pid -i $spawn_id]
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"Rapido scratch VM running. Have a lot of fun..."
+}
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"post autorun script passed as file"
+}
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"post autorun script passed as string"
+}
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"post autorun script passed as file"
+}
+send "shutdown\r"
+expect {
+	timeout {exit 1}
+	eof {wait}
+}
+set ::cleanup_pids {}
