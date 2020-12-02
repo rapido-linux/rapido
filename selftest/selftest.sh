@@ -14,8 +14,8 @@
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
-TD="$(mktemp -d rapido-selftest.XXXXXXX)"
-CLEANUP="rm -f ${TD}/*; rmdir $TD"
+export RAPIDO_SELFTEST_TMPDIR="$(mktemp -d rapido-selftest.XXXXXXX)"
+CLEANUP="rm -f ${RAPIDO_SELFTEST_TMPDIR}/*; rmdir $RAPIDO_SELFTEST_TMPDIR"
 # cleanup tmp dir when done
 trap "$CLEANUP" 0 1 2 3 15
 
@@ -57,8 +57,7 @@ _generate_conf() {
 }
 
 _run_tests() {
-	local td="$1"
-	local filter="$2"
+	local filter="$1"
 	local tnum=0
 	local t
 
@@ -87,11 +86,12 @@ fi
 [ -z "$QEMU_EXTRA_ARGS" ] || _fail "QEMU_EXTRA_ARGS is set"
 [ -z "$QEMU_EXTRA_KERNEL_PARAMS" ] || _fail "QEMU_EXTRA_KERNEL_PARAMS is set"
 
-_generate_conf "${TD}/rapido.conf"
-export RAPIDO_CONF="${TD}/rapido.conf"
+_generate_conf "${RAPIDO_SELFTEST_TMPDIR}/rapido.conf"
+export RAPIDO_CONF="${RAPIDO_SELFTEST_TMPDIR}/rapido.conf"
+export RAPIDO_SELFTEST_TMPDIR="$RAPIDO_SELFTEST_TMPDIR"
 
 pushd "${RAPIDO_DIR}"
 
-_run_tests "$TD" "$FILTER"
+_run_tests "$FILTER"
 
 popd
