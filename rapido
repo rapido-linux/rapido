@@ -76,7 +76,7 @@ rapido_cut()
 	shift $(($OPTIND - 1))
 	local testname=$1
 
-	if [ -z "$testname" -o x"$testname" = "xhelp" ]; then
+	if [ $# -ne 1 -o -z "$testname" -o x"$testname" = "xhelp" ]; then
 		progname="$(basename $0)"
 		funcname="$(echo ${FUNCNAME[0]} | sed 's/^rapido_//;s/_/-/g')" 
 		cat << EOF
