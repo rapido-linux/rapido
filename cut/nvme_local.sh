@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/nvme_local.sh"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/nvme_local.sh" "$@"
 _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \

@@ -14,8 +14,8 @@
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
-TD="$(mktemp -d rapido-selftest.XXXXXXX)"
-CLEANUP="rm -f ${TD}/*; rmdir $TD"
+export RAPIDO_SELFTEST_TMPDIR="$(mktemp -d rapido-selftest.XXXXXXX)"
+CLEANUP="rm -f ${RAPIDO_SELFTEST_TMPDIR}/*; rmdir $RAPIDO_SELFTEST_TMPDIR"
 # cleanup tmp dir when done
 trap "$CLEANUP" 0 1 2 3 15
 
@@ -57,8 +57,7 @@ _generate_conf() {
 }
 
 _run_tests() {
-	local td="$1"
-	local filter="$2"
+	local filter="$1"
 	local tnum=0
 	local t
 
@@ -75,9 +74,6 @@ _run_tests() {
 	echo "All $tnum tests passed"
 }
 
-[ -f "${RAPIDO_DIR}/rapido.conf" ] \
-	&& _fail "refusing to run with existing rapido.conf"
-
 FILTER="$1"
 if [ -n "$FILTER" ]; then
 	[ "$FILTER" == "${FILTER#*/}" ] || _fail "filter can't include /"
@@ -90,14 +86,12 @@ fi
 [ -z "$QEMU_EXTRA_ARGS" ] || _fail "QEMU_EXTRA_ARGS is set"
 [ -z "$QEMU_EXTRA_KERNEL_PARAMS" ] || _fail "QEMU_EXTRA_KERNEL_PARAMS is set"
 
-_generate_conf "${TD}/rapido.conf"
-
-ln -s ${TD}/rapido.conf "${RAPIDO_DIR}/rapido.conf" \
-	|| _fail "failed to link config"
-CLEANUP="${CLEANUP}; rm -f ${RAPIDO_DIR}/rapido.conf"
+_generate_conf "${RAPIDO_SELFTEST_TMPDIR}/rapido.conf"
+export RAPIDO_CONF="${RAPIDO_SELFTEST_TMPDIR}/rapido.conf"
+export RAPIDO_SELFTEST_TMPDIR="$RAPIDO_SELFTEST_TMPDIR"
 
 pushd "${RAPIDO_DIR}"
 
-_run_tests "$TD" "$FILTER"
+_run_tests "$FILTER"
 
 popd

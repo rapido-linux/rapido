@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/lrbd.sh"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lrbd.sh" "$@"
 _rt_require_ceph
 _rt_require_conf_dir LRBD_SRC TARGETCLI_SRC RTSLIB_SRC CONFIGSHELL_SRC
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \

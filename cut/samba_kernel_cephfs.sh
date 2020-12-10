@@ -20,7 +20,7 @@ vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 trap "rm $vm_ceph_conf" 0 1 2 3 15
 
 _rt_require_dracut_args "$vm_ceph_conf" \
-			"$RAPIDO_DIR/autorun/samba_kernel_cephfs.sh"
+			"$RAPIDO_DIR/autorun/samba_kernel_cephfs.sh" "$@"
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_conf_dir SAMBA_SRC

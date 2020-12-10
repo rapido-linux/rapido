@@ -19,7 +19,7 @@ vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
 trap "rm $vm_ceph_conf" 0 1 2 3 15
 
-_rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/rbd_nbd.sh"
+_rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/rbd_nbd.sh" "$@"
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_lib "libsoftokn3.so libsqlite3.so \

@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/mpath_local.sh"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/mpath_local.sh" "$@"
 
 # the VM should be deployed with two virtio SCSI devices which share the same
 # backing <file> and <serial> parameters. E.g.

@@ -45,10 +45,24 @@ rapido_cut()
 {
 	local boot_img="yes"
 	local option=""
-	while getopts "B" option; do
+	local post_autorun_files=()
+	local cleanup="rm "
+	local t
+	while getopts "Bf:x:" option; do
 		case $option in
 		B)
 			unset boot_img
+			;;
+		f)
+			# existence checked via _rt_require_dracut_args()
+			post_autorun_files+=($(realpath "$OPTARG"))
+			;;
+		x)
+			t="$(mktemp --tmpdir rapido_post_autorun.XXXXXXXXXX)" \
+				|| exit 1
+			printf "%s" "$OPTARG" > "$t" || exit 1
+			post_autorun_files+=("$t")
+			cleanup="$cleanup \"$t\""
 			;;
 		*)
 			echo "Invalid cut parameter"
@@ -56,18 +70,23 @@ rapido_cut()
 			;;
 		esac
 	done
+	[ -f "$t" ] && trap "$cleanup" 0 1 2 3 15
 
 	# shift away any processed params, so we're left with testname
 	shift $(($OPTIND - 1))
 	local testname=$1
 
-	if [ -z "$testname" -o x"$testname" = "xhelp" ]; then
+	if [ $# -ne 1 -o -z "$testname" -o x"$testname" = "xhelp" ]; then
 		progname="$(basename $0)"
 		funcname="$(echo ${FUNCNAME[0]} | sed 's/^rapido_//;s/_/-/g')" 
-		echo "Usage: ${progname} ${funcname} [-B] testname"
-		echo ""
-		echo "-B:	cut testcase image only, don't boot it"
-		echo "Where testname is one of the following:"
+		cat << EOF
+Usage: ${progname} ${funcname} [-B] [-f file] [-x cmd] testname
+
+-B:		cut testcase image only, don't boot it
+-f <file>:	run script file within the VM upon boot
+-x <cmd>:	run command string within the VM upon boot
+Where testname is one of the following:
+EOF
 		rapido_list
 		exit
 
@@ -85,7 +104,7 @@ rapido_cut()
 	fi
 
 	rm -f "${RAPIDO_DIR}/initrds/myinitrd"
-	./$cut_script
+	./$cut_script "${post_autorun_files[@]}"
 	local cut_status=$?
 	popd > /dev/null
 	[ $cut_status -ne 0 ] && exit $cut_status

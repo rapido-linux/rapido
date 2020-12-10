@@ -140,6 +140,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 ###########################
 
 ####### autorun/fstests_*.sh #######
+# XXX DEPRECATED: use the rapido cut '-x' or '-f' parameters instead
 # If defined, run the following command from within the fstests source directory
 # following VM boot-up.
 # e.g. FSTESTS_AUTORUN_CMD="./check -g auto && shutdown"
@@ -184,6 +185,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 ##################################
 
 ####### autorun/blktests_*.sh #######
+# XXX DEPRECATED: use the rapido cut '-x' or '-f' parameters instead
 # If defined, run the following command from within the blktests source directory
 # following VM boot-up.
 # e.g. BLKTESTS_AUTORUN_CMD="./check && shutdown"
@@ -198,6 +200,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 ##################################
 
 ####### autorun/zonefstests_*.sh #######
+# XXX DEPRECATED: use the rapido cut '-x' or '-f' parameters instead
 # If defined, run the following command from within the zonefstests source directory
 # following VM boot-up.
 # e.g. ZONEFSTESTS_AUTORUN_CMD="./zonefs-tests.sh /dev/nullb0 && shutdown"
@@ -257,6 +260,8 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # LTP_DIR should correspond to the ltp directory tree after make install.
 # e.g. LTP_DIR="/opt/ltp"
 #LTP_DIR=""
+#
+# XXX DEPRECATED: use the rapido cut '-x' or '-f' parameters instead
 # LTP_AUTORUN_CMD can be set to automatically run one or more testcases from
 # within the ltp directory.
 # e.g. LTP_AUTORUN_CMD="./runltp"

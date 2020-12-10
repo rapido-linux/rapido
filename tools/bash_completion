@@ -22,7 +22,7 @@
 
 __rapido()
 {
-	local bin cut_dir cur prev comps
+	local bin cut_dir cur comps rcmd max_off seen_boot
 	bin="$1"
 
 	# we only want to complete the rapido script, not dirs, etc.
@@ -34,29 +34,53 @@ __rapido()
 
 	COMPREPLY=()
 	cur="${COMP_WORDS[COMP_CWORD]}"
-	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-	if [[ ${prev} =~ "-B" ]]; then
-		# -B subparameter is provided (for cut?)
-		prev="${COMP_WORDS[COMP_CWORD-2]}"
-	else
-		# cut should include "-B" completion
-		comps="-B"
-	fi
-
-	if [[ ${prev} =~ "cut" ]]; then
-		pushd "${cut_dir}" &> /dev/null || return 0
-		comps="${comps} $(ls *.sh | sed 's/\.sh$//;s/_/-/g')"
-		popd &> /dev/null
-		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
-		return 0
-	fi
-
-	if [[ ${cur} == * ]]; then
+	if (( $COMP_CWORD <= 1 )); then
 		comps="boot cut help list setup-network teardown-network"
 		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
 		return 0
 	fi
+
+	rcmd="${COMP_WORDS[1]}"	# rapido command should be at offset 1
+	if [[ ${rcmd} =~ "cut" ]]; then
+		if [[ " ${COMP_WORDS[COMP_CWORD-1]} " =~ " -f " ]]; then
+			# -f takes a filename parameter, so complete that only
+			COMPREPLY=( $(compgen -o filenames -A file -- ${cur}) )
+			return 0
+		fi
+
+		# don't attempt to complete -x <cmd> string
+		[[ " ${COMP_WORDS[COMP_CWORD-1]} " =~ " -x " ]] && return 0
+
+		seen_boot=0
+		max_off=2
+		for (( i=2; i<=$COMP_CWORD; i++ )); do
+			case "${COMP_WORDS[i]}" in
+			"-B")
+				(( seen_boot == 0 )) || return 0
+				seen_boot=1
+				(( max_off++ ))
+				;;
+			"-f")
+				(( max_off+=2 ))
+				(( i++ ))	# skip any file name
+				;;
+			"-x")
+				(( max_off+=2 ))
+				(( i++ ))	# skip script
+				;;
+			esac
+		done
+
+		(( $COMP_CWORD > $max_off )) && return 0
+		comps="-f -x"
+		(( seen_boot == 0 )) && comps="$comps -B"
+		pushd "${cut_dir}" &> /dev/null || return 0
+		comps="${comps} $(ls *.sh | sed 's/\.sh$//;s/_/-/g')"
+		popd &> /dev/null
+		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
+	fi
+	return 0
 }
 
 complete -F __rapido rapido
