@@ -25,6 +25,6 @@ _rt_require_lib "libkeyutils.so.1"
 	--add-drivers "nvme-core nvme-fabrics nvme-rdma nvmet nvmet-rdma \
 		       rdma_rxe zram lzo lzo-rle ib_core ib_uverbs rdma_ucm \
 		       crc32_generic" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

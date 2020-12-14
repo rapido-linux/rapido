@@ -33,6 +33,6 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

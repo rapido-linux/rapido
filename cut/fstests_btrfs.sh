@@ -40,7 +40,7 @@ _rt_require_btrfs_progs
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
 		       loop scsi_debug dm-log-writes xxhash_generic" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

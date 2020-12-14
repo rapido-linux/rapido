@@ -24,7 +24,7 @@ _rt_require_conf_dir TCMU_RUNNER_SRC
 		   ${TCMU_RUNNER_SRC}/handler_file.so" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_user iscsi_target_mod" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

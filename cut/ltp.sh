@@ -31,7 +31,7 @@ _rt_require_conf_dir LTP_DIR
 	$DRACUT_RAPIDO_INCLUDES \
 	--include "$LTP_DIR" "$LTP_DIR"  \
 	--add-drivers "loop" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

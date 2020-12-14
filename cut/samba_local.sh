@@ -29,7 +29,7 @@ _rt_require_conf_dir SAMBA_SRC
 		   ${SAMBA_SRC}/bin/smbd" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle xfs btrfs" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

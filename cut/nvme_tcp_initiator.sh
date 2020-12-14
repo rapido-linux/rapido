@@ -22,6 +22,6 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/nvme_tcp_initiator.sh" "$@"
 	$DRACUT_RAPIDO_INCLUDES \
 	--include "$vm_ceph_conf" "/vm_ceph.env" \
 	--add-drivers "nvme-core nvme-fabrics nvme-tcp" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

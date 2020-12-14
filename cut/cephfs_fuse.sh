@@ -36,6 +36,6 @@ _rt_require_lib "libsoftokn3.so \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "fuse" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

@@ -24,6 +24,6 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/cifs.sh" "$@"
 		   dirname seq basename fstrim chattr lsattr stat" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "cifs ccm gcm ctr" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"

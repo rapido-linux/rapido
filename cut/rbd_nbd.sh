@@ -37,6 +37,6 @@ rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "nbd" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

@@ -27,7 +27,7 @@ _rt_require_dracut_args "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "$@"
 		   env lsscsi awk" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi target_core_pscsi tcm_loop" \
-	--modules "bash base" \
+	--modules "$DRACUT_RAPIDO_MODULES" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
