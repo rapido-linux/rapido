@@ -35,10 +35,8 @@ _vm_start() {
 	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
 	# moving to a VM${vm_num}_MAC_ADDR or ini style config would make sense
 	local qemu_netdev=""
-	local kern_ip_addr=""
 	if [[ -z $netd_flag ]]; then
 		# this image doesn't require network access
-		kern_ip_addr="none"
 		qemu_netdev="-net none"	# override default (-net nic -net user)
 	else
 		eval local mac_addr='$MAC_ADDR'${vm_num}
@@ -47,18 +45,6 @@ _vm_start() {
 		eval local tap='$TAP_DEV'$((vm_num - 1))
 		[ -n "$tap" ] \
 			|| _fail "TAP_DEV$((vm_num - 1)) not configured"
-		eval local is_dhcp='$IP_ADDR'${vm_num}'_DHCP'
-		if [ "$is_dhcp" = "1" ]; then
-			kern_ip_addr="dhcp"
-		else
-			eval local hostname='$HOSTNAME'${vm_num}
-			[ -n "$hostname" ] \
-				|| _fail "HOSTNAME${vm_num} not configured"
-			eval local ip_addr='$IP_ADDR'${vm_num}
-			[ -n "$ip_addr" ] \
-				|| _fail "IP_ADDR${vm_num} not configured"
-			kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
-		fi
 		qemu_netdev="-device virtio-net,netdev=nw1,mac=${mac_addr} \
 			-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap}"
 	fi
@@ -76,7 +62,7 @@ _vm_start() {
 		"${vm_resources[@]}" \
 		-kernel "$QEMU_KERNEL_IMG" \
 		-initrd "$DRACUT_OUT" \
-		-append "rapido.vm_num=${vm_num} ip=${kern_ip_addr} \
+		-append "rapido.vm_num=${vm_num} net.ifnames=0 \
 			 rd.systemd.unit=emergency.target \
 		         rd.shell=1 console=$QEMU_KERNEL_CONSOLE rd.lvm=0 rd.luks=0 \
 			 $QEMU_EXTRA_KERNEL_PARAMS" \
