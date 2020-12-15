@@ -18,15 +18,16 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/samba_local.sh" "$@"
 _rt_require_conf_dir SAMBA_SRC
 
-"$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.btrfs mkfs.xfs \
-		   stat which touch cut chmod true false \
-		   getfattr setfattr getfacl setfacl killall sync \
-		   id sort uniq date expr tac diff head dirname seq ip ping \
-		   ${SAMBA_SRC}/bin/smbpasswd \
-		   ${SAMBA_SRC}/bin/smbstatus \
-		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
-		   ${SAMBA_SRC}/bin/smbd" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \
+		tail ps rmdir resize dd vim grep find df sha256sum \
+		strace mkfs mkfs.btrfs mkfs.xfs \
+		stat which touch cut chmod true false \
+		getfattr setfattr getfacl setfacl killall sync \
+		id sort uniq date expr tac diff head dirname seq ip ping \
+		${SAMBA_SRC}/bin/smbpasswd \
+		${SAMBA_SRC}/bin/smbstatus \
+		${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
+		${SAMBA_SRC}/bin/smbd" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle xfs btrfs" \
 	--modules "$DRACUT_RAPIDO_MODULES" \

@@ -32,29 +32,30 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 # - ctdb_event -> ctdb-event
 # - config/events.d -> config/events
 # - ctdb-config & ctdb-path -> new binaries
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace xargs timeout \
-		   which perl awk bc touch cut chmod true false \
-		   getfattr setfattr chacl attr killall sync \
-		   id sort uniq date expr tac diff head dirname seq ip ping \
-		   ${SAMBA_SRC}/bin/smbpasswd \
-		   ${SAMBA_SRC}/bin/smbstatus \
-		   ${SAMBA_SRC}/bin/modules/vfs/ceph.so \
-		   ${SAMBA_SRC}/bin/smbd \
-		   ${SAMBA_SRC}/bin/tdbtool \
-		   ${SAMBA_SRC}/bin/ctdb \
-		   ${SAMBA_SRC}/bin/ctdb-config \
-		   ${SAMBA_SRC}/bin/ctdbd \
-		   ${SAMBA_SRC}/bin/ctdb?event \
-		   ${SAMBA_SRC}/bin/ctdb?eventd \
-		   ${SAMBA_SRC}/bin/ctdb_killtcp \
-		   ${SAMBA_SRC}/bin/ctdb_lock_helper \
-		   ${SAMBA_SRC}/bin/ctdb_mutex_fcntl_helper \
-		   ${SAMBA_SRC}/bin/ctdb-path \
-		   ${SAMBA_SRC}/bin/ctdb_recovery_helper \
-		   ${SAMBA_SRC}/bin/ctdb_takeover_helper \
-		   ${SAMBA_SRC}/bin/ctdb_mutex_ceph_rados_helper \
-		   $LIBS_INSTALL_LIST" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		strace xargs timeout \
+		which perl awk bc touch cut chmod true false \
+		getfattr setfattr chacl attr killall sync \
+		id sort uniq date expr tac diff head dirname seq ip ping \
+		${SAMBA_SRC}/bin/smbpasswd \
+		${SAMBA_SRC}/bin/smbstatus \
+		${SAMBA_SRC}/bin/modules/vfs/ceph.so \
+		${SAMBA_SRC}/bin/smbd \
+		${SAMBA_SRC}/bin/tdbtool \
+		${SAMBA_SRC}/bin/ctdb \
+		${SAMBA_SRC}/bin/ctdb-config \
+		${SAMBA_SRC}/bin/ctdbd \
+		${SAMBA_SRC}/bin/ctdb?event \
+		${SAMBA_SRC}/bin/ctdb?eventd \
+		${SAMBA_SRC}/bin/ctdb_killtcp \
+		${SAMBA_SRC}/bin/ctdb_lock_helper \
+		${SAMBA_SRC}/bin/ctdb_mutex_fcntl_helper \
+		${SAMBA_SRC}/bin/ctdb-path \
+		${SAMBA_SRC}/bin/ctdb_recovery_helper \
+		${SAMBA_SRC}/bin/ctdb_takeover_helper \
+		${SAMBA_SRC}/bin/ctdb_mutex_ceph_rados_helper \
+		$LIBS_INSTALL_LIST" \
 	--include "$CTDB_EVENTS_DIR" "$CTDB_EVENTS_DIR" \
 	--include "${SAMBA_SRC}/ctdb/config/functions" \
 		  "/usr/local/samba/etc/ctdb/functions" \

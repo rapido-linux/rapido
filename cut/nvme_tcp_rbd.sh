@@ -25,9 +25,10 @@ _rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/nvme_tcp_rbd.sh" \
 			"$@"
 _rt_require_lib "libkeyutils.so.1"
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs ip ping \
-		   $LIBS_INSTALL_LIST" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		strace mkfs.xfs ip ping \
+		$LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \

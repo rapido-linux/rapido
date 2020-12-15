@@ -22,9 +22,10 @@ _rt_require_dracut_args "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "$@"
 #   -drive if=none,id=hda,file=/dev/zram0,cache=none,format=raw,serial=RAPIDO \
 #   -device scsi-hd,drive=hda"
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   mkfs mkfs.xfs parted partprobe sgdisk hdparm uuidgen \
-		   env lsscsi awk" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		mkfs mkfs.xfs parted partprobe sgdisk hdparm uuidgen \
+		env lsscsi awk" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi target_core_pscsi tcm_loop" \
 	--modules "$DRACUT_RAPIDO_MODULES" \

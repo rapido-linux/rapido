@@ -25,12 +25,13 @@ _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_blktests
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   getopt tput wc column blktrace losetup parted truncate \
-		   lsblk strace which awk bc touch cut chmod true false mktemp \
-		   killall id sort uniq date expr tac diff head dirname seq \
-		   basename tee egrep hexdump sync fio logger cmp stat nproc \
-		   xfs_io modinfo blkdiscard realpath timeout ip ping" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		getopt tput wc column blktrace losetup parted truncate \
+		lsblk strace which awk bc touch cut chmod true false mktemp \
+		killall id sort uniq date expr tac diff head dirname seq \
+		basename tee egrep hexdump sync fio logger cmp stat nproc \
+		xfs_io modinfo blkdiscard realpath timeout ip ping" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \

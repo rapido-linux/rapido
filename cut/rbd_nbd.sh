@@ -30,9 +30,10 @@ _rt_require_lib "libsoftokn3.so libsqlite3.so \
 rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 [ -x "$rbd_nbd_bin" ] || _fail "rbd-nbd executable missing at $rbd_nbd_bin"
 
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep ip ping \
-		   $LIBS_INSTALL_LIST $rbd_nbd_bin" \
+"$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \
+		tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep ip ping \
+		$LIBS_INSTALL_LIST $rbd_nbd_bin" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	$DRACUT_RAPIDO_INCLUDES \
