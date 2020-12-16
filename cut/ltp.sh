@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/ltp.sh" "$@"
+_rt_require_dracut_args_networkless "$RAPIDO_DIR/autorun/ltp.sh" "$@"
 _rt_require_conf_dir LTP_DIR
 
 "$DRACUT" \

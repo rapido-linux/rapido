@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "$@"
+_rt_require_dracut_args_networkless "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "$@"
 
 # the pscsi VM should be booted with a virtio SCSI device attached. E.g.
 # QEMU_EXTRA_ARGS="-nographic -device virtio-scsi-pci,id=scsi \

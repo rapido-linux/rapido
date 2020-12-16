@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/blktests_zram.sh" "$@"
+_rt_require_dracut_args_networkless "$RAPIDO_DIR/autorun/blktests_zram.sh" "$@"
 _rt_require_blktests
 
 "$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \

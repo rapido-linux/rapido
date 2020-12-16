@@ -15,7 +15,7 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_xfs.sh" "$@"
+_rt_require_dracut_args_networkless "$RAPIDO_DIR/autorun/fstests_xfs.sh" "$@"
 _rt_require_fstests
 
 "$DRACUT" --install "$DRACUT_RAPIDO_INSTALLS \
