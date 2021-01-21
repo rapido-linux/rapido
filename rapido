@@ -40,6 +40,19 @@ rapido_boot()
 	${RAPIDO_DIR}/vm.sh
 }
 
+cut_usage()
+{
+		local progname="$(basename $0)"
+		cat << EOF
+Usage: $progname cut [-B] [-f file] [-x cmd] testname
+
+-B:		cut testcase image only, don't boot it
+-f <file>:	run script file within the VM upon boot
+-x <cmd>:	run command string within the VM upon boot
+<testname>:	testcase name. See '$progname list' for options
+EOF
+}
+
 short_help["cut"]="Prepare testcase and boot it"
 rapido_cut()
 {
@@ -66,6 +79,7 @@ rapido_cut()
 			;;
 		*)
 			echo "Invalid cut parameter"
+			cut_usage
 			exit 1
 			;;
 		esac
@@ -77,19 +91,8 @@ rapido_cut()
 	local testname=$1
 
 	if [ $# -ne 1 -o -z "$testname" -o x"$testname" = "xhelp" ]; then
-		progname="$(basename $0)"
-		funcname="$(echo ${FUNCNAME[0]} | sed 's/^rapido_//;s/_/-/g')" 
-		cat << EOF
-Usage: ${progname} ${funcname} [-B] [-f file] [-x cmd] testname
-
--B:		cut testcase image only, don't boot it
--f <file>:	run script file within the VM upon boot
--x <cmd>:	run command string within the VM upon boot
-Where testname is one of the following:
-EOF
-		rapido_list
-		exit
-
+		cut_usage
+		exit 1
 	fi
 
 	pushd ${RAPIDO_DIR} > /dev/null
