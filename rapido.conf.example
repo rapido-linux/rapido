@@ -213,6 +213,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # e.g. ZONEFSTOOLS_SRC="/home/me/zonefs-tools"
 ##################################
 
+#### unionmount_testsuite.sh ####
+## UNIONMOUNT_TESTSUITE_SRC should correspond to a checkout of the test suite
+## available at https://github.com/amir73il/unionmount-testsuite
+## e.g. UNIONMOUNT_TESTSUITE_SRC="/home/me/unionmount-testsuite"
+#UNIONMOUNT_TESTSUITE_SRC=""
+###################################
+
 ######## cut/usb_rbd.sh #########
 # RBD_USB_SRC should correspond to a checkout and build of
 # https://github.com/ddiss/rbd-usb.
