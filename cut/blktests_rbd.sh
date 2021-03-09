@@ -38,6 +38,6 @@ _rt_require_blktests
 	--include "$BLKTESTS_SRC" "/blktests" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "scsi_debug null_blk loop" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

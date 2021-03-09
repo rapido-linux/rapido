@@ -40,7 +40,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 	--install "resize ps rmdir dd mkfs.xfs" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

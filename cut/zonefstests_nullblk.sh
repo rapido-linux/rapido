@@ -24,7 +24,7 @@ _rt_require_conf_dir ZONEFSTOOLS_SRC
 	--include "$ZONEFSTOOLS_SRC/tests/" "/zonefs-tests" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "null_blk zonefs" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

@@ -33,7 +33,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/mpath_local.sh" "$@"
 		   timeout id chown chmod env killall getopt basename" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi virtio_pci sd_mod" \
-	--modules "bash base systemd systemd-initrd dracut-systemd multipath" \
+	--modules "base systemd systemd-initrd dracut-systemd multipath" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT \
 	|| _fail "dracut failed"

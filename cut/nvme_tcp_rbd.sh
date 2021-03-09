@@ -34,6 +34,6 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "nvme-core nvme-fabrics nvmet-tcp nvmet" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

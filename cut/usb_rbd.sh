@@ -37,6 +37,6 @@ _rt_require_lib "libkeyutils.so.1"
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_iblock usb_f_tcm \
 		       usb_f_mass_storage zram lzo lzo-rle dm-crypt" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

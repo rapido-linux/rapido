@@ -23,7 +23,7 @@ _rt_require_lib "libkeyutils.so.1"
 		   strace mkfs.xfs lsscsi \
 		   $LIBS_INSTALL_LIST" \
 	$DRACUT_RAPIDO_INCLUDES \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

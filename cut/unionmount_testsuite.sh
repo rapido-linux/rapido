@@ -24,7 +24,7 @@ _rt_require_conf_dir UNIONMOUNT_TESTSUITE_SRC
 	--include "/usr/lib64/python3.6/" "/usr/lib64/python3.6/" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle btrfs raid6_pq overlay" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
