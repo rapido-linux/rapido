@@ -50,7 +50,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 	--include "$CONFIGSHELL_SRC" "/configshell/" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
-	--modules "bash base systemd systemd-initrd dracut-systemd" \
+	--modules "base systemd systemd-initrd dracut-systemd" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

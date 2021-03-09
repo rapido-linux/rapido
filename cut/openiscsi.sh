@@ -24,7 +24,7 @@ _rt_require_conf_dir OPENISCSI_SRC
 		   ${OPENISCSI_SRC}/libopeniscsiusr/libopeniscsiusr.so \
 		   ${OPENISCSI_SRC}/usr/iscsiadm" \
 	$DRACUT_RAPIDO_INCLUDES \
-	--modules "bash base" \
+	--modules "base" \
 	--drivers "iscsi_tcp" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"

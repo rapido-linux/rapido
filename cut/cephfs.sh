@@ -29,6 +29,6 @@ _rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/cephfs.sh" "$@"
 		   id sort uniq date expr tac diff head dirname seq ip ping" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "ceph libceph" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

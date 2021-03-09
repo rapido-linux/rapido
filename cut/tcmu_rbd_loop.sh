@@ -33,6 +33,6 @@ _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_user tcm_loop" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT

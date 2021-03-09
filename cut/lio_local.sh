@@ -23,7 +23,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lio_local.sh" "$@"
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_iblock \
 		       target_core_file dm-delay loop" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

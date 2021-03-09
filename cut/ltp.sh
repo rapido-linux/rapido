@@ -32,7 +32,7 @@ _rt_require_conf_dir LTP_DIR
 	--include "$LTP_DIR" "$LTP_DIR"  \
 	--include "${KERNEL_SRC}/.config" /.config \
 	--add-drivers "loop" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

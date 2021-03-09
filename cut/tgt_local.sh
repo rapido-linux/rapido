@@ -24,7 +24,7 @@ _rt_require_conf_dir TGT_SRC
 		   ${TGT_SRC}/usr/tgtadm" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

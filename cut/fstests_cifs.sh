@@ -36,7 +36,7 @@ _rt_require_fstests
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "cifs ccm ctr" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

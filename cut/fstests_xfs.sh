@@ -38,7 +38,7 @@ _rt_require_fstests
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey xfs" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 

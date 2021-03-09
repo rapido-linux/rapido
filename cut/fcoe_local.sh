@@ -24,7 +24,7 @@ _rt_require_lib "libkeyutils.so.1"
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod tcm_fc target_core_iblock \
 			target_core_file libfc fcoe scsi_debug" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
