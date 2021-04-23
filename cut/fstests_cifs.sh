@@ -16,7 +16,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_cifs.sh" "$@"
-_rt_require_fstests
+_rt_require_conf_dir FSTESTS_SRC
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mount.cifs free \

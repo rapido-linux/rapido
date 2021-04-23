@@ -23,7 +23,7 @@ _rt_require_dracut_args "$vm_ceph_conf" \
 			"$RAPIDO_DIR/autorun/fstests_cephfs.sh" "$@"
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
-_rt_require_fstests
+_rt_require_conf_dir FSTESTS_SRC
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs free \

@@ -16,7 +16,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_btrfs_zoned.sh" "$@"
-_rt_require_fstests
+_rt_require_conf_dir FSTESTS_SRC
 _rt_require_btrfs_progs
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
