@@ -14,7 +14,10 @@
 
 _vm_ar_env_check || exit 1
 
+modprobe cifs
 _vm_ar_dyn_debug_enable
+
+[ -n "$CIFS_UTILS_SRC" ] && ln -s "${CIFS_UTILS_SRC}/mount.cifs" /sbin/
 
 creds_path="/tmp/cifs_creds"
 [ -n "$CIFS_DOMAIN" ] && echo "domain=${CIFS_DOMAIN}" >> $creds_path

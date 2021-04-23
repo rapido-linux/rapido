@@ -16,8 +16,11 @@ _vm_ar_env_check || exit 1
 
 set -x
 
+modprobe cifs
 _vm_ar_hosts_create
 _vm_ar_dyn_debug_enable
+
+[ -n "$CIFS_UTILS_SRC" ] && ln -s "${CIFS_UTILS_SRC}/mount.cifs" /sbin/
 
 set +x
 creds_path="/tmp/cifs_creds"
