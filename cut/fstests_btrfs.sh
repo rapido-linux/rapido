@@ -20,7 +20,7 @@ _rt_require_fstests
 _rt_require_btrfs_progs
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs  free \
+		   strace mkfs shuf free \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
@@ -29,7 +29,7 @@ _rt_require_btrfs_progs
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
-		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup\
+		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
 		   swapon swapoff xfs_freeze fsck \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
