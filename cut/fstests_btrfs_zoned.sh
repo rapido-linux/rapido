@@ -19,7 +19,6 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_btrfs_zoned.sh" "$@"
 _rt_require_fstests
 _rt_require_btrfs_progs
 
-# wipefs mount
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs shuf free \
 		   which perl awk bc touch cut chmod true false unlink \
@@ -30,7 +29,7 @@ _rt_require_btrfs_progs
 		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
-		   xfs_mkfile xfs_db xfs_io filefrag losetup \
+		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove blkzone \
 		   swapon swapoff xfs_freeze fsck blktrace blkparse \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
@@ -39,11 +38,9 @@ _rt_require_btrfs_progs
 		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	$DRACUT_RAPIDO_INCLUDES \
-	--include "$RAPIDO_DIR/wipefs" "/usr/sbin/wipefs" \
-	--include "$RAPIDO_DIR/mount" "/usr/sbin/mount" \
 	--add-drivers "lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
 		       loop scsi_debug dm-log-writes xxhash_generic null_blk" \
-	--modules "bash base" \
+	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
