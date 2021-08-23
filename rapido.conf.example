@@ -154,6 +154,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #BTRFS_PROGS_SRC=""
 #################################
 
+##### cut/fstests_exfat.sh ######
+# If EXFAT_PROGS_SRC is set, then use (prebuilt) exfatprogs binaries from this
+# path instead of from the local system.
+# e.g. EXFAT_PROGS_SRC="/home/me/exfatprogs"
+#EXFAT_PROGS_SRC=""
+#################################
+
 ## autorun/fstests_cifs.sh and autorun/samba_*.sh ##
 # SMB server and mount options for cifs.ko
 # e.g. CIFS_SERVER="smbserver.example.com"
