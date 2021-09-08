@@ -38,8 +38,8 @@ _rt_require_exfat_progs
 		   $EXFAT_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	$DRACUT_RAPIDO_INCLUDES \
-	--add-drivers "zram lzo lzo-rle dm-flakey exfat raid6_pq \
-		       loop scsi_debug dm-log-writes xxhash_generic" \
+	--add-drivers "zram lzo lzo-rle dm-flakey exfat \
+		       loop scsi_debug dm-log-writes" \
 	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
