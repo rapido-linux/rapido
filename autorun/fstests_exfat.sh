@@ -68,7 +68,7 @@ set +x
 
 echo "$filesystem filesystem ready for FSQA"
 
+cd "$FSTESTS_SRC" || _fatal
 if [ -n "$FSTESTS_AUTORUN_CMD" ]; then
-	cd ${FSTESTS_SRC} || _fatal
 	eval "$FSTESTS_AUTORUN_CMD"
 fi

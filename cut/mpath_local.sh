@@ -19,11 +19,12 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/mpath_local.sh" "$@"
 
 # the VM should be deployed with two virtio SCSI devices which share the same
 # backing <file> and <serial> parameters. E.g.
-#QEMU_EXTRA_ARGS="-nographic -device virtio-scsi-pci,id=scsi \
-#    -drive if=none,id=hda,file=/dev/zram4,cache=none,format=raw,serial=RAPIDO \
-#    -device scsi-hd,drive=hda \
-#    -drive if=none,id=hdb,file=/dev/zram4,cache=none,format=raw,serial=RAPIDO \
-#    -device scsi-hd,drive=hdb"
+#QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci \
+#    -device virtio-scsi-pci,id=scsi \
+#    -drive if=none,id=hda,file=/dev/zram4,cache=none,format=raw,file.locking=off \
+#    -device scsi-hd,drive=hda,serial=RAPIDO \
+#    -drive if=none,id=hdb,file=/dev/zram4,cache=none,format=raw,file.locking=off \
+#    -device scsi-hd,drive=hdb,serial=RAPIDO"
 #
 # Once booted, you can simulate path failure by switching to the QEMU console
 # (ctrl-a c) and running "drive_del hda"

@@ -49,6 +49,8 @@ function _vm_start
 		qemu_netdev="-net none"	# override default (-net nic -net user)
 	else
 		eval local mac_addr='$MAC_ADDR'${vm_num}
+		[ -n "$mac_addr" ] \
+			|| _fail "MAC_ADDR${vm_num} not configured"
 		eval local tap='$TAP_DEV'$((vm_num - 1))
 		[ -n "$tap" ] \
 			|| _fail "TAP_DEV$((vm_num - 1)) not configured"
