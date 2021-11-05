@@ -1,22 +1,10 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2017-2023, all rights reserved.
 
 _vm_ar_env_check || exit 1
 
 set -x
-
-export PATH="${SAMBA_SRC}/bin/:${PATH}"
 
 # use a uid and gid which match the CephFS root owner, so SMB users can perform
 # I/O without needing to chmod.
@@ -32,14 +20,8 @@ sed -i "s#keyring = .*#keyring = /etc/ceph/keyring#g; \
 	s#log file = .*#log file = /var/log/\$name.\$pid.log#g" \
 	/etc/ceph/ceph.conf
 
-mkdir -p /usr/local/samba/var/
-mkdir -p /usr/local/samba/etc/
-mkdir -p /usr/local/samba/var/lock
-mkdir -p /usr/local/samba/private/
-mkdir -p /usr/local/samba/lib/
-ln -s ${SAMBA_SRC}/bin/modules/vfs/ /usr/local/samba/lib/vfs
-
-cat > /usr/local/samba/etc/smb.conf << EOF
+cfg_file="/smb.conf"
+cat > "$cfg_file" << EOF
 [global]
 	workgroup = MYGROUP
 	load printers = no
@@ -57,16 +39,16 @@ cat > /usr/local/samba/etc/smb.conf << EOF
 	oplocks = no
 EOF
 
-smbd || _fatal
-
 set +x
+_samba_paths_init "$cfg_file"
+
+smbd -s "$cfg_file" || _fatal
 
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
-	| smbpasswd -a $CIFS_USER -s || _fatal
+	| smbpasswd -c "$cfg_file" -a $CIFS_USER -s || _fatal
 
 pub_ips=()
 _vm_ar_ip_addrs_nomask pub_ips
 for i in "${pub_ips[@]}"; do
 	echo "Samba share ready at: //${i}/${CIFS_SHARE}/"
 done
-echo "Log at: /usr/local/samba/var/log.smbd"

@@ -1,23 +1,12 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2017-2023, all rights reserved.
 
 _vm_ar_env_check || exit 1
 
 set -x
 
 filesystem="btrfs"
-export PATH="${SAMBA_SRC}/bin/:${PATH}"
 
 # use a non-configurable UID/GID for now
 cifs_xid="579120"
@@ -37,19 +26,13 @@ mkdir -p /mnt/
 mount -t $filesystem /dev/zram0 /mnt/ || _fatal
 chmod 777 /mnt/ || _fatal
 
-mkdir -p /usr/local/samba/var/
-mkdir -p /usr/local/samba/etc/
-mkdir -p /usr/local/samba/var/lock
-mkdir -p /usr/local/samba/private/
-mkdir -p /usr/local/samba/lib/
-ln -s ${SAMBA_SRC}/bin/modules/vfs/ /usr/local/samba/lib/vfs
-
+cfg_file="/smb.conf"
 smb_conf_vfs=""
 if [ "$filesystem" == "btrfs" ]; then
 	smb_conf_vfs='vfs objects = btrfs'
 fi
 
-cat > /usr/local/samba/etc/smb.conf << EOF
+cat > "$cfg_file" << EOF
 [global]
 	workgroup = MYGROUP
 	load printers = no
@@ -62,16 +45,16 @@ cat > /usr/local/samba/etc/smb.conf << EOF
 	store dos attributes = yes
 EOF
 
-smbd || _fatal
-
 set +x
+_samba_paths_init "$cfg_file"
+
+smbd -s "$cfg_file" || _fatal
 
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
-	| smbpasswd -a $CIFS_USER -s || _fatal
+	| smbpasswd -c "$cfg_file" -a $CIFS_USER -s || _fatal
 
 pub_ips=()
 _vm_ar_ip_addrs_nomask pub_ips
 for i in "${pub_ips[@]}"; do
 	echo "Samba share ready at: //${i}/${CIFS_SHARE}/"
 done
-echo "Log at: /usr/local/samba/var/log.smbd"
