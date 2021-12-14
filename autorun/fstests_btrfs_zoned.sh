@@ -70,6 +70,9 @@ MIN_FSSIZE=$((5 * 256 * 1024 * 1024))
 MKFS_OPTIONS="-d single -m single"
 EOF
 
+# fstests generic/131 needs loopback networking
+ip link set dev lo up
+
 set +x
 
 echo "$filesystem filesystem ready for FSQA"

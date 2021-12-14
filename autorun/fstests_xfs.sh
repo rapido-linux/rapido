@@ -51,6 +51,9 @@ SCRATCH_DEV=/dev/zram1
 USE_KMEMLEAK=yes
 EOF
 
+# fstests generic/131 needs loopback networking
+ip link set dev lo up
+
 set +x
 
 echo "$filesystem filesystem ready for FSQA"
