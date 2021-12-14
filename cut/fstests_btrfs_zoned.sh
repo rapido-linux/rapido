@@ -20,7 +20,7 @@ _rt_require_fstests
 _rt_require_btrfs_progs
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs shuf free \
+		   strace mkfs shuf free ip\
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \

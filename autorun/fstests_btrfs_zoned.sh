@@ -50,7 +50,7 @@ done
 mkdir -p /mnt/test
 mkdir -p /mnt/scratch
 
-mkfs.${filesystem} /dev/nullb0 || _fatal "mkfs failed"
+mkfs.${filesystem} -m single -d single /dev/nullb0 || _fatal "mkfs failed"
 mount -t $filesystem /dev/nullb0 /mnt/test || _fatal
 # xfstests can handle scratch mkfs+mount
 
@@ -66,7 +66,12 @@ TEST_DEV=/dev/nullb0
 SCRATCH_MNT=/mnt/scratch
 SCRATCH_DEV="/dev/nullb1"
 USE_KMEMLEAK=yes
+MIN_FSSIZE=$((5 * 256 * 1024 * 1024))
+MKFS_OPTIONS="-d single -m single"
 EOF
+
+# fstests generic/131 needs loopback networking
+ip link set dev lo up
 
 set +x
 
