@@ -111,7 +111,8 @@ rapido_cut()
 	local cut_status=$?
 	popd > /dev/null
 	[ $cut_status -ne 0 ] && exit $cut_status
-	[ -n "$boot_img" ] && ${RAPIDO_DIR}/vm.sh
+	[ -n "$boot_img" ] || exit 0
+	${RAPIDO_DIR}/vm.sh
 }
 
 short_help["list"]="List testcases"
