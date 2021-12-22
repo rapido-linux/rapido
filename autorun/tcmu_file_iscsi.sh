@@ -37,7 +37,7 @@ mkdir -p /etc/tcmu
 echo > /etc/tcmu/tcmu.conf
 
 truncate --size $tcmu_dev_size "/${lu_name}.img"
-tcmu-runner -d --handler-path $TCMU_RUNNER_SRC &
+setsid --fork tcmu-runner -d --handler-path $TCMU_RUNNER_SRC
 sleep 1	# wait for tcmu-runner to start
 
 tcmu_backstore_setup() {

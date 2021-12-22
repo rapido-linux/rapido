@@ -52,7 +52,7 @@ echo > /etc/tcmu/tcmu.conf
 
 # LD_LIBRARY_PATH shouldn't be needed with the ld.so.conf entry, but it is.
 export LD_LIBRARY_PATH=${CEPH_SRC}/build/lib
-tcmu-runner -d --handler-path $TCMU_RUNNER_SRC &
+setsid --fork tcmu-runner -d --handler-path $TCMU_RUNNER_SRC
 
 [ -d $lio_cfgfs ] \
 	|| _fatal "$lio_cfgfs not present - LIO kernel modules not loaded?"
