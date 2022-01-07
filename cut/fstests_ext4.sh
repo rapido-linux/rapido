@@ -30,7 +30,7 @@ _rt_require_fstests
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
-		   swapon swapoff xfs_freeze fsck \
+		   swapon swapoff xfs_freeze fsck dump restore \
 		   debugfs dumpe2fs e2fsck e2image e4defrag fsck.ext4 \
 		   mke2fs mkfs.ext4 resize2fs tune2fs \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
