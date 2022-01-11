@@ -6,8 +6,7 @@ _vm_ar_env_check || exit 1
 
 set -x
 
-# map rbd device
-_vm_ar_rbd_map
+_ceph_rbd_map
 
 # this path is reliant on the rbd udev rule to setup the link
 CEPH_RBD_DEV=/dev/rbd/${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}
