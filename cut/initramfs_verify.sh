@@ -9,19 +9,32 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/initramfs_verify.sh" "$@"
 
 tmp_vdata="$(mktemp --tmpdir -d vdata.XXXXXXXX)"
 # remove tmp once we're done
-trap "rm -f ${tmp_vdata}/{fiod*,*verify.state}; rmdir $tmp_vdata" 0 1 2 3 15
+trap "rm -rf ${tmp_vdata}/{fiod*,*verify.state}; rmdir $tmp_vdata" 0 1 2 3 15
 
 fio --directory="${tmp_vdata}" --aux-path="${tmp_vdata}" \
 	--name=verify-wr --rw=write --size=1M --verify=crc32c \
 	--filename=fiod || _fail "fio failed to write verification data"
+touch --date=@1641548270 "${tmp_vdata}/fiod"
 
 "$DRACUT" \
-	--install "resize fio" \
+	--install "resize fio stat" \
 	--include "${tmp_vdata}/fiod" "/fiod" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
 	$DRACUT_OUT || _fail "dracut failed"
 
+# As of 889d51a10712 (v2.6.28) kernel initramfs extraction preserves archived
+# mtimes by default.
+# Dracut doesn't always preserve directory mtimes through the staging area, so
+# append as a separate cpio archive.
+if ! grep -q "^# CONFIG_INITRAMFS_PRESERVE_MTIME" "$KERNEL_SRC/.config"; then
+	mkdir -p "${tmp_vdata}/fiod.mtime_chk/2"
+	touch --date=@1641548271 "${tmp_vdata}/fiod.mtime_chk"
+	touch --date=@1641548272 "${tmp_vdata}/fiod.mtime_chk/2"
+	echo -e "fiod.mtime_chk\nfiod.mtime_chk/2" \
+	  | cpio -o -H newc -D "$tmp_vdata"  >> "$DRACUT_OUT" \
+		|| _fail "failed to append mtime_chk archive"
+fi
+
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"
