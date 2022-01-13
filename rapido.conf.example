@@ -45,6 +45,7 @@ TAP_USER=""
 #
 # e.g. QEMU_EXTRA_ARGS="-nographic -drive file=/dev/sdz,if=virtio,cache=none,format=raw,index=0"
 # e.g. QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -gdb tcp:127.0.0.1:1234"
+# e.g. QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file=/tmp/fstests-test.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file=/tmp/fstests-scratch.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"
 QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 
 # extra kernel boot parameters, passed via QEMU -append
@@ -185,8 +186,11 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # available at https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
 # e.g. FSTESTS_SRC="/home/me/xfstests-dev"
 #FSTESTS_SRC=""
-# If defined, fstests_xfs.sh and fstests_btrfs.sh will provision zram devices
-# with FSTESTS_ZRAM_SIZE disksize, instead of the default "1G".
+#
+# Local filesystem fstests defaults to using guest-provisioned zram devices (1G,
+# or FSTESTS_ZRAM_SIZE if specified). Alternatively QEMU_EXTRA_ARGS can be
+# used to provide VM storage, where the block device serial must match a
+# corresponding fstests parameter, e.g. serial=SCRATCH_DEV.
 # e.g. FSTESTS_ZRAM_SIZE="2G"
 #FSTESTS_ZRAM_SIZE=""
 ##################################

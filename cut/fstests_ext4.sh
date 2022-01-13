@@ -1,21 +1,12 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LLC 2021, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2021-2022, all rights reserved.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_ext4.sh" "$@"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
+			"$RAPIDO_DIR/autorun/fstests_ext4.sh" "$@"
 _rt_require_fstests
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
@@ -30,7 +21,7 @@ _rt_require_fstests
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
-		   swapon swapoff xfs_freeze fsck \
+		   swapon swapoff xfs_freeze fsck dump restore \
 		   debugfs dumpe2fs e2fsck e2image e4defrag fsck.ext4 \
 		   mke2fs mkfs.ext4 resize2fs tune2fs \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \

@@ -1,16 +1,6 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2017, all rights reserved.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
@@ -19,8 +9,8 @@ vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
 trap "rm $vm_ceph_conf" 0 1 2 3 15
 
-_rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/blktests_rbd.sh" \
-			"$@"
+_rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/lib/ceph.sh" \
+			"${RAPIDO_DIR}/autorun/blktests_rbd.sh" "$@"
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_blktests
@@ -35,9 +25,11 @@ _rt_require_blktests
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
-	--include "$BLKTESTS_SRC" "/blktests" \
+	--include "$BLKTESTS_SRC" "$BLKTESTS_SRC" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "scsi_debug null_blk loop" \
 	--modules "base" \
 	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	$DRACUT_OUT || _fail "dracut failed"
+
+_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
