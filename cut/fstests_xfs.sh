@@ -27,11 +27,10 @@ _rt_require_fstests
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey xfs" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"

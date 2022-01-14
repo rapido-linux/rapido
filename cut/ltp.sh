@@ -28,13 +28,12 @@ _rt_require_conf_dir LTP_DIR
 		pgrep pkill tar rev kill fdformat ldd free losetup chown sed \
 		cat lsmod ip ping tc \
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--include "$LTP_DIR" "$LTP_DIR"  \
 	--include "${KERNEL_SRC}/.config" /.config \
 	--add-drivers "loop" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"		# *disable* network
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"	# 2 vCPUs, 2G RAM

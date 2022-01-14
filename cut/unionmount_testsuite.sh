@@ -22,11 +22,10 @@ _rt_require_conf_dir UNIONMOUNT_TESTSUITE_SRC
 		   strace mkfs.xfs mkfs.btrfs python3" \
 	--include "$UNIONMOUNT_TESTSUITE_SRC" "$UNIONMOUNT_TESTSUITE_SRC" \
 	--include "/usr/lib64/python3.6/" "/usr/lib64/python3.6/" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle btrfs raid6_pq overlay" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

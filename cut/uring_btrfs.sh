@@ -33,11 +33,10 @@ test_bins=$(sed "s#^#${LIBURING_SRC}/test/#" "$test_manifest")
 		   id sort uniq date expr tac diff head dirname seq \
 		   ${LIBURING_SRC}/test/runtests.sh \
 		   $test_bins" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--include "$test_manifest" "/uring_tests.manifest" \
 	--add-drivers "zram lzo lzo-rle btrfs" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"

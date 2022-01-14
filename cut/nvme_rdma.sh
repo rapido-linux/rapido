@@ -21,10 +21,9 @@ _rt_require_lib "libkeyutils.so.1"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs killall nvme ip ping rdma \
 		   $LIBS_INSTALL_LIST" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "nvme-core nvme-fabrics nvme-rdma nvmet nvmet-rdma \
 		       rdma_rxe zram lzo lzo-rle ib_core ib_uverbs rdma_ucm \
 		       crc32_generic" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT"

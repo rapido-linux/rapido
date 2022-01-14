@@ -32,11 +32,10 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/mpath_local.sh" "$@"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs parted partprobe sgdisk hdparm \
 		   timeout id chown chmod env killall getopt basename" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi virtio_pci sd_mod" \
 	--modules "base systemd systemd-initrd dracut-systemd multipath" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT \
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" \
 	|| _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"

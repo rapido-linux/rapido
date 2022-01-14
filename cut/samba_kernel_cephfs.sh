@@ -32,11 +32,10 @@ _rt_require_conf_dir SAMBA_SRC
 		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/smbstatus \
 		   ${SAMBA_SRC}/bin/smbd" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "ceph libceph" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # assign more memory
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

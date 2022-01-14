@@ -48,11 +48,10 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 	--include "$RTSLIB_SRC" "/rtslib/" \
 	--include "$TARGETCLI_SRC" "/targetcli/" \
 	--include "$CONFIGSHELL_SRC" "/configshell/" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
 	--modules "base systemd systemd-initrd dracut-systemd" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # assign more memory
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

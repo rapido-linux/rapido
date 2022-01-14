@@ -22,10 +22,9 @@ _rt_require_lib "libkeyutils.so.1"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs lsscsi \
 		   $LIBS_INSTALL_LIST" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # set qemu arguments to attach the RBD image. qemu uses librbd, and supports
 # writeback caching via a "cache=writeback" parameter.

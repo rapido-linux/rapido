@@ -21,10 +21,9 @@ fio --directory="${tmp_vdata}" --aux-path="${tmp_vdata}" \
 
 "$DRACUT" \
 	--install "resize fio strace" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # verification data is appended as a separate cpio archive using gen_init_cpio
 cat >"${tmp_vdata}/fiod.gen_init_cpio.manifest" <<EOF

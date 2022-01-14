@@ -27,11 +27,10 @@ _rt_require_conf_dir SAMBA_SRC
 		   ${SAMBA_SRC}/bin/smbstatus \
 		   ${SAMBA_SRC}/bin/modules/vfs/btrfs.so \
 		   ${SAMBA_SRC}/bin/smbd" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle xfs btrfs" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # assign more memory
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

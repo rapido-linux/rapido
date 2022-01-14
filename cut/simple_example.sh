@@ -5,8 +5,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-# Call _rt_require_dracut_args() providing a script path that will be run on
-# VM boot. It exports variables used in the dracut invocation below.
+# Call _rt_require_dracut_args() providing script paths that will be included
+# and run on VM boot. It exports variables used in the dracut invocation below.
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 
 # The job of Rapido cut scripts is to generate a VM image. This is done using
@@ -16,23 +16,18 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 # Dracut will resolve shared object dependencies and add them automatically.
 
 # --include copies a specific file or directory to the given image destination.
-# The .profile image path is special, in that it is executed on boot.
 
 # --add-drivers provides a list of kernel modules, which will be obtained from
 # the rapido.conf KERNEL_INSTALL_MOD_PATH
 
 # --modules provides a list of *Dracut* modules. See Dracut documentation for
 # details
-
-# DRACUT_EXTRA_ARGS in rapido.conf allows for extra custom Dracut parameters for
-# debugging, etc.
 "$DRACUT" \
 	--install "resize ps rmdir dd mkfs.xfs" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # VMs can be deployed with or without a virtual network adapter. The default is
 # to deploy *with* network, in which case the ip and ping binaries should be

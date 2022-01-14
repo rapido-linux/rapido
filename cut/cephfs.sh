@@ -27,8 +27,7 @@ _rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/cephfs.sh" "$@"
 		   strace stat which touch cut chmod true false \
 		   getfattr setfattr getfacl setfacl killall sync \
 		   id sort uniq date expr tac diff head dirname seq ip ping" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "ceph libceph" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT"

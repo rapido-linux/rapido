@@ -15,11 +15,10 @@ _rt_require_blktests
 		   basename tee egrep hexdump sync fio logger cmp stat nproc \
 		   xfs_io modinfo blkdiscard realpath timeout nvme" \
 	--include "$BLKTESTS_SRC" "$BLKTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle scsi_debug null_blk loop nvme nvme-loop" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"

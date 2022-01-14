@@ -21,11 +21,10 @@ _rt_require_lib "libkeyutils.so.1"
 		   strace mkfs.xfs killall truncate dirname fipvlan basename \
 		   ip ping \
 		   $LIBS_INSTALL_LIST" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod tcm_fc target_core_iblock \
 			target_core_file libfc fcoe scsi_debug" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"

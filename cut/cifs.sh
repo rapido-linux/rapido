@@ -22,8 +22,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/cifs.sh" "$@"
 		   which touch cut chmod true false unlink \
 		   getfattr setfattr chacl attr killall sync \
 		   dirname seq basename fstrim chattr lsattr stat" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "cifs ccm gcm ctr" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

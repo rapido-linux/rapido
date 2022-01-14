@@ -22,11 +22,10 @@ _rt_require_conf_dir ZONEFSTOOLS_SRC
 	--install "ps rmdir dd id basename stat wc grep blkzone cut fio \
 		   rm truncate ${ZONEFSTOOLS_SRC}/src/mkzonefs" \
 	--include "$ZONEFSTOOLS_SRC/tests/" "/zonefs-tests" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "null_blk zonefs" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
 

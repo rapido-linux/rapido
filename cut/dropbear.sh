@@ -21,7 +21,6 @@ _rt_require_lib "libkeyutils.so.1"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs dropbear chmod ip ping \
 		   $LIBS_INSTALL_LIST" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT"

@@ -19,10 +19,9 @@ touch --date=@1641548270 "${tmp_vdata}/fiod"
 "$DRACUT" \
 	--install "resize fio stat" \
 	--include "${tmp_vdata}/fiod" "/fiod" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # As of 889d51a10712 (v2.6.28) kernel initramfs extraction preserves archived
 # mtimes by default.

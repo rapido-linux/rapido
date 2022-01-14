@@ -26,10 +26,9 @@ _rt_require_blktests
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	--include "$BLKTESTS_SRC" "$BLKTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "scsi_debug null_blk loop" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"

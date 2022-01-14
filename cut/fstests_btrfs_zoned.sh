@@ -37,12 +37,11 @@ _rt_require_btrfs_progs
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*
 		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
 		       loop scsi_debug dm-log-writes xxhash_generic null_blk" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
 # need enough memory for two 12G null_blk devices

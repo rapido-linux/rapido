@@ -31,8 +31,7 @@ _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_user tcm_loop" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT"

@@ -28,12 +28,11 @@ _rt_require_exfat_progs
 		   ${FSTESTS_SRC}/src/aio-dio-regress/* \
 		   $EXFAT_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle dm-flakey exfat \
 		       loop scsi_debug dm-log-writes" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 _rt_xattr_vm_networkless_set "$DRACUT_OUT"
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "4096M"
