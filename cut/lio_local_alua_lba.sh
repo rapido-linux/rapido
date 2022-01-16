@@ -16,9 +16,10 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/lio_local_alua_lba.sh" "$@"
+_rt_require_networking
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs truncate losetup uuidgen ip ping" \
+		   strace mkfs.xfs truncate losetup uuidgen" \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_file" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \

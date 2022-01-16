@@ -21,6 +21,7 @@ trap "rm $vm_ceph_conf" 0 1 2 3 15
 
 _rt_require_dracut_args "$vm_ceph_conf" \
 			"$RAPIDO_DIR/autorun/samba_kernel_cephfs.sh" "$@"
+_rt_require_networking
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_conf_dir SAMBA_SRC
@@ -28,7 +29,7 @@ _rt_require_conf_dir SAMBA_SRC
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat which touch cut chmod true false \
 		   getfattr setfattr getfacl setfacl killall sync \
-		   id sort uniq date expr tac diff head dirname seq ip ping \
+		   id sort uniq date expr tac diff head dirname seq \
 		   ${SAMBA_SRC}/bin/smbpasswd \
 		   ${SAMBA_SRC}/bin/smbstatus \
 		   ${SAMBA_SRC}/bin/smbd" \

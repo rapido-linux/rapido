@@ -16,10 +16,11 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "${RAPIDO_DIR}/autorun/tcmu_file_iscsi.sh" "$@"
+_rt_require_networking
 _rt_require_conf_dir TCMU_RUNNER_SRC
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df truncate \
-		   strace sync uuidgen ip ping \
+		   strace sync uuidgen \
 		   ${TCMU_RUNNER_SRC}/tcmu-runner \
 		   ${TCMU_RUNNER_SRC}/handler_file.so" \
 	--add-drivers "target_core_mod target_core_user iscsi_target_mod" \

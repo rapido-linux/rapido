@@ -16,6 +16,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/lrbd.sh" "$@"
+_rt_require_networking
 _rt_require_ceph
 _rt_require_conf_dir LRBD_SRC TARGETCLI_SRC RTSLIB_SRC CONFIGSHELL_SRC
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
@@ -37,7 +38,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 
 # ldconfig needed by pyudev ctypes.util.find_library
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df \
-		   $py3_files env ldconfig ip ping \
+		   $py3_files env ldconfig \
 		   dbus-daemon /etc/dbus-1/system.conf $rbd_bin $rados_cython \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \

@@ -11,6 +11,7 @@ trap "rm $vm_ceph_conf" 0 1 2 3 15
 
 _rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/lib/ceph.sh" \
 			"${RAPIDO_DIR}/autorun/blktests_rbd.sh" "$@"
+_rt_require_networking
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_blktests

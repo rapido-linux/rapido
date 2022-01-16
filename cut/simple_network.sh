@@ -6,9 +6,10 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_network.sh" "$@"
+_rt_require_networking
 
 "$DRACUT" \
-	--install "nc hostname ip ping" \
+	--install "nc hostname" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"

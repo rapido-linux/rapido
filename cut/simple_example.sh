@@ -9,6 +9,10 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 # and run on VM boot. It exports variables used in the dracut invocation below.
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 
+# Install binaries and configuration required for networking (appended to
+# DRACUT_RAPIDO_ARGS):
+#_rt_require_networking
+
 # The job of Rapido cut scripts is to generate a VM image. This is done using
 # Dracut with the following parameters...
 
