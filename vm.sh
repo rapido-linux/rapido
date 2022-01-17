@@ -31,6 +31,8 @@ function _vm_start
 {
 	local vm_num=$1
 	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
+	local netd_flag
+	local vm_resources__=()	# unused
 
 	[ -f "$DRACUT_OUT" ] \
 	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
@@ -39,11 +41,14 @@ function _vm_start
 		_fail "a maximum of two network connected VMs are supported"
 	fi
 
+	_rt_qemu_resources_get "${DRACUT_OUT}" vm_resources__ netd_flag \
+		|| _fail "failed to get qemu resource parameters"
+
 	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
 	# moving to a VM${vm_num}_MAC_ADDR or ini style config would make sense
 	local qemu_netdev=""
 	local kern_ip_addr=""
-	if [ -n "$(_rt_xattr_vm_networkless_get ${DRACUT_OUT})" ]; then
+	if [[ -z $netd_flag ]]; then
 		# this image doesn't require network access
 		kern_ip_addr="none"
 		qemu_netdev="-net none"	# override default (-net nic -net user)
