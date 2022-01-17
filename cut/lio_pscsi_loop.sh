@@ -29,6 +29,3 @@ _rt_require_dracut_args "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "$@"
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
-

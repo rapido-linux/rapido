@@ -25,5 +25,3 @@ _rt_require_lib "libkeyutils.so.1"
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"

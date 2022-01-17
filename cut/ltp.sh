@@ -35,5 +35,4 @@ _rt_require_conf_dir LTP_DIR
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
 
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"		# *disable* network
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"	# 2 vCPUs, 2G RAM

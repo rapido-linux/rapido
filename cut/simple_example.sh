@@ -5,16 +5,17 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
+# The job of Rapido cut scripts is to generate a VM image. This is done using
+# Dracut with a number of parameters...
+
 # Call _rt_require_dracut_args() providing script paths that will be included
 # and run on VM boot. It exports variables used in the dracut invocation below.
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 
-# Install binaries and configuration required for networking (appended to
-# DRACUT_RAPIDO_ARGS):
+# _rt_require_networking() flags that VMs using this image should have a network
+# adapter. Binaries and configuration required for networking are appended to
+# DRACUT_RAPIDO_ARGS.
 #_rt_require_networking
-
-# The job of Rapido cut scripts is to generate a VM image. This is done using
-# Dracut with the following parameters...
 
 # --install provides a list of binaries that should be included in the VM image.
 # Dracut will resolve shared object dependencies and add them automatically.
@@ -32,11 +33,6 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-# VMs can be deployed with or without a virtual network adapter. The default is
-# to deploy *with* network, in which case the ip and ping binaries should be
-# added to the Dracut --install parameter above.
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"		# *disable* network
 
 # VMs are booted with 2 vCPUs and 512M RAM by default. These defaults can be
 # changed using _rt_xattr_vm_resources_set.

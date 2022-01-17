@@ -35,5 +35,3 @@ if ! grep -q "^# CONFIG_INITRAMFS_PRESERVE_MTIME" "$KERNEL_SRC/.config"; then
 	  | cpio -o -H newc -D "$tmp_vdata"  >> "$DRACUT_OUT" \
 		|| _fail "failed to append mtime_chk archive"
 fi
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"

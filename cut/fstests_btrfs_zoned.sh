@@ -43,6 +43,5 @@ _rt_require_btrfs_progs
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
 
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
 # need enough memory for two 12G null_blk devices
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "16384M"

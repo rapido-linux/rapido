@@ -41,5 +41,4 @@ export tmp_vdata
 	>> "$DRACUT_OUT" \
 	|| _fail "gen_init_cpio failed"
 
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
 _rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"
