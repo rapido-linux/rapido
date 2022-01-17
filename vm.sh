@@ -19,8 +19,9 @@ _vm_is_running() {
 _vm_start() {
 	local vm_num=$1
 	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
-	local netd_flag
+	local netd_flag netd_mach_id kern_net
 	local vm_resources=()
+	local vm_num_kparam="rapido.vm_num=${vm_num}"
 
 	[ -f "$DRACUT_OUT" ] \
 	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
@@ -35,12 +36,17 @@ _vm_start() {
 	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
 	# moving to a VM${vm_num}_MAC_ADDR or ini style config would make sense
 	local qemu_netdev=""
-	local kern_net="net.ifnames=0"
 	if [[ -z $netd_flag ]]; then
 		# this image doesn't require network access
 		qemu_netdev="-net none"	# override default (-net nic -net user)
 		kern_net="rapido.networkless"
 	else
+		# networkd needs a hex unique ID (for dhcp leases, etc.)
+		# TODO could use value in .network config instead?
+		netd_mach_id="$(echo $vm_num_kparam | md5sum)" \
+			|| _fail "failed to generate networkd machine-id"
+
+		kern_net="net.ifnames=0 systemd.machine_id=${netd_mach_id% *}"
 		eval local mac_addr='$MAC_ADDR'${vm_num}
 		[ -n "$mac_addr" ] \
 			|| _fail "MAC_ADDR${vm_num} not configured"
@@ -64,7 +70,7 @@ _vm_start() {
 		"${vm_resources[@]}" \
 		-kernel "$QEMU_KERNEL_IMG" \
 		-initrd "$DRACUT_OUT" \
-		-append "rapido.vm_num=${vm_num} ${kern_net} \
+		-append "$vm_num_kparam $kern_net \
 			 rd.systemd.unit=emergency.target \
 		         rd.shell=1 console=$QEMU_KERNEL_CONSOLE rd.lvm=0 rd.luks=0 \
 			 $QEMU_EXTRA_KERNEL_PARAMS" \
