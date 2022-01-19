@@ -27,10 +27,6 @@ _vm_start() {
 	[ -f "$DRACUT_OUT" ] \
 	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
 
-	if [ -z "$vm_num" ] || [ $vm_num -lt 1 ] || [ $vm_num -gt 2 ]; then
-		_fail "a maximum of two network connected VMs are supported"
-	fi
-
 	_rt_qemu_resources_get "${DRACUT_OUT}" vm_resources netd_flag \
 		|| _fail "failed to get qemu resource parameters"
 
@@ -92,7 +88,11 @@ _vm_start() {
 	exit $?
 }
 
-[ -z "$(_vm_is_running 1)" ] && _vm_start 1
-[ -z "$(_vm_is_running 2)" ] && _vm_start 2
+# The VMs limit is arbitrary and with the new flexible net-conf we could remove
+# it completely. It's up to the user to make sure that enough tap devices have
+# been created to satisfy the net-conf/vm# configuration.
+for ((i = 1; i <= 100; i++)); do
+	[ -z "$(_vm_is_running $i)" ] && _vm_start $i
+done
 # _vm_start exits when done, so we only get here if none were started
-_fail "Currently Rapido only supports a maximum of two VMs"
+_fail "Currently Rapido supports a maximum of 100 VMs"
