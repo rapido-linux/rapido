@@ -1,6 +1,0 @@
-[Match]
-KernelCommandLine=rapido.vm_num=1
-Name=eth0
-
-[Network]
-Address=192.168.155.101/24
