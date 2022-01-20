@@ -9,6 +9,9 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_btrfs.sh" "$@"
 _rt_require_fstests
 _rt_require_btrfs_progs
+# need enough memory for five 1G zram devices
+_rt_cpu_resources_set "2"
+_rt_mem_resources_set "8192M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs shuf free ip \
@@ -33,6 +36,3 @@ _rt_require_btrfs_progs
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-# need enough memory for five 1G zram devices
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "8192M"

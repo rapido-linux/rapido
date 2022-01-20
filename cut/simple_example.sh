@@ -17,6 +17,11 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 # DRACUT_RAPIDO_ARGS.
 #_rt_require_networking
 
+# VMs are booted with 2 vCPUs and 512M RAM by default. These defaults can be
+# changed, e.g. 1 vCPU + 1G RAM could be specified via:
+#_rt_cpu_resources_set 1
+#_rt_mem_resources_set 1G
+
 # --install provides a list of binaries that should be included in the VM image.
 # Dracut will resolve shared object dependencies and add them automatically.
 
@@ -33,7 +38,3 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-# VMs are booted with 2 vCPUs and 512M RAM by default. These defaults can be
-# changed using _rt_xattr_vm_resources_set.
-#_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"	# 2 vCPUs, 2G RAM

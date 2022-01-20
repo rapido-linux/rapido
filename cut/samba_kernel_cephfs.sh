@@ -23,8 +23,11 @@ _rt_require_dracut_args "$vm_ceph_conf" \
 			"$RAPIDO_DIR/autorun/samba_kernel_cephfs.sh" "$@"
 _rt_require_networking
 _rt_require_ceph
-_rt_write_ceph_config $vm_ceph_conf
+_rt_write_ceph_config "$vm_ceph_conf"
 _rt_require_conf_dir SAMBA_SRC
+# assign more memory
+_rt_cpu_resources_set "2"
+_rt_mem_resources_set "1024M"
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat which touch cut chmod true false \
@@ -37,6 +40,3 @@ _rt_require_conf_dir SAMBA_SRC
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-# assign more memory
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

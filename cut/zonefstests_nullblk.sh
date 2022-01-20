@@ -17,6 +17,8 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/zonefstests_nullblk.sh" "$@"
 _rt_require_conf_dir ZONEFSTOOLS_SRC
+_rt_cpu_resources_set "2"
+_rt_mem_resources_set "2048M"
 
 "$DRACUT" \
 	--install "ps rmdir dd id basename stat wc grep blkzone cut fio \
@@ -26,5 +28,3 @@ _rt_require_conf_dir ZONEFSTOOLS_SRC
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"

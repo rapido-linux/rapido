@@ -22,6 +22,9 @@ _rt_require_conf_dir LRBD_SRC TARGETCLI_SRC RTSLIB_SRC CONFIGSHELL_SRC
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libcrypto.so libexpat.so libudev.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
+# assign more memory
+_rt_cpu_resources_set "2"
+_rt_mem_resources_set "1024M"
 
 # _rt_require_rpms ?
 py3_rpms="python3 python3-base python3-setuptools python3-pyudev python3-six \
@@ -53,6 +56,3 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 	--modules "base systemd systemd-initrd dracut-systemd" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-# assign more memory
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

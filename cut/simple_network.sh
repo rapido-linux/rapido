@@ -7,11 +7,11 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_network.sh" "$@"
 _rt_require_networking
+_rt_cpu_resources_set "1"
+_rt_mem_resources_set "512M"
 
 "$DRACUT" \
 	--install "nc hostname" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "1" "512M"

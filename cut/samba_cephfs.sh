@@ -27,6 +27,9 @@ _rt_write_ceph_config $vm_ceph_conf
 _rt_require_conf_dir SAMBA_SRC
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
+# assign more memory
+_rt_cpu_resources_set "2"
+_rt_mem_resources_set "1024M"
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   which touch cut chmod true false \
@@ -45,6 +48,3 @@ _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-# assign more memory
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

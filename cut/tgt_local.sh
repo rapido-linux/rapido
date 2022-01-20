@@ -18,6 +18,8 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "${RAPIDO_DIR}/autorun/tgt_local.sh" "$@"
 _rt_require_networking
 _rt_require_conf_dir TGT_SRC
+_rt_cpu_resources_set "2"
+_rt_mem_resources_set "2048M"
 
 "$DRACUT" \
 	--install "grep ps \
@@ -27,5 +29,3 @@ _rt_require_conf_dir TGT_SRC
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"

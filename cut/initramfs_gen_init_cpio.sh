@@ -6,6 +6,8 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/initramfs_gen_init_cpio.sh" "$@"
+_rt_cpu_resources_set "2"
+_rt_mem_resources_set "1024M"
 
 tmp_vdata="$(mktemp --tmpdir -d vdata.XXXXXXXX)"
 # remove tmp once we're done
@@ -40,5 +42,3 @@ export tmp_vdata
 "${KERNEL_SRC}/usr/gen_init_cpio" "${tmp_vdata}/fiod.gen_init_cpio.manifest" \
 	>> "$DRACUT_OUT" \
 	|| _fail "gen_init_cpio failed"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"
