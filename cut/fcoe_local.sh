@@ -17,7 +17,6 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/fcoe_local.sh" "$@"
 _rt_require_networking
 _rt_require_lib "libkeyutils.so.1"
-_rt_cpu_resources_set "2"
 _rt_mem_resources_set "2048M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \

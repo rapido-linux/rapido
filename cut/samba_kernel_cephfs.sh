@@ -26,7 +26,6 @@ _rt_require_ceph
 _rt_write_ceph_config "$vm_ceph_conf"
 _rt_require_conf_dir SAMBA_SRC
 # assign more memory
-_rt_cpu_resources_set "2"
 _rt_mem_resources_set "1024M"
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \

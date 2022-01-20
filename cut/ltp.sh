@@ -17,7 +17,6 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/ltp.sh" "$@"
 _rt_require_conf_dir LTP_DIR
-_rt_cpu_resources_set "2"
 _rt_mem_resources_set "2048M"	# 2 vCPUs, 2G RAM
 
 "$DRACUT" \

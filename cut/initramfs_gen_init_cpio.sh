@@ -6,7 +6,6 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/initramfs_gen_init_cpio.sh" "$@"
-_rt_cpu_resources_set "2"
 _rt_mem_resources_set "1024M"
 
 tmp_vdata="$(mktemp --tmpdir -d vdata.XXXXXXXX)"

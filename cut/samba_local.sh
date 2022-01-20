@@ -19,7 +19,6 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/samba_local.sh" "$@"
 _rt_require_networking
 _rt_require_conf_dir SAMBA_SRC
 # assign more memory
-_rt_cpu_resources_set "2"
 _rt_mem_resources_set "1024M"
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \

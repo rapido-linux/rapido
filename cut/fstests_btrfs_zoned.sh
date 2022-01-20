@@ -19,7 +19,6 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_btrfs_zoned.sh" "$@"
 _rt_require_fstests
 _rt_require_btrfs_progs
 # need enough memory for two 12G null_blk devices
-_rt_cpu_resources_set "2"
 _rt_mem_resources_set "16384M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \

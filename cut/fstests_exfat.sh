@@ -9,7 +9,6 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_exfat.sh" "$@"
 _rt_require_fstests
 _rt_require_exfat_progs
-_rt_cpu_resources_set "2"
 _rt_mem_resources_set "4096M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
