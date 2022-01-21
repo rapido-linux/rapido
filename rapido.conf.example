@@ -188,7 +188,7 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #FSTESTS_SRC=""
 #
 # Local filesystem fstests defaults to using guest-provisioned zram devices (1G,
-# or FSTESTS_ZRAM_SIZE if specified). Alternatively QEMU_EXTRA_ARGS can be
+# or FSTESTS_ZRAM_SIZE bytes if specified). Alternatively QEMU_EXTRA_ARGS can be
 # used to provide VM storage, where the block device serial must match a
 # corresponding fstests parameter, e.g. serial=SCRATCH_DEV.
 # e.g. FSTESTS_ZRAM_SIZE="2G"

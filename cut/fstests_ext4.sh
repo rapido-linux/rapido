@@ -8,7 +8,10 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_ext4.sh" "$@"
 _rt_require_fstests
-_rt_mem_resources_set "4096M"
+_rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
+	|| _fail "failed to calculate memory resources"
+# 2x multiplier for one test and one scratch zram. +2G as buffer
+_rt_mem_resources_set "$((2048 + (zram_bytes * 2 / 1048576)))M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs shuf free ip \

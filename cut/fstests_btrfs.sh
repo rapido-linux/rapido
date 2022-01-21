@@ -9,8 +9,10 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_btrfs.sh" "$@"
 _rt_require_fstests
 _rt_require_btrfs_progs
-# need enough memory for five 1G zram devices
-_rt_mem_resources_set "8192M"
+_rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
+	|| _fail "failed to calculate memory resources"
+# need enough memory for five zram devices
+_rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs shuf free ip \
