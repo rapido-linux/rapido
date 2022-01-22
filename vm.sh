@@ -40,7 +40,6 @@ _vm_start() {
 	if [[ -z $netd_flag ]]; then
 		# this image doesn't require network access
 		qemu_netdev+=(-net none) # override default (-net nic -net user)
-		kcmdline+=("rapido.networkless")
 	else
 		# networkd needs a hex unique ID (for dhcp leases, etc.)
 		# TODO could use value in .network config instead?
