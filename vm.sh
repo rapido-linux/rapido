@@ -62,6 +62,11 @@ _vm_start() {
 			  's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/b8:\1:\2:\3:\4:\5/') \
 			  || _fail "failed to generate vm${vm_num}.${vm_tap} MAC"
 
+			# allow guest to [match] net-conf devices based on MAC.
+			# XXX this could get too long for the kernel. The netd
+			# [match] entry could instead be appended at cut time.
+			kcmdline+=("rapido.mac.${vm_tap}=${tap_mac}")
+
 			# each entry is expected to match a corresponding tapdev
 			qemu_netdev+=(
 			  "-device"
