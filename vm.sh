@@ -24,7 +24,7 @@ _vm_start() {
 	local vm_num_kparam="rapido.vm_num=${vm_num}"
 	local qemu_netdev=()
 	local kcmdline=(rd.systemd.unit=emergency.target \
-		rd.shell=1 "console=$QEMU_KERNEL_CONSOLE" rd.lvm=0 rd.luks=0 \
+		rd.shell=1 "console=$QEMU_KERNEL_CONSOLE" \
 		$QEMU_EXTRA_KERNEL_PARAMS)
 
 	[ -f "$DRACUT_OUT" ] \
