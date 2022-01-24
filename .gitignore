@@ -1,4 +1,5 @@
 rapido.conf
+net-conf
 initrds/myinitrd
 \#*
 *~

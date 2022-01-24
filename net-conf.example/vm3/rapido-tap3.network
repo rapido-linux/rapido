@@ -1,0 +1,9 @@
+# Rapido vm3 (the third VM booted via "./rapido") will be assigned two vNICs.
+# One for each of the rapido-tap3.network (this) and rapido-tap4.network
+# configurations. rapido-tap3 and rapido-tap4 can be created via
+# tools/br_tap_setup.sh
+
+[Network]
+Address=192.168.155.103/24
+LinkLocalAddressing=no
+LLMNR=no
