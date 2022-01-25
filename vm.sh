@@ -19,7 +19,7 @@ _vm_is_running() {
 _vm_start() {
 	local vm_num=$1
 	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
-	local netd_flag netd_mach_id i vm_tap tap_mac n
+	local netd_flag netd_mach_id i vm_tap tap_mac n f
 	local vm_resources=()
 	local vm_num_kparam="rapido.vm_num=${vm_num}"
 	local qemu_netdev=()
@@ -56,6 +56,13 @@ _vm_start() {
 			[[ $i =~ ^(.*)\.network$ ]] || continue
 			vm_tap="${BASH_REMATCH[1]}"
 
+			# Only attempt to add host IFF_TAP (0x02) devices as
+			# qemu netdevs. This allows for extra VM virtual device
+			# creation and configuration via net-conf.
+			f="$(cat /sys/class/net/${vm_tap}/tun_flags \
+				2>/dev/null)" || continue
+			(( (f & 0x2) == 0x2 )) || continue
+
 			# calculate a vNIC MAC based on the VM#
 			# and corresponding host tapdev name.
 			tap_mac=$(echo "vm${vm_num}.${vm_tap}" | md5sum | sed \
@@ -76,6 +83,9 @@ _vm_start() {
 			)
 			((n++))
 		done
+		# warn only, as a netdev may be provided via QEMU_EXTRA_ARGS
+		(( n > 0 )) \
+		  || _warn "no valid TAP devices found in net-conf/vm${vm_num}"
 	fi
 
 	# rapido.conf might have specified a shared folder for qemu
