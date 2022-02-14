@@ -53,7 +53,7 @@ modprobe zram num_devices="0"
 
 _vm_ar_dyn_debug_enable
 
-echo eth0 > /sys/module/rdma_rxe/parameters/add
+rdma link add rxe0 type rxe netdev eth0 || _fatal
 
 nvmet_cfs="/sys/kernel/config/nvmet/"
 nvmet_subsystem="nvmf-test"

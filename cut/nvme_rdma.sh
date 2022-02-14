@@ -19,7 +19,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/nvme_rdma.sh" "$@"
 _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs killall nvme ip ping \
+		   strace mkfs.xfs killall nvme ip ping rdma \
 		   $LIBS_INSTALL_LIST" \
 	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "nvme-core nvme-fabrics nvme-rdma nvmet nvmet-rdma \
