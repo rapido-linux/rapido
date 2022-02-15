@@ -127,21 +127,23 @@ done
 
 set +x
 
-# new portals are disabled by default
-mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR1}:3260 \
-	|| _fatal
-mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${IP_ADDR2}:3260 \
-	|| _fatal
+pub_ips=()
+_vm_ar_ip_addrs_nomask pub_ips
+# build a magic regexp which matches against any locally assigned IP address
+pub_ips_re="^($(IFS=\|; echo "${pub_ips[*]}"))$"
 
-# only enable portal for corresponding MAC/IP
-ip link show eth0 | grep $MAC_ADDR1
-if [ $? -eq 0 ]; then
-	echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/enable
-	echo "target ready at: iscsi://${IP_ADDR1}:3260/${TARGET_IQN}/"
-fi
+# create a portal for the first configured IP address for VMs 1 and 2
+cd "/sys/kernel/config/target/iscsi/${TARGET_IQN}"
+for i in 1 2; do
+	cfg_ips=()
+	_vm_ar_cfg_ips_nomask "$i" cfg_ips
+	(( ${#cfg_ips[@]} > 0 )) || _fatal "vm${i} lacks IP address config"
+	mkdir "tpgt_${i}/np/${cfg_ips[0]}:3260" || _fatal
 
-ip link show eth0 | grep $MAC_ADDR2
-if [ $? -eq 0 ]; then
-	echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/enable
-	echo "target ready at: iscsi://${IP_ADDR2}:3260/${TARGET_IQN}/"
-fi
+	# Enable portal if address is a local IP. Non-local portals will remain
+	# disabled, but still be advertised (tpg_enabled_sendtargets=0).
+	[[ ${cfg_ips[0]} =~ $pub_ips_re ]] || continue
+	echo 1 > "tpgt_${i}/enable" || _fatal
+	echo "target ready at: iscsi://${cfg_ips[0]}:3260/${TARGET_IQN}/"
+done
+cd /

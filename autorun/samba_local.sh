@@ -69,12 +69,9 @@ set +x
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
 	| smbpasswd -a $CIFS_USER -s || _fatal
 
-ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
-if [ $? -eq 0 ]; then
-	echo "Samba share ready at: //${IP_ADDR1}/${CIFS_SHARE}/"
-fi
-ip link show eth0 | grep $MAC_ADDR2 &> /dev/null
-if [ $? -eq 0 ]; then
-	echo "Samba share ready at: //${IP_ADDR2}/${CIFS_SHARE}/"
-fi
+pub_ips=()
+_vm_ar_ip_addrs_nomask pub_ips
+for i in "${pub_ips[@]}"; do
+	echo "Samba share ready at: //${i}/${CIFS_SHARE}/"
+done
 echo "Log at: /usr/local/samba/var/log.smbd"

@@ -234,27 +234,18 @@ for iblock_dev in $export_blockdevs; do
 	((lun++))
 done
 
-# standalone iSCSI target - listen on ports 3260 and 3261 of assigned address
-ip link show eth0 | grep $MAC_ADDR1
-if [ $? -eq 0 ]; then
-	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR1}:3260 \
-		|| _fatal
-	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${IP_ADDR1}:3261 \
+# standalone target: listen on ports 3260 and 3261 of first assigned address
+pub_ips=()
+_vm_ar_ip_addrs_nomask pub_ips
+if (( ${#pub_ips[@]} > 0 )); then
+	i="${pub_ips[0]}"
+	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${i}:3260 \
+	      /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${i}:3261 \
 		|| _fatal
 
-	echo "target ready at: iscsi://${IP_ADDR1}:3260/${TARGET_IQN}/"
-	echo "target ready at: iscsi://${IP_ADDR1}:3261/${TARGET_IQN}/"
+	echo "target ready at: iscsi://${i}:3260/${TARGET_IQN}/"
+	echo "target ready at: iscsi://${i}:3261/${TARGET_IQN}/"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2
-if [ $? -eq 0 ]; then
-	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/np/${IP_ADDR2}:3260 \
-		|| _fatal
-	mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/np/${IP_ADDR2}:3261 \
-		|| _fatal
-
-	echo "target ready at: iscsi://${IP_ADDR2}:3260/${TARGET_IQN}/"
-	echo "target ready at: iscsi://${IP_ADDR2}:3261/${TARGET_IQN}/"
-fi
 echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_1/enable
 echo 1 > /sys/kernel/config/target/iscsi/${TARGET_IQN}/tpgt_2/enable

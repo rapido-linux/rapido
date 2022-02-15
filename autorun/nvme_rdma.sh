@@ -58,8 +58,15 @@ rdma link add rxe0 type rxe netdev eth0 || _fatal
 nvmet_cfs="/sys/kernel/config/nvmet/"
 nvmet_subsystem="nvmf-test"
 
-ip link show eth0 | grep $MAC_ADDR1
-if [ $? -eq 0 ]; then
+cfg_ips=()
+_vm_ar_cfg_ips "1" cfg_ips
+(( ${#cfg_ips[@]} > 0 )) || _fatal "vm1 lacks IP address config"
+vm1_ip=${cfg_ips[0]}
+
+# When run via vm1, act as a target.
+# TODO split this into nvme_rdma_target / nvme_rdma_client, as this would be
+# simpler and allow for testing against third party targets.
+if (( $kcli_rapido_vm_num == 1 )); then
 	export_blockdev=$(_zram_hot_add "1G")
 	[ -b "$export_blockdev" ] || _fatal "$export_blockdev device not available"
 
@@ -77,22 +84,21 @@ if [ $? -eq 0 ]; then
 	mkdir ${nvmet_cfs}/ports/1 || _fatal
 
 	echo rdma > ${nvmet_cfs}/ports/1/addr_trtype || _fatal
-	echo $IP_ADDR1 > ${nvmet_cfs}/ports/1/addr_traddr || _fatal
+	echo "$vm1_ip" > ${nvmet_cfs}/ports/1/addr_traddr || _fatal
 	echo ipv4 > ${nvmet_cfs}/ports/1/addr_adrfam || _fatal
 	echo 4420 > ${nvmet_cfs}/ports/1/addr_trsvcid || _fatal
 	ln -s ${nvmet_cfs}/subsystems/${nvmet_subsystem} \
 		${nvmet_cfs}/ports/1/subsystems/${nvmet_subsystem} || _fatal
 
 	set +x
-	echo "$export_blockdev mapped via NVMe over Fabrics RDMA on $IP_ADDR1"
+	echo "$export_blockdev mapped via NVMe over Fabrics RDMA on $vm1_ip"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2
-if [ $? -eq 0 ]; then
-	nvme connect -t rdma -a $IP_ADDR1 -s 4420 -n nvmf-test || _fatal
+# When run via vm2, act as a client for the vm1 target.
+if (( $kcli_rapido_vm_num == 2 )); then
+	nvme connect -t rdma -a "$vm1_ip" -s 4420 -n nvmf-test || _fatal
 	udevadm settle
 	nvmedev=$(ls /dev/ | grep -Eo /dev/nvme[0-9]n[0-0])
 	set +x
-	echo "Remote NVMe over RDMA $IP_ADDR1 mapped to $nvmedev"
+	echo "Remote NVMe over RDMA $vm1_ip mapped to $nvmedev"
 fi
-

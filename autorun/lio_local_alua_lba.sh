@@ -57,15 +57,11 @@ iscsi_setup() {
 		ln -s ./lun/lun_0 ./acls/${i}/lun_0/ || _fatal
 	done
 
-	ip link show eth0 | grep $MAC_ADDR1
-	if [ $? -eq 0 ]; then
-		mkdir ./np/${IP_ADDR1}:3260 || _fatal
-		echo "target ready at: iscsi://${IP_ADDR1}:3260/${TARGET_IQN}/"
-	fi
-	ip link show eth0 | grep $MAC_ADDR2
-	if [ $? -eq 0 ]; then
-		mkdir ./np/${IP_ADDR2}:3260 || _fatal
-		echo "target ready at: iscsi://${IP_ADDR2}:3260/${TARGET_IQN}/"
+	local pub_ips=()
+	_vm_ar_ip_addrs_nomask pub_ips
+	if (( ${#pub_ips[@]} > 0 )); then
+		mkdir "./np/${pub_ips[0]}:3260" || _fatal
+		echo "target ready at: iscsi://${pub_ips[0]}:3260/${TARGET_IQN}/"
 	fi
 	echo 1 > ./enable
 	popd
