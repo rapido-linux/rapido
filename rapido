@@ -19,13 +19,13 @@ declare -A short_help
 short_help["teardown-network"]="Teardown network for VMs"
 rapido_teardown_network()
 {
-	${RAPIDO_DIR}/tools/br_teardown.sh
+	${RAPIDO_DIR}/tools/br_tap_teardown.sh "$@"
 }
 
 short_help["setup-network"]="Setup network for VMs"
 rapido_setup_network()
 {
-	${RAPIDO_DIR}/tools/br_setup.sh
+	${RAPIDO_DIR}/tools/br_tap_setup.sh "$@"
 }
 
 # vm is an alias for boot
