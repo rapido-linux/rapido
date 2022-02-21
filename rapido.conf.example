@@ -11,7 +11,8 @@ KERNEL_SRC=""
 # "INSTALL_MOD_PATH=./mods make modules_install" during kernel compilation.
 KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
 
-# bridge device provisioned by "rapido setup-network" (br_setup.sh).
+######### Host network settings #########
+# bridge device provisioned by "rapido setup-network".
 BR_DEV="rapido-br"
 
 # If specified, a physical network interface to be connected to the bridge.
@@ -30,6 +31,9 @@ BR_ADDR="192.168.155.1/24"
 # Tap VM network device owner
 # e.g. TAP_USER="me"
 TAP_USER=""
+
+# VM network settings are read from the net-conf directory. See net-conf.example
+#########################################
 
 # If specified, share this path with the guest via virtfs. It will be mounted
 # at boot time by the VM under /host.
@@ -66,42 +70,6 @@ QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 # e.g. DYN_DEBUG_FILES="drivers/block/rbd.c"
 #DYN_DEBUG_MODULES=""
 #DYN_DEBUG_FILES=""
-
-######### First VM #########
-# Tap tunnel interface provisioned by br_setup.sh, and used by vm.sh
-TAP_DEV0="tap0"
-
-# MAC address assigned to the VM
-# e.g. MAC_ADDR1="b8:ac:24:45:c5:01"
-MAC_ADDR1=""
-
-# When set to "1", use DHCP to obtain IP and hostname.
-#IP_ADDR1_DHCP="1"
-
-# IP address assigned to the VM during boot
-IP_ADDR1="192.168.155.101"
-
-# Static hostname assigned to the VM
-HOSTNAME1="rapido1"
-#############################
-
-######### Second VM #########
-# Tap tunnel interface provisioned by br_setup.sh, and used by vm.sh
-TAP_DEV1="tap1"
-
-# MAC address assigned to the VM
-# e.g. MAC_ADDR2="b8:ac:24:45:c5:02"
-MAC_ADDR2=""
-
-# When set to "1", use DHCP to obtain IP and hostname.
-#IP_ADDR2_DHCP="1"
-
-# Static IP address assigned to the VM during boot
-IP_ADDR2="192.168.155.102"
-
-# Static hostname assigned to the VM
-HOSTNAME2="rapido2"
-#############################
 
 ##### Ceph globals #####
 # CEPH_SRC should correspond to a checkout and build of the Ceph source
@@ -295,5 +263,5 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 
 ######## autorun/nvme_tcp_initiator.sh ########
 # NVMe over TCP target details used for mapping
-#NVME_TARGET_TCP="$IP_ADDR1"
+#NVME_TARGET_TCP="192.168.155.100"
 ###############################################
