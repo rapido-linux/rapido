@@ -95,11 +95,10 @@ rapido_cut()
 		exit 1
 	fi
 
-	pushd ${RAPIDO_DIR} > /dev/null
-	tests="$(ls cut/*.sh)"
-	cut_script="cut/$(echo ${testname} | sed 's/-/_/g').sh"
+	pushd "$RAPIDO_DIR" > /dev/null
+	cut_script="cut/${testname//-/_}.sh"
 
-	if [ ! -x $cut_script ]; then
+	if [[ ! -x $cut_script ]]; then
 		echo "Test ${testname} not found, please use one of:"
 		rapido_list
 		popd > /dev/null
@@ -112,17 +111,21 @@ rapido_cut()
 	popd > /dev/null
 	[ $cut_status -ne 0 ] && exit $cut_status
 	[ -n "$boot_img" ] || exit 0
-	${RAPIDO_DIR}/vm.sh
+	"${RAPIDO_DIR}/vm.sh"
 }
 
 short_help["list"]="List testcases"
 rapido_list()
 {
-	pushd ${RAPIDO_DIR} > /dev/null
-	tests="$(ls cut/*.sh | sed 's/^cut\///;s/\.sh$//;s/_/-/g')"
+	local t
 
-	for t in ${tests}; do
-		echo ${t}
+	pushd "$RAPIDO_DIR" > /dev/null
+
+	shopt -s nullglob
+	for t in cut/*.sh; do
+		t="${t%.sh}"
+		t="${t//_/-}"
+		echo "${t#cut/}"
 	done
 	popd > /dev/null
 }
