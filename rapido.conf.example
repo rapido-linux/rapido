@@ -1,15 +1,17 @@
 # Path to Linux kernel source. Prior to running "rapido cut", the kernel
 # should be built, with modules installed (see KERNEL_INSTALL_MOD_PATH below).
+# If KERNEL_SRC is not set then rapido will attempt to boot the local kernel
+# present under /boot/.
 #
 # e.g. KERNEL_SRC="/home/me/linux"
-KERNEL_SRC=""
+#KERNEL_SRC=""
 
 # If specified, this parameter defines the path that Dracut should use to
 # obtain compiled kernel modules. If left blank, Dracut will use its default
 # (e.g. /lib/modules) search path.
 # A value of "${KERNEL_SRC}/mods" makes sense when used alongside
 # "INSTALL_MOD_PATH=./mods make modules_install" during kernel compilation.
-KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
+#KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
 
 ######### Host network settings #########
 # bridge device provisioned by "rapido setup-network".

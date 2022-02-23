@@ -43,8 +43,11 @@ _generate_conf() {
 
 	for i in KERNEL_SRC KERNEL_INSTALL_MOD_PATH; do
 		eval "val=\${$i}"
-		[ -n "$val" ] || _fail "$i is not set"
-		[ -d "$val" ] || _fail "$i is not a directory"
+		if [ -n "$val" ]; then
+			[ -d "$val" ] || _fail "$i is not a directory"
+		else
+			echo "$i not set, using locally installed kernel"
+		fi
 
 		echo "${i}=\"${val}\"" >> "$conf" || _fail "write failed"
 	done
