@@ -132,8 +132,11 @@ rapido_list()
 
 list_commands()
 {
-	commands=$(declare -F | sed -n 's/.* rapido_\([a-zA-Z_]*\).*/\1/;T;s/_/-/g;p')
-	for command in $commands; do
+	local command
+	for command in $(declare -F); do
+		[[ $command =~ rapido_([a-zA-Z_]*) ]] || continue
+		command="${BASH_REMATCH[1]}"
+		command="${command//_/-}"
 		if [ -n "${short_help[$command]}" ]; then
 			echo -e "\t$command - ${short_help[$command]}"
 		fi

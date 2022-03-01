@@ -1,16 +1,6 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2019, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2019-2022, all rights reserved.
 
 # This script autocompletes "rapido" subcommands and "rapido cut" image
 # generators.
@@ -22,7 +12,8 @@
 
 __rapido()
 {
-	local bin cut_dir cur comps rcmd max_off seen_boot
+	local bin cut_dir cur rcmd max_off seen_boot
+	local -a comps
 	bin="$1"
 
 	# we only want to complete the rapido script, not dirs, etc.
@@ -36,8 +27,8 @@ __rapido()
 	cur="${COMP_WORDS[COMP_CWORD]}"
 
 	if (( $COMP_CWORD <= 1 )); then
-		comps="boot cut help list setup-network teardown-network"
-		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
+		comps=(boot cut help list setup-network teardown-network)
+		COMPREPLY=( $(compgen -W "${comps[*]}" -- ${cur}) )
 		return 0
 	fi
 
@@ -70,14 +61,18 @@ __rapido()
 				;;
 			esac
 		done
-
 		(( $COMP_CWORD > $max_off )) && return 0
-		comps="-f -x"
-		(( seen_boot == 0 )) && comps="$comps -B"
-		pushd "${cut_dir}" &> /dev/null || return 0
-		comps="${comps} $(ls *.sh | sed 's/\.sh$//;s/_/-/g')"
-		popd &> /dev/null
-		COMPREPLY=( $(compgen -W "${comps}" -- ${cur}) )
+
+		# complete cut scripts based on dir listing, with prefix and
+		# suffix stripped, and underscores replaced with hyphens.
+		comps=("$cut_dir"/*.sh)
+		[[ ${comps[0]} == "$cut_dir/*.sh" ]] && return 0 # !nullglob
+		comps=("${comps[@]#${cut_dir}/}")
+		comps=("${comps[@]%.sh}")
+		comps=("${comps[@]//_/-}")
+		comps+=(-f -x)
+		(( seen_boot == 0 )) && comps+=(-B)
+		COMPREPLY=( $(compgen -W "${comps[*]}" -- ${cur}) )
 	fi
 	return 0
 }
