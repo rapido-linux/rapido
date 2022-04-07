@@ -69,6 +69,10 @@ Please raise any questions or issues upstream via
 
 ## Architecture
 
+![Architecture Diagram](docs/architecture.svg "ASCII art rendered by Svgbob")
+<details>
+<summary>ASCII art</summary>
+
 ```
                                    +------------------------+
                                    |                        |
@@ -125,3 +129,4 @@ Please raise any questions or issues upstream via
             |                                                       |
             +------------------------------<------------------------+
 ```
+</details>
