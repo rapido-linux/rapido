@@ -22,18 +22,10 @@ _vm_ar_dyn_debug_enable
 
 echo "1G" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
 
-addr=""
-ip link show eth0 | grep $MAC_ADDR1 &> /dev/null
-if [ $? -eq 0 ]; then
-	addr="${IP_ADDR1}"
-fi
-
-ip link show eth0 | grep $MAC_ADDR2 &> /dev/null
-if [ $? -eq 0 ]; then
-	addr="${IP_ADDR2}"
-fi
-
-[ -z "$addr" ] && _fatal "VM network config missing"
+pub_ips=()
+_vm_ar_ip_addrs_nomask pub_ips
+(( ${#pub_ips[@]} > 0 )) || _fatal "VM network config missing"
+addr="${pub_ips[0]}"
 
 # create IPC directory
 mkdir /var/run/tgtd || _fatal

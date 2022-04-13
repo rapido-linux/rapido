@@ -1,24 +1,13 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2016-2022, all rights reserved.
 
 RAPIDO_DIR="`dirname $0`"
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_qemu_args
 
-function _vm_is_running
-{
+_vm_is_running() {
 	local vm_num=$1
 	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
 
@@ -27,79 +16,101 @@ function _vm_is_running
 	ps -p "$(head -n1 $vm_pid_file)" > /dev/null && echo "1"
 }
 
-function _vm_start
-{
+_vm_start() {
 	local vm_num=$1
 	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
+	local netd_flag netd_mach_id i vm_tap tap_mac n f
+	local vm_resources=()
+	local vm_num_kparam="rapido.vm_num=${vm_num}"
+	local qemu_netdev=()
+	local kcmdline=(rd.systemd.unit=emergency.target \
+		rd.shell=1 "console=$QEMU_KERNEL_CONSOLE" \
+		$QEMU_EXTRA_KERNEL_PARAMS)
 
 	[ -f "$DRACUT_OUT" ] \
 	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
 
-	if [ -z "$vm_num" ] || [ $vm_num -lt 1 ] || [ $vm_num -gt 2 ]; then
-		_fail "a maximum of two network connected VMs are supported"
-	fi
+	# XXX could use systemd.hostname=, but it requires systemd-hostnamed
+	n=$(head -n1 "${RAPIDO_DIR}/net-conf/vm${vm_num}/hostname" 2>/dev/null) \
+		&& kcmdline+=("rapido.hostname=\"${n}\"")
 
-	# XXX rapido.conf VM parameters are pretty inconsistent and confusing
-	# moving to a VM${vm_num}_MAC_ADDR or ini style config would make sense
-	local qemu_netdev=""
-	local kern_ip_addr=""
-	if [ -n "$(_rt_xattr_vm_networkless_get ${DRACUT_OUT})" ]; then
+	_rt_qemu_resources_get "${DRACUT_OUT}" vm_resources netd_flag \
+		|| _fail "failed to get qemu resource parameters"
+
+	if [[ -z $netd_flag ]]; then
 		# this image doesn't require network access
-		kern_ip_addr="none"
-		qemu_netdev="-net none"	# override default (-net nic -net user)
+		qemu_netdev+=(-net none) # override default (-net nic -net user)
 	else
-		eval local mac_addr='$MAC_ADDR'${vm_num}
-		[ -n "$mac_addr" ] \
-			|| _fail "MAC_ADDR${vm_num} not configured"
-		eval local tap='$TAP_DEV'$((vm_num - 1))
-		[ -n "$tap" ] \
-			|| _fail "TAP_DEV$((vm_num - 1)) not configured"
-		eval local is_dhcp='$IP_ADDR'${vm_num}'_DHCP'
-		if [ "$is_dhcp" = "1" ]; then
-			kern_ip_addr="dhcp"
-		else
-			eval local hostname='$HOSTNAME'${vm_num}
-			[ -n "$hostname" ] \
-				|| _fail "HOSTNAME${vm_num} not configured"
-			eval local ip_addr='$IP_ADDR'${vm_num}
-			[ -n "$ip_addr" ] \
-				|| _fail "IP_ADDR${vm_num} not configured"
-			kern_ip_addr="${ip_addr}:::255.255.255.0:${hostname}"
-		fi
-		qemu_netdev="-device virtio-net,netdev=nw1,mac=${mac_addr} \
-			-netdev tap,id=nw1,script=no,downscript=no,ifname=${tap}"
+		# networkd needs a hex unique ID (for dhcp leases, etc.)
+		# TODO could use value in .network config instead?
+		netd_mach_id="$(echo $vm_num_kparam | md5sum)" \
+			|| _fail "failed to generate networkd machine-id"
+
+		kcmdline+=(net.ifnames=0 "systemd.machine_id=${netd_mach_id% *}")
+
+		[ -d "${RAPIDO_DIR}/net-conf/vm${vm_num}" ] \
+			|| _fail "net-conf/vm${vm_num} configuration missing"
+
+		n=0
+		for i in $(ls "${RAPIDO_DIR}/net-conf/vm${vm_num}"); do
+			[[ $i =~ ^(.*)\.network$ ]] || continue
+			vm_tap="${BASH_REMATCH[1]}"
+
+			# Only attempt to add host IFF_TAP (0x02) devices as
+			# qemu netdevs. This allows for extra VM virtual device
+			# creation and configuration via net-conf.
+			f="$(cat /sys/class/net/${vm_tap}/tun_flags \
+				2>/dev/null)" || continue
+			(( (f & 0x2) == 0x2 )) || continue
+
+			# calculate a vNIC MAC based on the VM#
+			# and corresponding host tapdev name.
+			tap_mac=$(echo "vm${vm_num}.${vm_tap}" | md5sum | sed \
+			  's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/b8:\1:\2:\3:\4:\5/') \
+			  || _fail "failed to generate vm${vm_num}.${vm_tap} MAC"
+
+			# allow guest to [match] net-conf devices based on MAC.
+			# XXX this could get too long for the kernel. The netd
+			# [match] entry could instead be appended at cut time.
+			kcmdline+=("rapido.mac.${vm_tap}=${tap_mac}")
+
+			# each entry is expected to match a corresponding tapdev
+			qemu_netdev+=(
+			  "-device"
+			  "virtio-net,netdev=if${n},mac=${tap_mac}"
+			  "-netdev"
+			  "tap,id=if${n},script=no,downscript=no,ifname=${vm_tap}"
+			)
+			((n++))
+		done
+		# warn only, as a netdev may be provided via QEMU_EXTRA_ARGS
+		(( n > 0 )) \
+		  || _warn "no valid TAP devices found in net-conf/vm${vm_num}"
 	fi
-
-	# cut_ script may have specified some parameters for qemu
-	local qemu_cut_args="$(_rt_xattr_qemu_args_get ${DRACUT_OUT})"
-	local qemu_more_args="$qemu_netdev $QEMU_EXTRA_ARGS $qemu_cut_args"
-
-	local vm_resources="$(_rt_xattr_vm_resources_get ${DRACUT_OUT})"
-	[ -n "$vm_resources" ] || vm_resources="-smp cpus=2 -m 512"
 
 	# rapido.conf might have specified a shared folder for qemu
-	local virtfs_share=""
 	if [ -n "$VIRTFS_SHARE_PATH" ]; then
-		virtfs_share="-virtfs \
-		local,path=${VIRTFS_SHARE_PATH},mount_tag=host0,security_model=mapped,id=host0"
+		vm_resources+=(-virtfs
+			"local,path=${VIRTFS_SHARE_PATH},mount_tag=host0,security_model=mapped,id=host0")
 	fi
 
 	$QEMU_BIN \
 		$QEMU_ARCH_VARS \
-		$vm_resources \
+		"${vm_resources[@]}" \
 		-kernel "$QEMU_KERNEL_IMG" \
 		-initrd "$DRACUT_OUT" \
-		-append "rapido.vm_num=${vm_num} ip=${kern_ip_addr} \
-			 rd.systemd.unit=emergency.target \
-		         rd.shell=1 console=$QEMU_KERNEL_CONSOLE rd.lvm=0 rd.luks=0 \
-			 $QEMU_EXTRA_KERNEL_PARAMS" \
+		-append "$vm_num_kparam ${kcmdline[*]}" \
 		-pidfile "$vm_pid_file" \
-		$virtfs_share \
-		$qemu_more_args
+		"${qemu_netdev[@]}" \
+		$QEMU_EXTRA_ARGS
 	exit $?
 }
 
-[ -z "$(_vm_is_running 1)" ] && _vm_start 1
-[ -z "$(_vm_is_running 2)" ] && _vm_start 2
+# The VMs limit is arbitrary and with the new flexible net-conf we could remove
+# it completely. It's up to the user to make sure that enough tap devices have
+# been created to satisfy the net-conf/vm# configuration.
+for ((i = 1; i <= 100; i++)); do
+	[ -z "$(_vm_is_running $i)" ] && _vm_start $i
+done
 # _vm_start exits when done, so we only get here if none were started
-_fail "Currently Rapido only supports a maximum of two VMs"
+_fail "Currently Rapido supports a maximum of 100 VMs"

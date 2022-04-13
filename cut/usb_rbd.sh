@@ -15,13 +15,14 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_ceph
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/usb_rbd.sh" "$@"
+_rt_require_networking
+_rt_require_ceph
 _rt_require_lib "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   eject strace mkfs.vfat mountpoint \
-		   mktemp touch sync cryptsetup dmsetup scp ssh ip ping \
+		   mktemp touch sync cryptsetup dmsetup scp ssh \
 		   /usr/lib/udev/rules.d/10-dm.rules \
 		   /usr/lib/udev/rules.d/13-dm-disk.rules \
 		   /usr/lib/udev/rules.d/95-dm-notify.rules \
@@ -34,9 +35,8 @@ _rt_require_lib "libkeyutils.so.1"
 	--include "$RBD_USB_SRC/conf-fs.sh" "/bin/conf-fs.sh" \
 	--include "$RBD_USB_SRC/rbd-usb.env" "/usr/lib/rbd-usb.env" \
 	--include "$RBD_USB_SRC/rbd-usb.conf" "/etc/rbd-usb/rbd-usb.conf" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_iblock usb_f_tcm \
 		       usb_f_mass_storage zram lzo lzo-rle dm-crypt" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT"

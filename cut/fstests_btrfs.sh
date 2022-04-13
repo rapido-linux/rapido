@@ -9,6 +9,10 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_btrfs.sh" "$@"
 _rt_require_fstests
 _rt_require_btrfs_progs
+_rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
+	|| _fail "failed to calculate memory resources"
+# need enough memory for five zram devices
+_rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs shuf free ip \
@@ -28,13 +32,8 @@ _rt_require_btrfs_progs
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*
 		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
 		       loop scsi_debug dm-log-writes xxhash_generic" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
-# need enough memory for five 1G zram devices
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "8192M"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

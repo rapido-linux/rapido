@@ -16,13 +16,14 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "${RAPIDO_DIR}/autorun/tcmu_rbd_loop.sh" "$@"
+_rt_require_networking
 _rt_require_conf_dir TCMU_RUNNER_SRC CEPH_SRC
 _rt_require_ceph
 # NSS_InitContext() fails without the following...
 _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen ip ping \
+		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen \
 		   ${CEPH_SRC}/build/lib/librbd.so \
 		   ${CEPH_SRC}/build/lib/libceph-common.so \
 		   ${CEPH_SRC}/build/lib/librados.so \
@@ -31,8 +32,7 @@ _rt_require_lib "libsoftokn3.so libfreeblpriv3.so"
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod target_core_user tcm_loop" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT"

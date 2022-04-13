@@ -15,17 +15,15 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/fcoe_local.sh" "$@"
+_rt_require_networking
 _rt_require_lib "libkeyutils.so.1"
+_rt_mem_resources_set "2048M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs killall truncate dirname fipvlan basename \
-		   ip ping \
 		   $LIBS_INSTALL_LIST" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "target_core_mod tcm_fc target_core_iblock \
 			target_core_file libfc fcoe scsi_debug" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

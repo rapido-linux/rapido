@@ -17,17 +17,13 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/zonefstests_scsi.sh" "$@"
 _rt_require_conf_dir ZONEFSTOOLS_SRC
+_rt_mem_resources_set "2048M"
 
 "$DRACUT" \
 	--install "ps rmdir dd id basename stat wc grep blkzone cut fio \
 		   rm truncate ${ZONEFSTOOLS_SRC}/src/mkzonefs" \
 	--include "$ZONEFSTOOLS_SRC/tests/" "/zonefs-tests" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "scsi_debug zonefs" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

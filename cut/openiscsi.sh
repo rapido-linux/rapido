@@ -16,15 +16,15 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "${RAPIDO_DIR}/autorun/openiscsi.sh" "$@"
+_rt_require_networking
 _rt_require_conf_dir OPENISCSI_SRC
 
 "$DRACUT" \
-	--install "grep ps dd mkfs.xfs ip ping \
+	--install "grep ps dd mkfs.xfs \
 		   ${OPENISCSI_SRC}/usr/iscsid \
 		   ${OPENISCSI_SRC}/libopeniscsiusr/libopeniscsiusr.so \
 		   ${OPENISCSI_SRC}/usr/iscsiadm" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--modules "base" \
 	--drivers "iscsi_tcp" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

@@ -143,28 +143,38 @@ find_fcoedev() {
 	done
 }
 
-ip link show eth0 | grep $MAC_ADDR1
-if [ $? -eq 0 ]; then
+cfg_macs=()
+_vm_ar_cfg_macs 1 cfg_macs
+(( ${#cfg_macs[@]} > 0 )) || _fatal "vm1 requires explicit MACAddress config"
+vm1_mac="${cfg_macs[0]}"
+
+cfg_macs=()
+_vm_ar_cfg_macs 2 cfg_macs
+(( ${#cfg_macs[@]} > 0 )) || _fatal "vm2 requires explicit MACAddress config"
+vm2_mac="${cfg_macs[0]}"
+
+# When run via vm1, act as a target.
+if (( $kcli_rapido_vm_num == 1 )); then
 	file_path=/var/target/lun
 	file_size_b=1073741824
-	target_wwn="20:00:$MAC_ADDR1"
-	initiator_wwn="20:00:$MAC_ADDR2"
+	target_wwn="20:00:$vm1_mac"
+	initiator_wwn="20:00:$vm2_mac"
 
 	create_fcoe "eth0"
-	create_fileio ${file_path} ${file_size_b}
-	create_target ${target_wwn}
-	create_acl ${target_wwn} ${initiator_wwn}
+	create_fileio "$file_path" "$file_size_b"
+	create_target "$target_wwn"
+	create_acl "$target_wwn" "$initiator_wwn"
 
-	echo "${file_path} exported via FCoE on $MAC_ADDR1"
+	echo "${file_path} exported via FCoE on $vm1_mac"
 fi
 
-ip link show eth0 | grep $MAC_ADDR2
-if [ $? -eq 0 ]; then
+# When run via vm2, act as an initiator.
+if (( $kcli_rapido_vm_num == 2 )); then
 	fipvlan -csum vn2vn eth0 || _fatal
 	udevadm settle
 
 	bdev=$(find_fcoedev)
-	echo "Remote FCoE $MAC_ADDR1 mapped to /dev/$bdev"
+	echo "Remote FCoE $vm1_mac mapped to /dev/$bdev"
 fi
 
 set +x

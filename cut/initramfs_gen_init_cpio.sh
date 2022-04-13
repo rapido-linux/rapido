@@ -6,6 +6,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/initramfs_gen_init_cpio.sh" "$@"
+_rt_mem_resources_set "1024M"
 
 tmp_vdata="$(mktemp --tmpdir -d vdata.XXXXXXXX)"
 # remove tmp once we're done
@@ -21,10 +22,9 @@ fio --directory="${tmp_vdata}" --aux-path="${tmp_vdata}" \
 
 "$DRACUT" \
 	--install "resize fio strace" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
 
 # verification data is appended as a separate cpio archive using gen_init_cpio
 cat >"${tmp_vdata}/fiod.gen_init_cpio.manifest" <<EOF
@@ -41,6 +41,3 @@ export tmp_vdata
 "${KERNEL_SRC}/usr/gen_init_cpio" "${tmp_vdata}/fiod.gen_init_cpio.manifest" \
 	>> "$DRACUT_OUT" \
 	|| _fail "gen_init_cpio failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"

@@ -1,0 +1,7 @@
+# This file configures the vNIC on rapido vm2, which will use the host
+# rapido-tap2 device.
+
+[Network]
+Address=192.168.155.102/24
+LinkLocalAddressing=no
+LLMNR=no

@@ -16,11 +16,14 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/lrbd.sh" "$@"
+_rt_require_networking
 _rt_require_ceph
 _rt_require_conf_dir LRBD_SRC TARGETCLI_SRC RTSLIB_SRC CONFIGSHELL_SRC
 _rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libcrypto.so libexpat.so libudev.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
+# assign more memory
+_rt_mem_resources_set "1024M"
 
 # _rt_require_rpms ?
 py3_rpms="python3 python3-base python3-setuptools python3-pyudev python3-six \
@@ -37,7 +40,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 
 # ldconfig needed by pyudev ctypes.util.find_library
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df \
-		   $py3_files env ldconfig ip ping \
+		   $py3_files env ldconfig \
 		   dbus-daemon /etc/dbus-1/system.conf $rbd_bin $rados_cython \
 		   $LIBS_INSTALL_LIST" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
@@ -48,11 +51,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 	--include "$RTSLIB_SRC" "/rtslib/" \
 	--include "$TARGETCLI_SRC" "/targetcli/" \
 	--include "$CONFIGSHELL_SRC" "/configshell/" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
 	--modules "base systemd systemd-initrd dracut-systemd" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-# assign more memory
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

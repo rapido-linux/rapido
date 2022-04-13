@@ -17,16 +17,13 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/unionmount_testsuite.sh" "$@"
 _rt_require_conf_dir UNIONMOUNT_TESTSUITE_SRC
+_rt_mem_resources_set "1024M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs mkfs.btrfs python3" \
 	--include "$UNIONMOUNT_TESTSUITE_SRC" "$UNIONMOUNT_TESTSUITE_SRC" \
 	--include "/usr/lib64/python3.6/" "/usr/lib64/python3.6/" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle btrfs raid6_pq overlay" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "1024M"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

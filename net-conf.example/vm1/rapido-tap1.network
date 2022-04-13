@@ -1,0 +1,20 @@
+# The path "net-conf/vm1/rapido-tap1.network" indicates:
+# - it applies to rapido vm1 (the first virtual machine booted via "./rapido")
+# - when booted, vm1 will be assigned the "rapido-tap1" tap device
+#   + "rapido-tap1" must exist beforehand. See "tools/br_tap_setup.sh"
+#   + systemd-networkd will be run in the guest to apply this configuration
+#
+# See the systemd.network(5) man page for syntax details.
+# A [Match] section isn't needed, as rapido generates it.
+
+[Network]
+Address=192.168.155.101/24
+#DHCP=yes
+# if unneeded, this significantly speeds up wait-online...
+LinkLocalAddressing=no
+LLMNR=no
+
+# The vNIC MAC address is auto-generated. It can be overwritten using netd's
+# Link.MACAddress functionality, e.g.
+#[Link]
+#MACAddress=b8:ac:24:45:c5:01

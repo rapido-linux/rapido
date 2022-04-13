@@ -57,6 +57,19 @@ sed -i "s#<user>\\w*</user>#<user>root</user>#" /etc/dbus-1/system.conf
 mkdir -p /run/dbus/ /etc/dbus-1/system.d
 dbus-daemon --system || _fatal
 
+hostname1=$(cat /rapido-rsc/net/vm1/hostname || _fatal)
+hostname2=$(cat /rapido-rsc/net/vm2/hostname || _fatal)
+
+cfg_ips=()
+_vm_ar_cfg_ips "1" cfg_ips
+(( ${#cfg_ips[@]} > 0 )) || _fatal "vm1 lacks IP address config"
+vm1_ip=${cfg_ips[0]}
+
+cfg_ips=()
+_vm_ar_cfg_ips "2" cfg_ips
+(( ${#cfg_ips[@]} > 0 )) || _fatal "vm2 lacks IP address config"
+vm2_ip=${cfg_ips[0]}
+
 cat > lrbd.conf.json << EOF
 {
   "auth": [
@@ -68,8 +81,8 @@ cat > lrbd.conf.json << EOF
   "targets": [
       {
         "hosts": [
-            { "host": "$HOSTNAME1", "portal": "portal1" },
-            { "host": "$HOSTNAME2", "portal": "portal2" }
+            { "host": "$hostname1", "portal": "portal1" },
+            { "host": "$hostname2", "portal": "portal2" }
         ],
         "target": "$TARGET_IQN"
       }
@@ -77,11 +90,11 @@ cat > lrbd.conf.json << EOF
   "portals": [
       {
           "name": "portal1",
-          "addresses": [ "$IP_ADDR1" ]
+          "addresses": [ "$vm1_ip" ]
       },
       {
           "name": "portal2",
-          "addresses": [ "$IP_ADDR2"  ]
+          "addresses": [ "$vm2_ip"  ]
       }
   ],
   "pools": [

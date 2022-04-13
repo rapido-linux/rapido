@@ -11,9 +11,11 @@ trap "rm $vm_ceph_conf" 0 1 2 3 15
 
 _rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/lib/ceph.sh" \
 			"${RAPIDO_DIR}/autorun/blktests_rbd.sh" "$@"
+_rt_require_networking
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_blktests
+_rt_mem_resources_set "2048M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   getopt tput wc column blktrace losetup parted truncate \
@@ -26,10 +28,7 @@ _rt_require_blktests
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \
 	--include "$RBD_UDEV_RULES" "/usr/lib/udev/rules.d/50-rbd.rules" \
 	--include "$BLKTESTS_SRC" "$BLKTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "scsi_debug null_blk loop" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

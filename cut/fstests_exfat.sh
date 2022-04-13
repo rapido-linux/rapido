@@ -9,6 +9,10 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_exfat.sh" "$@"
 _rt_require_fstests
 _rt_require_exfat_progs
+_rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
+	|| _fail "failed to calculate memory resources"
+# 2x multiplier for one test and one scratch zram. +2G as buffer
+_rt_mem_resources_set "$((2048 + (zram_bytes * 2 / 1048576)))M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs shuf free ip \
@@ -28,12 +32,8 @@ _rt_require_exfat_progs
 		   ${FSTESTS_SRC}/src/aio-dio-regress/* \
 		   $EXFAT_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle dm-flakey exfat \
 		       loop scsi_debug dm-log-writes" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
-_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "4096M"
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

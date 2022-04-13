@@ -25,11 +25,7 @@ _rt_require_dracut_args "${RAPIDO_DIR}/autorun/lio_pscsi_loop.sh" "$@"
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   mkfs mkfs.xfs parted partprobe sgdisk hdparm uuidgen \
 		   env lsscsi awk" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "virtio_scsi target_core_pscsi tcm_loop" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"
-
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"

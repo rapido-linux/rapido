@@ -5,40 +5,36 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-# Call _rt_require_dracut_args() providing a script path that will be run on
-# VM boot. It exports variables used in the dracut invocation below.
+# The job of Rapido cut scripts is to generate a VM image. This is done using
+# Dracut with a number of parameters...
+
+# Call _rt_require_dracut_args() providing script paths that will be included
+# and run on VM boot. It exports variables used in the dracut invocation below.
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/simple_example.sh" "$@"
 
-# The job of Rapido cut scripts is to generate a VM image. This is done using
-# Dracut with the following parameters...
+# _rt_require_networking() flags that VMs using this image should have a network
+# adapter. Binaries and configuration required for networking are appended to
+# DRACUT_RAPIDO_ARGS.
+#_rt_require_networking
+
+# VMs are booted with 2 vCPUs and 512M RAM by default. These defaults can be
+# changed, e.g. 1 vCPU + 1G RAM could be specified via:
+#_rt_cpu_resources_set 1
+#_rt_mem_resources_set 1G
 
 # --install provides a list of binaries that should be included in the VM image.
 # Dracut will resolve shared object dependencies and add them automatically.
 
 # --include copies a specific file or directory to the given image destination.
-# The .profile image path is special, in that it is executed on boot.
 
 # --add-drivers provides a list of kernel modules, which will be obtained from
 # the rapido.conf KERNEL_INSTALL_MOD_PATH
 
 # --modules provides a list of *Dracut* modules. See Dracut documentation for
 # details
-
-# DRACUT_EXTRA_ARGS in rapido.conf allows for extra custom Dracut parameters for
-# debugging, etc.
 "$DRACUT" \
 	--install "resize ps rmdir dd mkfs.xfs" \
-	$DRACUT_RAPIDO_INCLUDES \
 	--add-drivers "zram lzo lzo-rle" \
 	--modules "base" \
-	$DRACUT_EXTRA_ARGS \
-	$DRACUT_OUT || _fail "dracut failed"
-
-# VMs can be deployed with or without a virtual network adapter. The default is
-# to deploy *with* network, in which case the ip and ping binaries should be
-# added to the Dracut --install parameter above.
-_rt_xattr_vm_networkless_set "$DRACUT_OUT"		# *disable* network
-
-# VMs are booted with 2 vCPUs and 512M RAM by default. These defaults can be
-# changed using _rt_xattr_vm_resources_set.
-#_rt_xattr_vm_resources_set "$DRACUT_OUT" "2" "2048M"	# 2 vCPUs, 2G RAM
+	"${DRACUT_RAPIDO_ARGS[@]}" \
+	"$DRACUT_OUT" || _fail "dracut failed"
