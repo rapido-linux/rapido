@@ -32,3 +32,6 @@ if [ -n "$LTP_AUTORUN_CMD" ]; then
 	echo "Running LTP Command: $LTP_AUTORUN_CMD"
 	eval "$LTP_AUTORUN_CMD"
 fi
+
+# LTP net tests need loopback networking
+ip link set dev lo up
