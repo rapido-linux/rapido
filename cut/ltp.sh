@@ -19,6 +19,12 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/ltp.sh" "$@"
 _rt_require_conf_dir LTP_DIR
 _rt_mem_resources_set "2048M"	# 2 vCPUs, 2G RAM
 
+if [[ -n $KERNEL_SRC ]]; then
+	config="${KERNEL_SRC}/.config"
+else
+	config="/boot/config-$(uname -r)"
+fi
+
 "$DRACUT" \
 	--install " \
 		attr awk basename bc blockdev cat chattr chgrp chmod chown cmp cut \
@@ -32,7 +38,7 @@ _rt_mem_resources_set "2048M"	# 2 vCPUs, 2G RAM
 		tee touch tr true truncate uniq unlink vgremove wc which xargs xxd yes \
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
 	--include "$LTP_DIR" "$LTP_DIR"  \
-	--include "${KERNEL_SRC}/.config" /.config \
+	--include "$config" /.config \
 	--add-drivers "loop" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
