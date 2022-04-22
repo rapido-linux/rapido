@@ -23,11 +23,16 @@ touch --date=@1641548270 "${tmp_vdata}/fiod"
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
 
+if [[ -n $KERNEL_SRC ]]; then
+	kconfig="${KERNEL_SRC}/.config"
+else
+	kconfig="/boot/config-$(uname -r)"
+fi
 # As of 889d51a10712 (v2.6.28) kernel initramfs extraction preserves archived
 # mtimes by default.
 # Dracut doesn't always preserve directory mtimes through the staging area, so
 # append as a separate cpio archive.
-if ! grep -q "^# CONFIG_INITRAMFS_PRESERVE_MTIME" "$KERNEL_SRC/.config"; then
+if ! grep -q "^# CONFIG_INITRAMFS_PRESERVE_MTIME" "$kconfig"; then
 	mkdir -p "${tmp_vdata}/fiod.mtime_chk/2"
 	touch --date=@1641548271 "${tmp_vdata}/fiod.mtime_chk"
 	touch --date=@1641548272 "${tmp_vdata}/fiod.mtime_chk/2"
