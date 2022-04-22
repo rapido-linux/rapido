@@ -13,6 +13,9 @@
 # "INSTALL_MOD_PATH=./mods make modules_install" during kernel compilation.
 #KERNEL_INSTALL_MOD_PATH="${KERNEL_SRC}/mods"
 
+# Kernel config is auto detected, but possible to overwrite if on unusual location.
+#KCONFIG=""
+
 ######### Host network settings #########
 # bridge device provisioned by "rapido setup-network".
 BR_DEV="rapido-br"
