@@ -1,16 +1,6 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LLC 2021, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2021-2022, all rights reserved.
 
 _vm_ar_env_check || exit 1
 
@@ -29,6 +19,9 @@ mount -t btrfs /dev/zram0 /mnt || _fatal
 chmod 777 /mnt || _fatal
 
 set +x
+
+# send_recvmsg test needs loopback networking
+ip link set dev lo up
 
 # liburing tests run from CWD so we unfortunately have to move them over
 mv ${LIBURING_SRC}/test /mnt || _fatal
