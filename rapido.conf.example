@@ -267,3 +267,9 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # NVMe over TCP target details used for mapping
 #NVME_TARGET_TCP="192.168.155.100"
 ###############################################
+
+############### autorun/nfs*.sh ###############
+# NFS export name used for server configuration.
+# e.g. NFS_SHARE="myshare"
+#NFS_SHARE=""
+###############################################
