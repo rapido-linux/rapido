@@ -267,3 +267,17 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 # NVMe over TCP target details used for mapping
 #NVME_TARGET_TCP="192.168.155.100"
 ###############################################
+
+############## autorun/*nfs*.sh ##############
+# NFS export name used for server configuration in nfsd-btrfs.
+# e.g. NFS_SHARE="myshare"
+#NFS_SHARE=""
+#
+# NFS server hostname / IP to use for NFS client mount attempts.
+# e.g. NFS_SERVER="nfsserver.example.com"
+#NFS_SERVER=""
+#
+# mount options to use for NFS client mount attempts.
+#e.g. NFS_MOUNT_OPTIONS="nfsvers=3"
+#NFS_MOUNT_OPTIONS=""
+###############################################
