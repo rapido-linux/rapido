@@ -43,6 +43,7 @@ _rt_mem_resources_set "2048M"
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
+	--add-drivers "ceph libceph" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
