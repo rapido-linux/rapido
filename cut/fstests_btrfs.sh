@@ -15,7 +15,7 @@ _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 _rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs shuf free ip \
+		   strace mkfs mkfs.ext4 e2fsck tune2fs shuf free ip \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
@@ -33,7 +33,7 @@ _rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
-		       loop scsi_debug dm-log-writes xxhash_generic" \
+		       loop scsi_debug dm-log-writes xxhash_generic ext4" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
