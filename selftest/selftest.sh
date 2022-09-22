@@ -1,20 +1,11 @@
 #!/bin/bash
-#
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) SUSE LLC 2019, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 export RAPIDO_SELFTEST_TMPDIR="$(mktemp -d rapido-selftest.XXXXXXX)"
+[ -d "$RAPIDO_SELFTEST_TMPDIR" ] || exit 1
 CLEANUP="rm -f ${RAPIDO_SELFTEST_TMPDIR}/*; rmdir $RAPIDO_SELFTEST_TMPDIR"
 # cleanup tmp dir when done
 trap "$CLEANUP" 0 1 2 3 15
@@ -34,7 +25,7 @@ _fail() {
 _generate_conf() {
 	local conf="$1"
 	local example_conf="${RAPIDO_DIR}/rapido.conf.example"
-	local i sed_regexp
+	local i val
 
 	[ -f "$conf" ] && _fail "$conf already exists, aborting"
 
