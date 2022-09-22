@@ -153,18 +153,11 @@ rapido_help()
 }
 
 if [ "$#" = "0" ]; then
-	subcommand="help"
+	subcmd_func=rapido_help
 else
-	subcommand="$1"
+	subcmd_func=rapido_${1//-/_}
 	shift
 fi
-
-if ! declare -n subcmd=rapido_alias_${subcommand//-/_} &> /dev/null || \
-	test -z "${subcmd:-}"; then
-	subcmd="$subcommand"
-fi
-
-subcmd_func=rapido_${subcmd//-/_}
 if ! declare -f $subcmd_func > /dev/null; then
 	rapido_help
 	exit 1
