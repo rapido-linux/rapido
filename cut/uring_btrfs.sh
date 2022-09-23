@@ -10,20 +10,26 @@ _rt_require_conf_dir LIBURING_SRC
 _rt_mem_resources_set "2G"
 
 test_manifest="$(mktemp --tmpdir iouring_tests.XXXXX)"
-# remove tmp file once we're done
 trap "rm $test_manifest" 0 1 2 3 15
 
-pushd ${LIBURING_SRC}/test || _fail
-find . -type f -executable ! -name '*.sh' -fprintf "$test_manifest" '%P\n'
-popd
-test_bins=$(sed "s#^#${LIBURING_SRC}/test/#" "$test_manifest")
+test_files=($(find "${LIBURING_SRC}/test" -type f -executable ! -name '*.sh' \
+		-fprintf "$test_manifest" '%f\n' -printf '%p '))
+test_files+=("${LIBURING_SRC}/test/runtests.sh")
+[[ -f "${LIBURING_SRC}/test/config.local" ]] \
+	&& test_files+=("${LIBURING_SRC}/test/config.local")	# optional conf
+
+if [[ -d $KERNEL_SRC ]]; then
+	# add kernel iouring test tools if built via "make -C tools/io_uring"
+	for i in tools/io_uring/io_uring-bench tools/io_uring/io_uring-cp; do
+		[[ -x ${KERNEL_SRC}/${i} ]] && test_files+=("${KERNEL_SRC}/${i}")
+	done
+fi
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.btrfs tee timeout ip \
 		   stat which touch cut chmod true false \
 		   id sort uniq date expr tac diff head dirname seq \
-		   ${LIBURING_SRC}/test/runtests.sh \
-		   $test_bins" \
+		   ${test_files[*]}" \
 	--include "$test_manifest" "/uring_tests.manifest" \
 	--add-drivers "zram lzo lzo-rle btrfs" \
 	--modules "base" \
