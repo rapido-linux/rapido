@@ -17,7 +17,7 @@ _rt_mem_resources_set "$((2048 + (zram_bytes / 1048576)))M"
 		   id sort uniq date expr tac diff head dirname seq realpath \
 		   exportfs nfsdclddb nfsdclnts nfsdcltrack rcnfs-server \
 		   rpcbind rpc.mountd rpc.nfsd" \
-	--add-drivers "nfsd nfsv3 nfsv4 btrfs zram lzo lzo-rle" \
+	--add-drivers "nfsd btrfs zram lzo lzo-rle" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"

@@ -285,6 +285,6 @@ LTP_DIR="/opt/ltp"
 #NFS_SERVER=""
 #
 # mount options to use for NFS client mount attempts.
-#e.g. NFS_MOUNT_OPTIONS="nfsvers=3"
-#NFS_MOUNT_OPTIONS=""
+#e.g. NFS_MOUNT_OPTS="nfsvers=3"
+#NFS_MOUNT_OPTS=""
 ###############################################
