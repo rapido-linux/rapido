@@ -229,6 +229,22 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #TCMU_RUNNER_SRC=""
 #################################
 
+######### ssh_client.sh #########
+# server hostname / IP to use for ssh client connections
+#SSH_SERVER=""
+#
+# ssh client username
+#SSH_USER=""
+#
+# ssh client identity (private key) file, for which a public key is also
+# present at ${SSH_IDENTITY}.pub
+# e.g. SSH_IDENTITY="/home/me/.ssh/rapido_cli/id_rsa"
+#SSH_IDENTITY=""
+#
+# An optional file copied to /etc/ssh/ssh_known_hosts in the VM image
+#SSH_KNOWN_HOSTS=""
+#################################
+
 ###### autorun/dropbear.sh ######
 # public ssh key to add to Dropbear's authorized_keys file
 #SSH_AUTHORIZED_KEY=""
