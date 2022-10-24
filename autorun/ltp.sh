@@ -31,7 +31,7 @@ export CREATE_ENTRIES=0
 export LTPROOT="$LTP_DIR"
 export PATH="$LTP_DIR:$LTP_DIR/bin:$LTP_DIR/testcases/bin:$PATH"
 
-cd ${LTP_DIR} || _fatal
+cd $LTP_DIR/testcases/bin/ || _fatal
 if [ -n "$LTP_AUTORUN_CMD" ]; then
 	echo "Running LTP Command: $LTP_AUTORUN_CMD"
 	eval "$LTP_AUTORUN_CMD"
