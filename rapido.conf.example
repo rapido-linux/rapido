@@ -282,7 +282,10 @@ LTP_DIR="/opt/ltp"
 # XXX DEPRECATED: use the rapido cut '-x' or '-f' parameters instead
 # LTP_AUTORUN_CMD can be set to automatically run one or more testcases from
 # within the ltp directory.
-# e.g. LTP_AUTORUN_CMD="./runltp"
+# Running a math runtest
+# LTP_AUTORUN_CMD="runltp -f math"
+# running a single test
+# LTP_AUTORUN_CMD="access01"
 #LTP_AUTORUN_CMD=""
 ################################
 
