@@ -27,6 +27,8 @@ for ug in nobody bin daemon; do
 	((xid++))
 done
 
+export PATH="$LTP_DIR:$LTP_DIR/bin:$LTP_DIR/testcases/bin:$PATH"
+
 cd ${LTP_DIR} || _fatal
 if [ -n "$LTP_AUTORUN_CMD" ]; then
 	echo "Running LTP Command: $LTP_AUTORUN_CMD"
