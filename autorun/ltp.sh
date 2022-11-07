@@ -1,17 +1,6 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2019, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
-
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2019-2022, all rights reserved.
 
 _vm_ar_env_check || exit 1
 
@@ -27,7 +16,11 @@ for ug in nobody bin daemon; do
 	((xid++))
 done
 
-cd ${LTP_DIR} || _fatal
+export CREATE_ENTRIES=0
+export LTPROOT="$LTP_DIR"
+export PATH="$LTP_DIR:$LTP_DIR/bin:$LTP_DIR/testcases/bin:$PATH"
+
+cd $LTP_DIR/testcases/bin/ || _fatal
 if [ -n "$LTP_AUTORUN_CMD" ]; then
 	echo "Running LTP Command: $LTP_AUTORUN_CMD"
 	eval "$LTP_AUTORUN_CMD"
