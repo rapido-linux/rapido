@@ -6,6 +6,7 @@ _vm_ar_env_check || exit 1
 
 set -x
 
+modprobe virtio_blk
 modprobe zram num_devices="0" || _fatal "failed to load zram module"
 
 _vm_ar_hosts_create

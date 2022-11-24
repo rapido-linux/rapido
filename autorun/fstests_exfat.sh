@@ -10,7 +10,7 @@ if [ -n "$EXFAT_PROGS_SRC" ]; then
 	export PATH="${PATH}:${EXFAT_PROGS_SRC}/mkfs:${EXFAT_PROGS_SRC}/fsck"
 	export PATH="${PATH}:${EXFAT_PROGS_SRC}/dump:${EXFAT_PROGS_SRC}/tune"
 fi
-
+modprobe virtio_blk
 modprobe zram num_devices="0" || _fatal "failed to load zram module"
 
 _vm_ar_hosts_create
