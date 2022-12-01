@@ -33,7 +33,8 @@ _rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 		   $BTRFS_PROGS_BINS" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	--add-drivers "zram lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
-		       loop scsi_debug dm-log-writes xxhash_generic ext4" \
+		       loop scsi_debug dm-log-writes xxhash_generic ext4 \
+		       virtio_blk" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"

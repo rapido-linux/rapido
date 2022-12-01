@@ -33,7 +33,7 @@ _rt_mem_resources_set "$((2048 + (zram_bytes * 2 / 1048576)))M"
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	--add-drivers "zram lzo lzo-rle dm-flakey ext4 \
-		       loop scsi_debug dm-log-writes" \
+		       loop scsi_debug dm-log-writes virtio_blk" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
