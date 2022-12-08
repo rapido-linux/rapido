@@ -13,6 +13,12 @@ _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 # 2x multiplier for one test and one scratch zram. +2G as buffer
 _rt_mem_resources_set "$((2048 + (zram_bytes * 2 / 1048576)))M"
 
+man_deps=(man /etc/manpath.config \
+	  $(man --path xfs_io xfs_spaceman xfs_db xfs_quota))
+[[ ${man_deps[@]} == ${man_deps[@]%.gz} ]] || man_deps+=(zcat gzip)
+[[ ${man_deps[@]} == ${man_deps[@]%.bz2} ]] || man_deps+=(bzcat)
+[[ ${man_deps[@]} == ${man_deps[@]%.xz} ]] || man_deps+=(xzcat)
+
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mkfs.xfs free ip \
 		   which perl awk bc touch cut chmod true false unlink \
@@ -26,7 +32,7 @@ _rt_mem_resources_set "$((2048 + (zram_bytes * 2 / 1048576)))M"
 		   xfs_mkfile xfs_db xfs_io xfs_spaceman fsck \
 		   xfs_mdrestore xfs_bmap xfs_fsr xfsdump xfs_freeze xfs_info \
 		   xfs_logprint xfs_repair xfs_growfs xfs_quota xfs_metadump \
-		   chgrp du fgrep pgrep tar rev kill duperemove \
+		   chgrp du fgrep pgrep tar rev kill duperemove ${man_deps[*]} \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
