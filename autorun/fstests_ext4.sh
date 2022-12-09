@@ -48,6 +48,9 @@ generic/388
 generic/392
 EOF
 
+e2fsck_bin="$(type -P e2fsck)"	# fsck.ext3 needed for tests/ext4/044
+ln -s "$e2fsck_bin" "${e2fsck_bin/e2fsck/fsck.ext3}"
+
 # fstests generic/131 needs loopback networking
 ip link set dev lo up
 
