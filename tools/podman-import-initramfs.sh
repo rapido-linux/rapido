@@ -18,7 +18,7 @@ t=$(mktemp --directory "rapido-cpio-to-tar.XXXXXXXXXX")
 unwind="rm -rf \"${t}\"; $unwind"
 
 # "podman import" doesn't natively support cpio so we need to transcode to tar
-cpio -D "$t" -idm < ${RAPIDO_DIR}/initrds/myinitrd \
+cpio -D "$t" -idm < "$DRACUT_OUT" \
 	|| _fail "failed to extract image at ${RAPIDO_DIR}/initrds/myinitrd"
 
 tar -C "$t" --to-stdout -c . | podman import -m="Imported from rapido" "$@" - \

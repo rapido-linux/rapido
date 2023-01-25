@@ -67,6 +67,11 @@ QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 # Default is unset (i.e. use system dracut)
 #DRACUT_SRC=""
 
+# Initramfs output path for dracut when calling "rapido cut ...", used as input
+# image for QEMU boot. Default below need only be changed if RAPIDO_DIR is being
+# shared between independent users with different rapido configs.
+#DRACUT_OUT="${RAPIDO_DIR}/initrds/myinitrd"
+
 # kernel modules or files for which dynamic debug should be enabled
 # e.g. DYN_DEBUG_MODULES="rbd libceph"
 # e.g. DYN_DEBUG_FILES="drivers/block/rbd.c"
