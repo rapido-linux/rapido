@@ -22,6 +22,7 @@ _vm_start() {
 	local netd_flag netd_mach_id i vm_tap tap_mac n f
 	local vm_resources=()
 	local vm_num_kparam="rapido.vm_num=${vm_num}"
+	local net_conf="${VM_NET_CONF}/vm${vm_num}"
 	local qemu_netdev=()
 	local kcmdline=(rd.systemd.unit=dracut-cmdline.service \
 		"console=$QEMU_KERNEL_CONSOLE" \
@@ -31,7 +32,7 @@ _vm_start() {
 	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
 
 	# XXX could use systemd.hostname=, but it requires systemd-hostnamed
-	n=$(head -n1 "${RAPIDO_DIR}/net-conf/vm${vm_num}/hostname" 2>/dev/null) \
+	n=$(head -n1 "${net_conf}/hostname" 2>/dev/null) \
 		&& kcmdline+=("rapido.hostname=\"${n}\"")
 
 	_rt_qemu_resources_get "${DRACUT_OUT}" vm_resources netd_flag \
@@ -48,11 +49,11 @@ _vm_start() {
 
 		kcmdline+=(net.ifnames=0 "systemd.machine_id=${netd_mach_id% *}")
 
-		[ -d "${RAPIDO_DIR}/net-conf/vm${vm_num}" ] \
-			|| _fail "net-conf/vm${vm_num} configuration missing"
+		[ -d "$net_conf" ] \
+			|| _fail "$net_conf configuration missing"
 
 		n=0
-		for i in $(ls "${RAPIDO_DIR}/net-conf/vm${vm_num}"); do
+		for i in $(ls "$net_conf"); do
 			[[ $i =~ ^(.*)\.network$ ]] || continue
 			vm_tap="${BASH_REMATCH[1]}"
 
@@ -85,7 +86,7 @@ _vm_start() {
 		done
 		# warn only, as a netdev may be provided via QEMU_EXTRA_ARGS
 		(( n > 0 )) \
-		  || _warn "no valid TAP devices found in net-conf/vm${vm_num}"
+		  || _warn "no valid TAP devices found in $net_conf"
 	fi
 
 	# rapido.conf might have specified a shared folder for qemu

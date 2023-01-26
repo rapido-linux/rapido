@@ -34,7 +34,10 @@ BR_ADDR="192.168.155.1/24"
 # e.g. TAP_USER="me"
 TAP_USER=""
 
-# VM network settings are read from the net-conf directory. See net-conf.example
+# VM network settings are read from the net-conf directory by default (see
+# net-conf.example). The default below need only be changed if RAPIDO_DIR is
+# being shared between independent users with different rapido configs.
+#VM_NET_CONF="${RAPIDO_DIR}/net-conf"
 #########################################
 
 # If specified, share this path with the guest via virtfs. It will be mounted

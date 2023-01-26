@@ -113,7 +113,7 @@ for i in 1 2; do
 done
 
 cat << EOF
--> Complete: inspect then run "mv ${tmpd##*/} net-conf" to activate the config.
+-> Complete: inspect then run "mv ${tmpd##*/} $VM_NET_CONF" to activate the config.
 -> rapido.conf MAC_ADDR, TAP_DEV, HOSTNAME and IP_ADDR options can then be removed.
 EOF
 
