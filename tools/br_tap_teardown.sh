@@ -72,10 +72,10 @@ done
 
 if [[ -n $BR_DHCP_SRV_RANGE ]]; then
 	# FIXME should be able to use /var/run/rapido-dnsmasq-$$.pid
-	dnsmasq_pid=`ps -eo pid,args | grep -v grep | grep dnsmasq \
-			| grep -- --interface=$br_name \
-			| grep -- --dhcp-range=$BR_DHCP_SRV_RANGE \
-			| awk '{print $1}'`
+	# TODO deprecate in favour of networkd [DHCPServer] on vm
+	dnsmasq_pid=$(ps -eo pid,args \
+		| awk '$2 ~ /dnsmasq/ && /--interface='"$br_name"'/ \
+			&& /--dhcp-range='"$BR_DHCP_SRV_RANGE"'/ { print $1 }')
 	if [ -z "$dnsmasq_pid" ]; then
 		echo "failed to find dnsmasq process"
 		#exit 1
