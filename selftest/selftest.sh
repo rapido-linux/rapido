@@ -4,7 +4,7 @@
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
-export RAPIDO_SELFTEST_TMPDIR="$(mktemp -d rapido-selftest.XXXXXXX)"
+export RAPIDO_SELFTEST_TMPDIR="$(mktemp --tmpdir -d rapido-selftest.XXXXXXX)"
 [ -d "$RAPIDO_SELFTEST_TMPDIR" ] || exit 1
 CLEANUP="rm -f ${RAPIDO_SELFTEST_TMPDIR}/*; rmdir $RAPIDO_SELFTEST_TMPDIR"
 # cleanup tmp dir when done
@@ -44,10 +44,11 @@ _generate_conf() {
 	done
 
 	# set QEMU_EXTRA_KERNEL_PARAMS= so that printk doesn't go to console
-	echo "QEMU_EXTRA_KERNEL_PARAMS=\"loglevel=0\"" >> "$conf" \
-		|| _fail "write failed"
-	echo "QEMU_EXTRA_ARGS=\"-monitor none -serial stdio -nographic -device virtio-rng-pci\"" \
-		>> "$conf" || _fail "write failed"
+	cat >> "$conf" <<EOF
+QEMU_EXTRA_KERNEL_PARAMS="loglevel=0"
+QEMU_EXTRA_ARGS="-monitor none -serial stdio -nographic -device virtio-rng-pci"
+DRACUT_OUT="${RAPIDO_SELFTEST_TMPDIR}/myinitrd"
+EOF
 }
 
 _run_tests() {
