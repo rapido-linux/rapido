@@ -61,6 +61,15 @@ QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 # e.g. QEMU_EXTRA_KERNEL_PARAMS="loglevel=0"
 #QEMU_EXTRA_KERNEL_PARAMS=""
 
+# The directory to store QEMU pid files. When determining which identifier
+# (vm_num) to assign to a booting rapido VM, QEMU_PID_DIR is checked for
+# rapido_vm${vm_num}.pid files which correspond to an active process,
+# incrementing from vm_num=1. The first vm_num identifier found to not be
+# active is assigned to the booting VM.
+# You shouldn't need to change the default below unless RAPIDO_DIR is
+# being shared between independent users.
+#QEMU_PID_DIR="${RAPIDO_DIR}/initrds"
+
 # extra dracut args, e.g. "--debug --nostrip --tmpdir /tmp"
 #DRACUT_EXTRA_ARGS=""
 

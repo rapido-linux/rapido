@@ -9,7 +9,7 @@ _rt_require_qemu_args
 
 _vm_is_running() {
 	local vm_num=$1
-	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
+	local vm_pid_file="${QEMU_PID_DIR}/rapido_vm${vm_num}.pid"
 
 	[ -f $vm_pid_file ] || return
 
@@ -18,7 +18,7 @@ _vm_is_running() {
 
 _vm_start() {
 	local vm_num=$1
-	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
+	local vm_pid_file="${QEMU_PID_DIR}/rapido_vm${vm_num}.pid"
 	local netd_flag netd_mach_id i vm_tap tap_mac n f
 	local vm_resources=()
 	local vm_num_kparam="rapido.vm_num=${vm_num}"
