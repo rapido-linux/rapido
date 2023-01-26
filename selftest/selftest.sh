@@ -48,6 +48,7 @@ _generate_conf() {
 QEMU_EXTRA_KERNEL_PARAMS="loglevel=0"
 QEMU_EXTRA_ARGS="-monitor none -serial stdio -nographic -device virtio-rng-pci"
 DRACUT_OUT="${RAPIDO_SELFTEST_TMPDIR}/myinitrd"
+QEMU_PID_DIR="${RAPIDO_SELFTEST_TMPDIR}"
 EOF
 }
 
