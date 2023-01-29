@@ -1,16 +1,6 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2018-2023, all rights reserved.
 
 # Connect to a running QEMU gdb server
 
@@ -22,6 +12,9 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 [ -f "${KERNEL_SRC}/vmlinux" ] || _fail "vmlinux not found. Build needed?"
 [ -z "$QEMU_EXTRA_ARGS" ] \
        	&& _fail "QEMU_EXTRA_ARGS not set - should contain -s or -gdb"
+[[ $QEMU_EXTRA_KERNEL_PARAMS == "${QEMU_EXTRA_KERNEL_PARAMS/nokaslr/}" ]] \
+   && grep "CONFIG_RANDOMIZE_BASE=y" "${KERNEL_SRC}/.config" \
+   && echo "WARNING: KASLR enabled: consider booting with nokaslr"
 
 opts=$(getopt -q -o "s" -a --long "gdb:" -- $QEMU_EXTRA_ARGS)
 [ -z "$opts" ] && _fail "failed to parse -s or -gdb in QEMU_EXTRA_ARGS"
@@ -47,8 +40,10 @@ done
 	&& _fail "no gdbserver device found in QEMU_EXTRA_ARGS"
 
 echo "connecting to gdbserver at ${gdb_dev}..."
-cd ${KERNEL_SRC}
-gdb ${KERNEL_SRC}/vmlinux \
+cd "$KERNEL_SRC"
+gdb -q "${KERNEL_SRC}/vmlinux" \
+	-iex "set auto-load safe-path $KERNEL_SRC" \
 	-ex "add-auto-load-safe-path $KERNEL_SRC" \
 	-ex "add-auto-load-scripts-directory ${KERNEL_SRC}/scripts/gdb/" \
-	-ex "target remote ${gdb_dev}"
+	-ex "target remote ${gdb_dev}" \
+	-ex "lx-symbols"
