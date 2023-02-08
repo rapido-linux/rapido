@@ -36,14 +36,14 @@ _tap_manifest_gen() {
 	br_dev="$2"
 	local i vm_tap
 
-	[[ -d ${RAPIDO_DIR}/net-conf ]] \
-		|| fail "net-conf directory missing, see net-conf.example"
+	[[ -d $VM_NET_CONF ]] \
+		|| fail "$VM_NET_CONF directory missing, see net-conf.example"
 
 	cat > "$manifest" << EOF
 # The following tap devices will be created alongside "${br_dev}":
 EOF
 	shopt -s nullglob
-	for i in ${RAPIDO_DIR}/net-conf/vm[0-9]*/*.network; do
+	for i in ${VM_NET_CONF}/vm[0-9]*/*.network; do
 		[[ $i =~ /vm[0-9]*/(.*)\.network$ ]] || continue
 		vm_tap="${BASH_REMATCH[1]}"
 		if [[ -d /sys/class/net/${vm_tap} ]]; then

@@ -30,14 +30,14 @@ _tap_manifest_gen() {
 	br_dev="$2"
 	local i vm_tap
 
-	[[ -d ${RAPIDO_DIR}/net-conf ]] \
-		|| fail "net-conf directory missing, see net-conf.example"
+	[[ -d $VM_NET_CONF ]] \
+		|| fail "$VM_NET_CONF directory missing, see net-conf.example"
 
 	cat > "$manifest" << EOF
 # The following tap devices will be deleted alongside "${br_dev}":
 EOF
 	shopt -s nullglob
-	for i in ${RAPIDO_DIR}/net-conf/vm[0-9]*/*.network; do
+	for i in ${VM_NET_CONF}/vm[0-9]*/*.network; do
 		[[ $i =~ /vm[0-9]*/(.*)\.network$ ]] || continue
 		vm_tap="${BASH_REMATCH[1]}"
 		if [[ -d /sys/class/net/${vm_tap} ]]; then
@@ -72,10 +72,10 @@ done
 
 if [[ -n $BR_DHCP_SRV_RANGE ]]; then
 	# FIXME should be able to use /var/run/rapido-dnsmasq-$$.pid
-	dnsmasq_pid=`ps -eo pid,args | grep -v grep | grep dnsmasq \
-			| grep -- --interface=$br_name \
-			| grep -- --dhcp-range=$BR_DHCP_SRV_RANGE \
-			| awk '{print $1}'`
+	# TODO deprecate in favour of networkd [DHCPServer] on vm
+	dnsmasq_pid=$(ps -eo pid,args \
+		| awk '$2 ~ /dnsmasq/ && /--interface='"$br_name"'/ \
+			&& /--dhcp-range='"$BR_DHCP_SRV_RANGE"'/ { print $1 }')
 	if [ -z "$dnsmasq_pid" ]; then
 		echo "failed to find dnsmasq process"
 		#exit 1

@@ -1,16 +1,6 @@
 #!/usr/bin/expect -f
-#
-# Copyright (C) SUSE LLC 2019, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2019-2023, all rights reserved.
 
 # simple-example runner with separate cut + boot invocations
 
@@ -19,6 +9,16 @@ spawn ./rapido cut -B simple-example
 expect {
 	timeout {exit 1}
 	"dracut: *** Creating initramfs image file"
+}
+expect {
+	timeout {exit 1}
+	eof
+}
+# confirm that image was written at DRACUT_OUT path
+spawn lsinitrd $::env(RAPIDO_SELFTEST_TMPDIR)/myinitrd
+expect {
+	timeout {exit 1}
+	"Version: dracut"
 }
 expect {
 	timeout {exit 1}

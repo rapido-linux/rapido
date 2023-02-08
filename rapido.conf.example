@@ -34,7 +34,10 @@ BR_ADDR="192.168.155.1/24"
 # e.g. TAP_USER="me"
 TAP_USER=""
 
-# VM network settings are read from the net-conf directory. See net-conf.example
+# VM network settings are read from the net-conf directory by default (see
+# net-conf.example). The default below need only be changed if RAPIDO_DIR is
+# being shared between independent users with different rapido configs.
+#VM_NET_CONF="${RAPIDO_DIR}/net-conf"
 #########################################
 
 # If specified, share this path with the guest via virtfs. It will be mounted
@@ -58,7 +61,16 @@ QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 # e.g. QEMU_EXTRA_KERNEL_PARAMS="loglevel=0"
 #QEMU_EXTRA_KERNEL_PARAMS=""
 
-# extra dracut args, e.g. "--debug --nostrip"
+# The directory to store QEMU pid files. When determining which identifier
+# (vm_num) to assign to a booting rapido VM, QEMU_PID_DIR is checked for
+# rapido_vm${vm_num}.pid files which correspond to an active process,
+# incrementing from vm_num=1. The first vm_num identifier found to not be
+# active is assigned to the booting VM.
+# You shouldn't need to change the default below unless RAPIDO_DIR is
+# being shared between independent users.
+#QEMU_PID_DIR="${RAPIDO_DIR}/initrds"
+
+# extra dracut args, e.g. "--debug --nostrip --tmpdir /tmp"
 #DRACUT_EXTRA_ARGS=""
 
 # Directory with dracut source code.
@@ -66,6 +78,11 @@ QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 # This implies "--local" switch for dracut
 # Default is unset (i.e. use system dracut)
 #DRACUT_SRC=""
+
+# Initramfs output path for dracut when calling "rapido cut ...", used as input
+# image for QEMU boot. Default below need only be changed if RAPIDO_DIR is being
+# shared between independent users with different rapido configs.
+#DRACUT_OUT="${RAPIDO_DIR}/initrds/myinitrd"
 
 # kernel modules or files for which dynamic debug should be enabled
 # e.g. DYN_DEBUG_MODULES="rbd libceph"

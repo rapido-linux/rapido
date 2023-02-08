@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2023, all rights reserved.
+
+# Check net-conf hostnames are propagated through to VMs
+
+set timeout 60
+
+set script "
+cp \"$::env(RAPIDO_CONF)\" \"$::env(RAPIDO_SELFTEST_TMPDIR)/005-rapido.conf\"
+echo VM_NET_CONF=\"$::env(RAPIDO_SELFTEST_TMPDIR)/005-net-conf\" \
+	>> \"$::env(RAPIDO_SELFTEST_TMPDIR)/005-rapido.conf\"
+mkdir -p \"$::env(RAPIDO_SELFTEST_TMPDIR)/005-net-conf/vm1\"
+echo \"vm1-test-005\" \
+	>> \"$::env(RAPIDO_SELFTEST_TMPDIR)/005-net-conf/vm1/hostname\"
+export RAPIDO_CONF=\"$::env(RAPIDO_SELFTEST_TMPDIR)/005-rapido.conf\"
+./rapido cut simple-example
+rm -rf \"$::env(RAPIDO_SELFTEST_TMPDIR)\"/005-*
+"
+
+spawn bash -c $script
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"Rapido scratch VM running. Have a lot of fun..."
+}
+
+send "cat /proc/sys/kernel/hostname\r"
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"vm1-test-005"
+}
+send "shutdown\r"
+expect eof {exit 0}
+exit 5

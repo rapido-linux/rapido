@@ -57,6 +57,24 @@ expect {
 	"rapido.vm_num=2"
 }
 
+# confirm that pid files are present
+set script "
+ps -p \"\$(head -n1 \"$::env(RAPIDO_SELFTEST_TMPDIR)/rapido_vm1.pid\")\" \
+	&& echo \"vm1 active\"
+ps -p \"\$(head -n1 \"$::env(RAPIDO_SELFTEST_TMPDIR)/rapido_vm2.pid\")\" \
+	&& echo \"vm2 active\"
+"
+spawn bash -c $script
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"vm1 active"
+}
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"vm2 active"
+}
+expect eof
+
 # shutdown first vm and wait for eof
 send -i $r1_sid "shutdown\r"
 expect {
