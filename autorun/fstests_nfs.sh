@@ -8,6 +8,8 @@ modprobe nfs
 _vm_ar_dyn_debug_enable
 _vm_ar_hosts_create
 
+_fstests_users_groups_provision
+
 [[ -n $NFS_SERVER && -n $NFS_SHARE ]] \
 	|| _fatal "NFS_SERVER and NFS_SHARE must be set in rapido.conf"
 [[ -n $NFS_MOUNT_OPTS ]] && mount_args="-o${NFS_MOUNT_OPTS}"
@@ -43,7 +45,7 @@ local      tpi_cots_ord  -     loopback  -      -       -
 unix       tpi_cots_ord  -     loopback  -      -       -
 EOF
 
-cat > /etc/nsswitch.conf <<EOF
+cat >> /etc/nsswitch.conf <<EOF
 rpc:	files usrfiles
 EOF
 

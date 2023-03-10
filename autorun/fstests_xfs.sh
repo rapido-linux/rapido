@@ -12,6 +12,8 @@ modprobe zram num_devices="0" || _fatal "failed to load zram module"
 _vm_ar_hosts_create
 _vm_ar_dyn_debug_enable
 
+_fstests_users_groups_provision
+
 fstests_cfg="${FSTESTS_SRC}/configs/$(hostname -s).config"
 cat > "$fstests_cfg" << EOF
 MODULAR=0

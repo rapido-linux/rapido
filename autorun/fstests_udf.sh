@@ -12,12 +12,7 @@ modprobe zram num_devices="0" || _fatal "failed to load zram module"
 _vm_ar_hosts_create
 _vm_ar_dyn_debug_enable
 
-xid="2000"	# xfstests requires a few preexisting users/groups
-for ug in fsgqa fsgqa2 123456-fsgqa; do
-	echo "${ug}:x:${xid}:${xid}:${ug} user:/:/sbin/nologin" >> /etc/passwd
-	echo "${ug}:x:${xid}:" >> /etc/group
-	((xid++))
-done
+_fstests_users_groups_provision
 
 fstests_cfg="${FSTESTS_SRC}/configs/$(hostname -s).config"
 cat > "$fstests_cfg" << EOF

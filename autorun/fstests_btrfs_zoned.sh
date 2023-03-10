@@ -1,23 +1,13 @@
 #!/bin/bash
-#
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) Western Digital Corporation 2021, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
 
 create_zoned_null_blk()
 {
-	dev="/sys/kernel/config/nullb/$1"
+	local dev="/sys/kernel/config/nullb/$1"
 	mkdir "$dev" || _fatal "cannot create nullb0 device"
 
-	size=12800 # MB
+	local size=12800 # MB
 	echo 2 > "$dev"/submit_queues
 	echo "${size}" > "${dev}"/size
 	echo 1 > "${dev}"/zoned
@@ -41,11 +31,12 @@ modprobe null_blk nr_devices="0" || _fatal "failed to load null_blk module"
 _vm_ar_dyn_debug_enable
 _vm_ar_configfs_mount
 
+_fstests_users_groups_provision
+
 # create the btrfs null_blk devices.
 for d in nullb0 nullb1; do
 	create_zoned_null_blk $d
 done
-
 
 mkdir -p /mnt/test
 mkdir -p /mnt/scratch
