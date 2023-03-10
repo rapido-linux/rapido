@@ -72,3 +72,24 @@ _fstests_devs_pool_provision() {
 	done
 	unset _CFG _POOL
 }
+
+_fstests_users_groups_provision() {
+	local ug xid="2000"
+
+	for ug in fsgqa fsgqa2 123456-fsgqa; do
+		echo "${ug}:x:${xid}:${xid}:${ug} user:/:/bin/bash" \
+			>> /etc/passwd
+		echo "${ug}:x:${xid}:" >> /etc/group
+		((xid++))
+	done
+
+	echo -e "passwd: files\ngroup: files" > /etc/nsswitch.conf
+
+	# minimal pam config to allow root to use su <user>
+	mkdir -p /etc/pam.d
+	cat > /etc/pam.d/su <<EOF
+auth	sufficient	pam_rootok.so
+account	sufficient	pam_rootok.so
+session	required	pam_limits.so
+EOF
+}
