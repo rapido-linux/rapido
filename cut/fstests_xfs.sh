@@ -22,7 +22,7 @@ man_deps=(man /etc/manpath.config \
 [[ ${man_deps[@]} == ${man_deps[@]%.xz} ]] || man_deps+=(xzcat)
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.xfs free ip su \
+		   strace mkfs mkfs.xfs free ip su uuidgen \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \

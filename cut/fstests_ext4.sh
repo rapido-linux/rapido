@@ -16,7 +16,7 @@ _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 _rt_mem_resources_set "$((2048 + (zram_bytes * 2 / 1048576)))M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs shuf free ip su \
+		   strace mkfs shuf free ip su uuidgen \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
