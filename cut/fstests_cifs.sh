@@ -8,10 +8,12 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_cifs.sh" "$@"
 _rt_require_networking
 _rt_require_fstests
+pam_paths=()
+_rt_require_pam_mods pam_paths "pam_rootok.so" "pam_limits.so"
 _rt_mem_resources_set "2048M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mount.cifs free \
+		   strace mkfs mount.cifs free su \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
@@ -21,7 +23,7 @@ _rt_mem_resources_set "2048M"
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io \
-		   chgrp du fgrep pgrep tar rev kill \
+		   chgrp du fgrep pgrep tar rev kill ${pam_paths[*]} \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \

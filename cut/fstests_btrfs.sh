@@ -9,13 +9,15 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_btrfs.sh" "$@"
 _rt_require_fstests
 _rt_require_btrfs_progs
+pam_paths=()
+_rt_require_pam_mods pam_paths "pam_rootok.so" "pam_limits.so"
 _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 	|| _fail "failed to calculate memory resources"
 # need enough memory for five zram devices
 _rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.ext4 e2fsck tune2fs shuf free ip \
+		   strace mkfs mkfs.ext4 e2fsck tune2fs shuf free ip su \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
@@ -26,7 +28,7 @@ _rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
-		   swapon swapoff xfs_freeze fsck \
+		   swapon swapoff xfs_freeze fsck ${pam_paths[*]} \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
 		   ${FSTESTS_SRC}/src/aio-dio-regress/*
