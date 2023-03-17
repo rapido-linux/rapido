@@ -8,7 +8,8 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/samba.sh" \
 			"$RAPIDO_DIR/autorun/samba_local.sh" "$@"
 _rt_require_networking
-_rt_require_samba_srv "vfs/btrfs.so"
+req_inst=()
+_rt_require_samba_srv req_inst "vfs/btrfs.so"
 # assign more memory
 _rt_mem_resources_set "1024M"
 
@@ -17,7 +18,7 @@ _rt_mem_resources_set "1024M"
 		   stat which touch cut chmod true false \
 		   getfattr setfattr getfacl setfacl killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   $SAMBA_SRV_BINS" \
+		   ${req_inst[*]}" \
 	--add-drivers "zram lzo lzo-rle xfs btrfs" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
