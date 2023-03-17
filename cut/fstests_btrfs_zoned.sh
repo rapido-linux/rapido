@@ -7,9 +7,9 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_btrfs_zoned.sh" "$@"
 _rt_require_fstests
-_rt_require_btrfs_progs
-pam_paths=()
-_rt_require_pam_mods pam_paths "pam_rootok.so" "pam_limits.so"
+req_inst=()
+_rt_require_btrfs_progs req_inst
+_rt_require_pam_mods req_inst "pam_rootok.so" "pam_limits.so"
 # need enough memory for two 12G null_blk devices
 _rt_mem_resources_set "16384M"
 
@@ -26,10 +26,9 @@ _rt_mem_resources_set "16384M"
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove blkzone \
 		   swapon swapoff xfs_freeze fsck blktrace blkparse \
-		   ${pam_paths[*]} ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
+		   ${req_inst[*]} ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \
-		   ${FSTESTS_SRC}/src/aio-dio-regress/*
-		   $BTRFS_PROGS_BINS" \
+		   ${FSTESTS_SRC}/src/aio-dio-regress/*" \
 	--include "$FSTESTS_SRC" "$FSTESTS_SRC" \
 	--add-drivers "lzo lzo-rle dm-snapshot dm-flakey btrfs raid6_pq \
 		       loop scsi_debug dm-log-writes xxhash_generic null_blk" \
