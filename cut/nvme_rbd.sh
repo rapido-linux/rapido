@@ -14,11 +14,12 @@ _rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/lib/ceph.sh" \
 _rt_require_networking
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
-_rt_require_lib "libkeyutils.so.1"
+req_inst=()
+_rt_require_lib req_inst "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \

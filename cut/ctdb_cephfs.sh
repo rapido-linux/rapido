@@ -25,7 +25,8 @@ _rt_require_networking
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_require_samba_ctdb
-_rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
+req_inst=()
+_rt_require_lib req_inst "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 _rt_mem_resources_set "1024M"
 
@@ -56,7 +57,7 @@ _rt_mem_resources_set "1024M"
 		   ${SAMBA_SRC}/bin/ctdb_recovery_helper \
 		   ${SAMBA_SRC}/bin/ctdb_takeover_helper \
 		   ${SAMBA_SRC}/bin/ctdb_mutex_ceph_rados_helper \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--include "$CTDB_EVENTS_DIR" "$CTDB_EVENTS_DIR" \
 	--include "${SAMBA_SRC}/ctdb/config/functions" \
 		  "/usr/local/samba/etc/ctdb/functions" \

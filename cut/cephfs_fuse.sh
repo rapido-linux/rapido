@@ -25,14 +25,15 @@ _rt_require_networking
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 _rt_write_ceph_bin_paths $vm_ceph_conf
-_rt_require_lib "libsoftokn3.so \
+req_inst=()
+_rt_require_lib req_inst "libsoftokn3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat truncate touch cut chmod getfattr setfattr \
 		   getfacl setfacl killall sync dirname seq \
 		   $CEPH_FUSE_BIN \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--add-drivers "fuse" \

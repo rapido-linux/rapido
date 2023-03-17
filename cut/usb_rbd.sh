@@ -18,7 +18,8 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/usb_rbd.sh" "$@"
 _rt_require_networking
 _rt_require_ceph
-_rt_require_lib "libkeyutils.so.1"
+req_inst=()
+_rt_require_lib req_inst "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   eject strace mkfs.vfat mountpoint \
@@ -26,7 +27,7 @@ _rt_require_lib "libkeyutils.so.1"
 		   /usr/lib/udev/rules.d/10-dm.rules \
 		   /usr/lib/udev/rules.d/13-dm-disk.rules \
 		   /usr/lib/udev/rules.d/95-dm-notify.rules \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \

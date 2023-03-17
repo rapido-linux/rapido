@@ -10,7 +10,8 @@ trap "rm $qemu_args_file" 0 1 2 3 15
 
 _rt_require_dracut_args
 _rt_require_ceph
-_rt_require_lib "libkeyutils.so.1"
+req_inst=()
+_rt_require_lib req_inst "libkeyutils.so.1"
 
 cat >"$qemu_args_file" <<EOF
 -drive format=rbd,file=rbd:${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}:conf=${CEPH_CONF},if=virtio,cache=none,format=raw
@@ -21,7 +22,7 @@ _rt_qemu_custom_args_set "$qemu_args_file"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs lsscsi \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"

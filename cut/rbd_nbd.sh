@@ -23,7 +23,8 @@ _rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/rbd_nbd.sh" "$@"
 _rt_require_networking
 _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
-_rt_require_lib "libsoftokn3.so libsqlite3.so \
+req_inst=()
+_rt_require_lib req_inst "libsoftokn3.so libsqlite3.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 
 # only support recent (cmake) source based builds for now
@@ -33,7 +34,7 @@ rbd_nbd_bin="${CEPH_SRC}/build/bin/rbd-nbd"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs mkfs.btrfs sync dirname uuidgen sleep \
-		   $LIBS_INSTALL_LIST $rbd_nbd_bin" \
+		   ${req_inst[*]} $rbd_nbd_bin" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--add-drivers "nbd" \

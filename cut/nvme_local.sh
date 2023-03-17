@@ -16,11 +16,12 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/nvme_local.sh" "$@"
-_rt_require_lib "libkeyutils.so.1"
+req_inst=()
+_rt_require_lib req_inst "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--add-drivers "nvme-core nvme-fabrics nvme-loop nvmet zram lzo lzo-rle" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \

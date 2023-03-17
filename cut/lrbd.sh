@@ -19,7 +19,8 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/lrbd.sh" "$@"
 _rt_require_networking
 _rt_require_ceph
 _rt_require_conf_dir LRBD_SRC TARGETCLI_SRC RTSLIB_SRC CONFIGSHELL_SRC
-_rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
+req_inst=()
+_rt_require_lib req_inst "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
 		 libcrypto.so libexpat.so libudev.so \
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 # assign more memory
@@ -42,7 +43,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df \
 		   $py3_files env ldconfig \
 		   dbus-daemon /etc/dbus-1/system.conf $rbd_bin $rados_cython \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--include "$CEPH_CONF" "/etc/ceph/ceph.conf" \
 	--include "$CEPH_KEYRING" "/etc/ceph/keyring" \
 	--include "$RBD_NAMER_BIN" "/usr/bin/ceph-rbdnamer" \

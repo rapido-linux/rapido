@@ -17,11 +17,12 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/nvme_rdma.sh" "$@"
 _rt_require_networking
-_rt_require_lib "libkeyutils.so.1"
+req_inst=()
+_rt_require_lib req_inst "libkeyutils.so.1"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs.xfs killall nvme rdma \
-		   $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--add-drivers "nvme-core nvme-fabrics nvme-rdma nvmet nvmet-rdma \
 		       rdma_rxe zram lzo lzo-rle ib_core ib_uverbs rdma_ucm \
 		       crc32_generic" \

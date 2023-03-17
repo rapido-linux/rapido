@@ -16,8 +16,8 @@ _rt_require_ceph
 _rt_write_ceph_config $vm_ceph_conf
 req_inst=()
 _rt_require_samba_srv req_inst "vfs/ceph.so"
-_rt_require_lib "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so \
-		 libfreeblpriv3.so"	# NSS_InitContext() fails without
+_rt_require_lib req_inst "libssl3.so libsmime3.so libstdc++.so.6 \
+		libsoftokn3.so libfreeblpriv3.so"
 # assign more memory
 _rt_mem_resources_set "1024M"
 
@@ -25,7 +25,7 @@ _rt_mem_resources_set "1024M"
 		   which touch cut chmod true false \
 		   getfattr setfattr chacl attr killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
-		   ${req_inst[*]} $LIBS_INSTALL_LIST" \
+		   ${req_inst[*]}" \
 	--include "$CEPH_COMMON_LIB" "/usr/lib64/libceph-common.so.0" \
 	--include "$CEPHFS_LIB" "/usr/lib64/libcephfs.so.2" \
 	--include "$CEPH_RADOS_LIB" "/usr/lib64/librados.so.2" \
