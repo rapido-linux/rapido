@@ -273,6 +273,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #SAMBA_SRC=""
 #################################
 
+############# ksmbd #############
+# By default ksmbd-tools binaries will be obtained from the local system. If
+# set, KSMBD_TOOLS_SRC should correspond to a checkout and build of the
+# source available from https://github.com/cifsd-team/ksmbd-tools.
+#KSMBD_TOOLS_SRC=""
+#################################
+
 ########## cut/lrbd.sh #########
 # These should all correspond to checked-out source repositories
 #LRBD_SRC=""
