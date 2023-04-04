@@ -14,12 +14,12 @@ _rt_require_samba_srv req_inst "vfs/btrfs.so"
 _rt_mem_resources_set "1024M"
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.btrfs mkfs.xfs awk dirname \
+		   strace mkfs mkfs.btrfs awk dirname \
 		   stat which touch cut chmod true false \
 		   getfattr setfattr getfacl setfacl killall sync \
 		   id sort uniq date expr tac diff head dirname seq \
 		   ${req_inst[*]}" \
-	--add-drivers "zram lzo lzo-rle xfs btrfs" \
+	--add-drivers "zram lzo btrfs lzo-rle" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
