@@ -9,7 +9,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/cifs.sh" "$@"
 _rt_require_networking
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df \
-		   mount.cifs getfacl setfacl truncate du \
+		   mount.cifs cifs.upcall getfacl setfacl truncate du \
 		   which touch cut chmod true false unlink \
 		   getfattr setfattr chacl attr killall sync \
 		   dirname seq basename fstrim chattr lsattr stat" \
