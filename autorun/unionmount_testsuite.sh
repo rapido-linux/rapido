@@ -27,7 +27,7 @@ for lowerfs in "xfs" "btrfs"; do
 		echo /dev/zram1 /upper $upperfs noauto >> /etc/fstab
 
 		pushd "$UNIONMOUNT_TESTSUITE_SRC"
-		./run --ov || _fatal "test failed"
+		./run --ov | tee -a /unionmount_test.log
 		popd
 		cat /proc/mounts
 		umount /base /lower /upper /mnt

@@ -16,10 +16,10 @@ py_inc=($(python3 -c \
 	)) || _fail "failed to determine PYTHON_PATH"
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs.xfs mkfs.btrfs python3" \
+		   strace mkfs.xfs mkfs.btrfs python3 tee" \
 	--include "$UNIONMOUNT_TESTSUITE_SRC" "$UNIONMOUNT_TESTSUITE_SRC" \
 	"${py_inc[@]}" \
-	--add-drivers "zram lzo lzo-rle btrfs raid6_pq overlay" \
+	--add-drivers "zram lzo lzo-rle xfs btrfs raid6_pq overlay" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
