@@ -6,7 +6,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/samba.sh" \
-			"$RAPIDO_DIR/autorun/samba_local.sh" "$@"
+			"$RAPIDO_DIR/autorun/samba_btrfs.sh" "$@"
 _rt_require_networking
 req_inst=()
 _rt_require_samba_srv req_inst "vfs/btrfs.so"
