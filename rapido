@@ -60,7 +60,7 @@ rapido_cut()
 	local option=""
 	local post_autorun_files=()
 	local cleanup="rm "
-	local t
+	local t cut_script
 	while getopts "Bf:x:" option; do
 		case $option in
 		B)
@@ -99,8 +99,9 @@ rapido_cut()
 	cut_script="cut/${testname//-/_}.sh"
 
 	if [[ ! -x $cut_script ]]; then
-		echo "Test ${testname} not found, please use one of:"
-		rapido_list
+		[[ -f $cut_script ]] \
+		  && echo "$cut_script lacks execute permission." \
+		  || echo "$testname not found. See \"rapido list\"."
 		popd > /dev/null
 		exit
 	fi
@@ -122,6 +123,7 @@ rapido_list()
 
 	shopt -s nullglob
 	for t in cut/*.sh; do
+		[ -x "$t" ] || continue
 		t="${t%.sh}"
 		t="${t//_/-}"
 		echo "${t#cut/}"
