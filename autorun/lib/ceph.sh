@@ -10,8 +10,7 @@ _ceph_rbd_map() {
 	[ -z "$CEPH_USER_KEY" ] && _fatal "CEPH_USER_KEY not configured"
 
 	# start udevd, otherwise rbd hangs in wait_for_udev_add()
-	ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-		|| /usr/lib/systemd/systemd-udevd --daemon
+	/usr/lib/systemd/systemd-udevd --daemon
 
 	local add_path
 	for add_path in /sys/bus/rbd/add_single_major /sys/bus/rbd/add; do

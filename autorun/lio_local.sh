@@ -12,15 +12,14 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
+# TODO only consider bdevs with expected serial string, like fstests runners
 export_blockdevs="/dev/vda /dev/vdb"
 
 _vm_ar_env_check || exit 1
 
 set -x
 
-# start udevd
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+/usr/lib/systemd/systemd-udevd --daemon
 udevadm settle || _fatal
 
 _vm_ar_configfs_mount

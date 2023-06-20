@@ -21,8 +21,7 @@ lu_name="tcmu_file"
 tcmu_dev_conf="file/${lu_name}.img"
 tcmu_dev_size="$(( 1024 * 1024 * 1024 ))"
 
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+/usr/lib/systemd/systemd-udevd --daemon
 
 _vm_ar_configfs_mount
 

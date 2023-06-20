@@ -20,8 +20,7 @@ lio_cfgfs="/sys/kernel/config/target/"
 lu_name="lu_file"
 dev_size="$(( 1024 * 1024 * 1024 ))"
 
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+/usr/lib/systemd/systemd-udevd --daemon
 
 _vm_ar_configfs_mount
 

@@ -16,9 +16,7 @@ _vm_ar_env_check || exit 1
 
 set -x
 
-#### start udevd
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+/usr/lib/systemd/systemd-udevd --daemon
 
 modprobe configfs
 _vm_ar_configfs_mount

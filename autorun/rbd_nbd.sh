@@ -16,8 +16,7 @@ _vm_ar_env_check || exit 1
 
 set -x
 
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+/usr/lib/systemd/systemd-udevd --daemon
 
 modprobe nbd nbds_max=1
 

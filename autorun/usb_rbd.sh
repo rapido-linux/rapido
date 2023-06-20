@@ -16,9 +16,8 @@ _vm_ar_env_check || exit 1
 
 set -x
 
-#### ddiss - start udevd, so that the rbdnamer hook is invoked
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+#### start udevd, so that the rbdnamer hook is invoked
+/usr/lib/systemd/systemd-udevd --daemon
 
 # ensure that conf FS is exposed before RBD mapping
 touch /usr/lib/rbd-usb-run-conf.flag

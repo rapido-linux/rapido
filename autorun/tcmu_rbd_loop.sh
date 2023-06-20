@@ -27,8 +27,7 @@ lu_name="tcmu_rbd_lu"
 tcmu_dev_conf="rbd/${CEPH_RBD_POOL}/${CEPH_RBD_IMAGE}"
 tcmu_dev_size="$(( $CEPH_RBD_IMAGE_MB * 1024 * 1024 ))"
 
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+/usr/lib/systemd/systemd-udevd --daemon
 
 _vm_ar_configfs_mount
 

@@ -31,9 +31,7 @@ function _zram_hot_add() {
 
 set -x
 
-#### start udevd
-ps -eo args | grep -v grep | grep /usr/lib/systemd/systemd-udevd \
-	|| /usr/lib/systemd/systemd-udevd --daemon
+/usr/lib/systemd/systemd-udevd --daemon
 
 modprobe configfs
 _vm_ar_configfs_mount
