@@ -99,8 +99,12 @@ rapido_cut()
 	cut_script="cut/${testname//-/_}.sh"
 
 	if [[ ! -x $cut_script ]]; then
-		echo "Test ${testname} not found, please use one of:"
-		rapido_list
+		if [[ -f $cut_script ]]; then
+			echo "$cut_script lacking execute permission."
+		else
+			echo "$cut_script not found, please use one of:"
+			rapido_list
+		fi
 		popd > /dev/null
 		exit
 	fi
