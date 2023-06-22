@@ -331,3 +331,10 @@ LTP_DIR="/opt/ltp"
 #e.g. NFS_MOUNT_OPTS="nfsvers=3"
 #NFS_MOUNT_OPTS=""
 ###############################################
+
+########## cut/kselftests.sh ##########
+# Path to the installation of kselftests (must be built and installed in
+# advance, e.g. "make O=$KERNEL_SRC TARGETS=... kselftest-install")
+# Default value expectes out of source kernel build in KERNEL_SRC (sic)
+KSELFTESTS_DIR="${KERNEL_SRC}/kselftest/kselftest_install"
+#######################################
