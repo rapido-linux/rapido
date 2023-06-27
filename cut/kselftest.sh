@@ -34,8 +34,10 @@ _rt_require_conf_dir KSELFTEST_DIR
 # details
 "$DRACUT" \
 	--install "awk basename cut date dirname echo expr fmt grep head id
-	           lscpu ps realpath rmdir sort uniq wc" \
+	           lscpu ps realpath rmdir sort uniq wc resize seq dd bc
+	           mkswap swapon swapoff mkfs.ext4 which" \
 	--include "$KSELFTEST_DIR" "$KSELFTEST_DIR" \
 	--modules "base dracut-systemd" \
+	--add-drivers "zram lzo lzo-rle ext4" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
