@@ -23,9 +23,10 @@ _rt_cpu_resources_set 8
 
 # --install provides a list of binaries that should be included in the VM image.
 # Dracut will resolve shared object dependencies and add them automatically.
-
-# --include copies a specific file or directory to the given image destination.
 _rt_require_conf_dir KSELFTEST_DIR
+# convert kselftest suite:name format to file paths for install
+req_inst=($(awk -F ":" -v d="$KSELFTEST_DIR" '{printf "%s/%s/%s ",d,$1,$2}' \
+	"${KSELFTEST_DIR}/kselftest-list.txt"))
 
 # --add-drivers provides a list of kernel modules, which will be obtained from
 # the rapido.conf KERNEL_INSTALL_MOD_PATH
@@ -35,7 +36,7 @@ _rt_require_conf_dir KSELFTEST_DIR
 "$DRACUT" \
 	--install "awk basename cut date dirname echo expr fmt grep head id
 	           lscpu ps realpath rmdir sort uniq wc resize seq dd bc
-	           mkswap swapon swapoff mkfs.ext4 which" \
+	           mkswap swapon swapoff mkfs.ext4 which ${req_inst[*]}" \
 	--include "$KSELFTEST_DIR" "$KSELFTEST_DIR" \
 	--modules "base dracut-systemd" \
 	--add-drivers "zram lzo lzo-rle ext4" \
