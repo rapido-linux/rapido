@@ -27,20 +27,28 @@ _vm_ar_dyn_debug_enable
 echo -n 0 > /sys/kernel/config/target/iscsi/discovery_auth/enforce_discovery_auth
 
 # rbd backed block device
-mkdir -p /sys/kernel/config/target/core/rbd_0/rbder || _fatal
-echo "udev_path=${CEPH_RBD_DEV}" \
-	> /sys/kernel/config/target/core/rbd_0/rbder/control || _fatal
+rbd_backstore="/sys/kernel/config/target/core/rbd_0/rbder"
+mkdir -p "$rbd_backstore" || _fatal
+echo "udev_path=${CEPH_RBD_DEV}" > "$rbd_backstore"/control || _fatal
+rbd_features=$(cat /sys/devices/rbd/0/features)
+# By default LIO advertises the erroneous emulate_legacy_capacity=1 RBD
+# off-by-one capacity, but this needs to be disabled for
+# RBD_FEATURE_OBJECT_MAP (1ULL<<3)
+if (($rbd_features & 0x08 == 0x08)); then
+	echo 0 > "$rbd_backstore"/attrib/emulate_legacy_capacity || _fatal
+	echo "emulate_legacy_capacity explicitly disabled"
+else
+	printf "emulate_legacy_capacity left as default: %s\n" \
+	  $(cat "$rbd_backstore"/attrib/emulate_legacy_capacity)
+fi
 serial="${CEPH_RBD_DEV//\//_}"	# replace '/' for SCSI serial number
 mkdir -p /var/target/alua/tpgs_${serial} || _fatal
-echo "$serial" \
-	> /sys/kernel/config/target/core/rbd_0/rbder/wwn/vpd_unit_serial \
-	|| _fatal
-echo "1" > /sys/kernel/config/target/core/rbd_0/rbder/enable || _fatal
+echo "$serial" > "$rbd_backstore"/wwn/vpd_unit_serial || _fatal
+echo "1" > "$rbd_backstore"/enable || _fatal
 # needs to be done after enable, as target_configure_device() resets it
-echo "SUSE" > /sys/kernel/config/target/core/rbd_0/rbder/wwn/vendor_id || _fatal
+echo "SUSE" > "$rbd_backstore"/wwn/vendor_id || _fatal
 # enable unmap/discard
-echo "1" > /sys/kernel/config/target/core/rbd_0/rbder/attrib/emulate_tpu \
-	|| _fatal
+echo "1" > "$rbd_backstore"/attrib/emulate_tpu || _fatal
 
 mkdir /sys/kernel/config/target/iscsi/${TARGET_IQN} || _fatal
 
@@ -50,7 +58,7 @@ for tpgt in tpgt_1 tpgt_2; do
 	# rbd dev as lun 0
 	mkdir -p /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_0
 	[ $? -eq 0 ] || _fatal
-	ln -s /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_0/../../../../../../target/core/rbd_0/rbder /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_0/68c6222530
+	ln -s "$rbd_backstore" /sys/kernel/config/target/iscsi/${TARGET_IQN}/${tpgt}/lun/lun_0/68c6222530
 	[ $? -eq 0 ] || _fatal
 
 	#### Network portals for iSCSI Target Portal Group
