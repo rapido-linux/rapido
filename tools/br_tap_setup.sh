@@ -88,8 +88,8 @@ tmpf=$(mktemp "rapido_tapdevs.XXXXXXX")
 [[ -f $tmpf ]] || _fail "mktemp failed"
 
 # cleanup on premature exit by executing whatever has been prepended to @unwind
-unwind="rm \"$tmpf\""
-trap "eval \$unwind" 0 1 2 3 15
+unwind=""
+trap "eval \$unwind; rm \"$tmpf\"" 0 1 2 3 15
 
 _tap_manifest_gen "$tmpf" "$br_name"
 
