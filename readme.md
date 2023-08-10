@@ -1,7 +1,16 @@
 Rapido helps you quickly test Linux kernel changes.
 
-The scripts that make up Rapido are in themselves quite brainless. Most
-of the heavy lifting is instead performed by:
+## Quick Start
+
+```shell
+# install dracut and qemu
+git clone https://github.com/rapido-linux/rapido.git && cd rapido
+./rapido cut simple-example # boot a throwaway VM using the host kernel
+```
+
+## Setup
+
+Clone this repository and install the following dependencies:
 
 * [Dracut](https://dracut.wiki.kernel.org):
   * Generates a VM image, with kernel-modules and minimal user-space
@@ -13,15 +22,14 @@ of the heavy lifting is instead performed by:
 * [iproute2](https://wiki.linuxfoundation.org/networking/iproute2):
   * Configures Bridge and TAP devices on the host (optional)
 
-Dependencies are obtained from the local system; no magic images or
-internet downloads are necessary.
+Rapido obtains all dependencies from the local system; no magic images
+or internet downloads are necessary. Individual cut scripts (e.g.
+`cut/fstests_btrfs.sh`) may require extra dependencies.
 
+Rapido is primarily configured via `rapido.conf`. To boot a custom Linux
+kernel, copy [rapido.conf.example](rapido.conf.example) and set the
+`KERNEL_SRC` parameter to the path of your compiled kernel source.
 
-## Setup
-
-Once the dependencies listed above have been installed, Rapido can be
-configured via [rapido.conf](rapido.conf.example). At a minimum, the
-Linux kernel source parameters should be defined.
 
 ### Network Configuration
 
