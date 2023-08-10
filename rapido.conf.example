@@ -45,17 +45,16 @@ TAP_USER=""
 # e.g. VIRTFS_SHARE_PATH="/tmp/rapido/"
 #VIRTFS_SHARE_PATH=""
 
-# extra qemu-kvm arguments to append for both VMs:
-# "-nographic" sees the emulated serial port redirected to the invoking console.
-# "-display none -daemonize" can be used to run VMs in the background, without
-# redirection.
-# "-device virtio-rng-pci" sees the guest make use of /dev/random on the
-# hypervisor for random number generation.
+# QEMU_EXTRA_ARGS are used as trailing QEMU parameters. Rapido defaults are:
+# "-nographic": run as a command line application with a VM serial port
+#               redirected to the console. If you wish to run VMs as background
+#               processes, replace this with "-display none -daemonize".
+# "-device virtio-rng-pci": add a RNG device backed by /dev/random on the host.
 #
 # e.g. QEMU_EXTRA_ARGS="-nographic -drive file=/dev/sdz,if=virtio,cache=none,format=raw,index=0"
 # e.g. QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -gdb tcp:127.0.0.1:1234"
 # e.g. QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file=/tmp/fstests-test.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file=/tmp/fstests-scratch.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"
-QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
+#QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 
 # extra kernel boot parameters, passed via QEMU -append
 # e.g. QEMU_EXTRA_KERNEL_PARAMS="loglevel=0"
