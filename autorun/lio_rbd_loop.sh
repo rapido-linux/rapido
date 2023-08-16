@@ -53,7 +53,12 @@ mkdir -p "${loopback_tpg}/lun/lun_${lu_num}" \
 echo "$nexus_wwn" > "${loopback_tpg}/nexus"
 ln -s "$rbd_backstore" "${loopback_tpg}/lun/lun_${lu_num}/${lu_uuid}" \
 	|| _fatal "failed to create LUN symlink"
-udevadm wait -t 60 /dev/sda || _fatal
+for ((timeout=60; timeout > 0; timeout--)); do
+	udevadm settle || _fatal
+	[[ -b /dev/sda ]] && break
+	sleep 1
+done
+(( $timeout > 0 )) || _fatal "timed out while waiting for SCSI device to appear"
 
 set +x
 
