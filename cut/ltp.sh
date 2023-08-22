@@ -22,7 +22,7 @@ fses=(btrfs exfat ext2 ext3 ext4 fuse ntfs vfat xfs)
 		attr awk basename bc blockdev cat chattr chgrp chmod chown cmp cut date
 		dd df diff dirname dmsetup du egrep exportfs expr false fdformat fdisk
 		fgrep find free gdb getconf getfacl getfattr grep head hexdump hostname
-		id ip kill killall ldd link losetup lsattr lsmod ltrace md5sum
+		id ip kill killall ldd link losetup lsattr lsmod ltrace md5sum mountpoint
 		${fses[*]/#/mkfs.} mktemp ${fses[*]/#/mount.} od parted perl pgrep ping
 		ping6 pkill ps quota quotacheck quotaon resize rev rmdir sed seq
 		setfacl setfattr sort stat strace sync sysctl tac tail tar tc tee touch
