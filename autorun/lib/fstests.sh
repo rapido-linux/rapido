@@ -86,10 +86,11 @@ _fstests_users_groups_provision() {
 	echo -e "passwd: files\ngroup: files" > /etc/nsswitch.conf
 
 	# minimal pam config to allow root to use su <user>
-	mkdir -p /etc/pam.d
+	mkdir -p /etc/pam.d /etc/security
 	cat > /etc/pam.d/su <<EOF
 auth	sufficient	pam_rootok.so
 account	sufficient	pam_rootok.so
 session	required	pam_limits.so
 EOF
+	echo "# su needs this to exist" >> /etc/security/limits.conf
 }
