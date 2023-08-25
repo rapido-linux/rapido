@@ -20,6 +20,7 @@ _rt_require_lib req_inst "libssl3.so libsmime3.so libstdc++.so.6 \
 		libsoftokn3.so libfreeblpriv3.so"
 # assign more memory
 _rt_mem_resources_set "1024M"
+_rt_require_conf_setting CIFS_USER CIFS_PW CIFS_SHARE
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   which touch cut chmod true false \

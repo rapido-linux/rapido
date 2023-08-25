@@ -18,6 +18,7 @@ req_inst=()
 _rt_require_samba_srv req_inst
 # assign more memory
 _rt_mem_resources_set "1024M"
+_rt_require_conf_setting CIFS_USER CIFS_PW CIFS_SHARE
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df sha256sum \
 		   strace stat which touch cut chmod true false \

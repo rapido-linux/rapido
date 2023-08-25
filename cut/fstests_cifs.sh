@@ -11,6 +11,7 @@ _rt_require_fstests
 pam_paths=()
 _rt_require_pam_mods pam_paths "pam_rootok.so" "pam_limits.so"
 _rt_mem_resources_set "2048M"
+_rt_require_conf_setting CIFS_SERVER CIFS_SHARE
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
 		   strace mkfs mount.cifs cifs.upcall free su \
