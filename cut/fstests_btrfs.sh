@@ -28,6 +28,7 @@ _rt_mem_resources_set "$((3072 + (zram_bytes * 5 / 1048576)))M"
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
+		   fsverity keyctl openssl /etc/ssl/openssl.cnf \
 		   swapon swapoff xfs_freeze fsck ${req_inst[*]} \
 		   ${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
 		   ${FSTESTS_SRC}/src/log-writes/* \

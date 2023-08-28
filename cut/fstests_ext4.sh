@@ -27,6 +27,7 @@ _rt_mem_resources_set "$((2048 + (zram_bytes * 2 / 1048576)))M"
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill duperemove \
+		   fsverity keyctl openssl /etc/ssl/openssl.cnf \
 		   swapon swapoff xfs_freeze fsck dump restore \
 		   debugfs dumpe2fs e2fsck e2image e4defrag fsck.ext4 \
 		   mke2fs mkfs.ext4 resize2fs tune2fs ${pam_paths[*]} \
