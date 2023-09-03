@@ -17,6 +17,7 @@ for ug in nobody bin daemon; do
 done
 
 export CREATE_ENTRIES=0
+export KCONFIG_PATH=/.config
 export LTPROOT="$LTP_DIR"
 export PATH="$LTP_DIR:$LTP_DIR/bin:$LTP_DIR/testcases/bin:$PATH"
 
