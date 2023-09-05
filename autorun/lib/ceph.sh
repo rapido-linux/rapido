@@ -11,6 +11,7 @@ _ceph_rbd_map() {
 
 	# start udevd, otherwise rbd hangs in wait_for_udev_add()
 	/usr/lib/systemd/systemd-udevd --daemon
+	modprobe rbd
 
 	local add_path
 	for add_path in /sys/bus/rbd/add_single_major /sys/bus/rbd/add; do
