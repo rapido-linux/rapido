@@ -14,13 +14,13 @@ __rapido()
 {
 	local bin cut_dir cur rcmd max_off seen_boot
 	local -a comps
-	bin="$1"
+	bin="$(realpath -e $1)"
 
 	# we only want to complete the rapido script, not dirs, etc.
 	[ -f "$bin" ] || return 0
 	[ -x "$bin" ] || return 0
 
-	cut_dir="$(dirname $bin)/cut"
+	cut_dir="${bin%/*}/cut"
 	[ -d "${cut_dir}" ] || return 0
 
 	COMPREPLY=()
