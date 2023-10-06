@@ -13,14 +13,19 @@ __rapido()
 {
 	local bin cut_dir cur rcmd max_off seen_boot
 	local -a comps
-	bin="$(realpath -e $1)"
 
-	# we only want to complete the rapido script, not dirs, etc.
-	[ -f "$bin" ] || return 0
-	[ -x "$bin" ] || return 0
+	if [[ -f ./rapido ]]; then
+		# assume git clone with cut subdirectory
+		cut_dir="./cut"
+	elif [[ -x /usr/bin/rapido ]]; then
+		# assume distro package with bin symlink to RAPIDO_DIR
+		bin="$(realpath -e /usr/bin/rapido)"
+		cut_dir="${bin%/*}/cut"
+	else
+		return 0
+	fi
 
-	cut_dir="${bin%/*}/cut"
-	[ -d "${cut_dir}" ] || return 0
+	[ -d "$cut_dir" ] || return 0
 
 	COMPREPLY=()
 	cur="${COMP_WORDS[COMP_CWORD]}"
