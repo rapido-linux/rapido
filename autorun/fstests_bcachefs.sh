@@ -1,0 +1,47 @@
+#!/bin/bash
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2018-2022, all rights reserved.
+
+_vm_ar_env_check || exit 1
+
+set -x
+
+[ -n "$BCACHEFS_TOOLS_SRC" ] && export PATH="${PATH}:${BCACHEFS_TOOLS_SRC}"
+modprobe virtio_blk
+modprobe zram num_devices=0 || _fatal "failed to load zram module"
+
+_vm_ar_hosts_create
+_vm_ar_dyn_debug_enable
+
+_fstests_users_groups_provision
+
+fstests_cfg="${FSTESTS_SRC}/configs/$(hostname -s).config"
+cat > "$fstests_cfg" << EOF
+MODULAR=0
+TEST_DIR=/mnt/test
+SCRATCH_MNT=/mnt/scratch
+USE_KMEMLEAK=yes
+FSTYP=bcachefs
+EOF
+_fstests_devs_pool_provision "$fstests_cfg"
+. "$fstests_cfg"
+
+# mkfs.bcachefs is an alias for bcachefs format
+ln -sfr $(type -P bcachefs) /bin/mkfs.bcachefs
+
+mkdir -p "$TEST_DIR" "$SCRATCH_MNT"
+mkfs."${FSTYP}" -f "$TEST_DEV" || _fatal "mkfs failed"
+mount -t "$FSTYP" "$TEST_DEV" "$TEST_DIR" || _fatal
+# xfstests can handle scratch mkfs+mount
+
+# fstests generic/131 needs loopback networking
+ip link set dev lo up
+
+set +x
+
+echo "$FSTYP filesystem ready for FSQA"
+
+cd "$FSTESTS_SRC" || _fatal
+if [ -n "$FSTESTS_AUTORUN_CMD" ]; then
+	eval "$FSTESTS_AUTORUN_CMD"
+fi

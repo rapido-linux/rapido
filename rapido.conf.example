@@ -148,6 +148,13 @@ INITIATOR_IQNS="iqn.2007-10.com.github:sahlberg:libiscsi:iscsi-test \
 #EXFAT_PROGS_SRC=""
 #################################
 
+##### cut/fstests_bcachefs.sh ######
+# If BCACHEFS_TOOLS_SRC is set, then use (prebuilt) bcachefs binaries from this
+# path instead of from the local system.
+# e.g. BCACHEFS_TOOLS_SRC="/home/me/bcachefs-tools"
+#BCACHEFS_TOOLS_SRC=""
+#################################
+
 ## autorun/fstests_cifs.sh and autorun/samba_*.sh ##
 # SMB server and mount options for cifs.ko
 # e.g. CIFS_SERVER="smbserver.example.com"
