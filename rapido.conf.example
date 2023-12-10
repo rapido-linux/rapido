@@ -45,6 +45,27 @@ TAP_USER=""
 # e.g. VIRTFS_SHARE_PATH="/tmp/rapido/"
 #VIRTFS_SHARE_PATH=""
 
+# The name of the kernel module under test.
+# Passed to the VM as a kernel parameter for use in the test suite.
+# e.g. NET_TEST_KMOD="tn40xx"
+#NET_TEST_KMOD=""
+
+# The location of the test suite to add into the VM.
+# e.g. NET_TEST_SUITE="/home/me/tn40xx-driver/test"
+#NET_TEST_SUITE=""
+
+# The host PCI address of the network peripheral for the driver under test.
+# This device must use the vfio-pci stub driver in the host, to be passed to
+# the VM.
+# e.g. NET_TEST_DEV_HOST="07:00.0"
+#NET_TEST_DEV_HOST=""
+
+# The PCI address of the peripheral in the VM.
+# Passed to the VM as a kernel parameter and used in the test suite to identify
+# the peripheral for the driver under test.
+# e.g. NET_TEST_DEV_VM="0000:00:03.0"
+NET_TEST_DEV_VM="0000:00:03.0"
+
 # QEMU_EXTRA_ARGS are used as trailing QEMU parameters. Rapido defaults are:
 # "-nographic": run as a command line application with a VM serial port
 #               redirected to the console. If you wish to run VMs as background
@@ -54,6 +75,7 @@ TAP_USER=""
 # e.g. QEMU_EXTRA_ARGS="-nographic -drive file=/dev/sdz,if=virtio,cache=none,format=raw,index=0"
 # e.g. QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -gdb tcp:127.0.0.1:1234"
 # e.g. QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file=/tmp/fstests-test.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file=/tmp/fstests-scratch.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"
+# e.g. QEMU_EXTRA_ARGS=" -nographic -device virtio-rng -M q35,accel=kvm,kernel-irqchip=split -cpu host -device intel-iommu,intremap=on,caching-mode=on,device-iotlb=on -device vfio-pci,host=$NET_TEST_DEV_HOST"
 #QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci"
 
 # extra kernel boot parameters, passed via QEMU -append
