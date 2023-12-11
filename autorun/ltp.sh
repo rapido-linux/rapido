@@ -8,7 +8,10 @@ _vm_ar_dyn_debug_enable
 
 set -x
 
-# ltp requires a few preexisting users/groups
+# LTP net tests need loopback networking
+ip link set dev lo up
+
+# LTP requires a few preexisting users/groups
 xid="2000"
 for ug in nobody bin daemon; do
 	echo "${ug}:x:${xid}:${xid}:${ug} user:/:/sbin/nologin" >> /etc/passwd
@@ -26,6 +29,3 @@ if [ -n "$LTP_AUTORUN_CMD" ]; then
 	echo "Running LTP Command: $LTP_AUTORUN_CMD"
 	eval "$LTP_AUTORUN_CMD"
 fi
-
-# LTP net tests need loopback networking
-ip link set dev lo up
