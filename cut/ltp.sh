@@ -20,7 +20,7 @@ fses=(btrfs exfat ext2 ext3 ext4 fuse ntfs vfat xfs)
 "$DRACUT" \
 	--install " \
 		attr awk basename bc blockdev cat chattr chgrp chmod chown cmp cut date
-		dd df diff dirname dmsetup du egrep exportfs expr false fdformat fdisk
+		dd df diff dirname dmesg dmsetup du egrep exportfs expr false fdformat fdisk
 		fgrep find free gdb getconf getfacl getfattr grep head hexdump hostname
 		id ip kill killall ldd link losetup lsattr lsmod ltrace md5sum mountpoint
 		${fses[*]/#/mkfs.} mktemp ${fses[*]/#/mount.} od parted perl pgrep ping
