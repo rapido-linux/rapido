@@ -1,0 +1,2 @@
+# avoid dumping svg in git grep matches
+docs/demo.svg binary
