@@ -15,7 +15,7 @@ else
 	config="/boot/config-$(uname -r)"
 fi
 
-fses=(btrfs exfat ext2 ext3 ext4 fuse ntfs vfat xfs)
+fses=(btrfs bcachefs exfat ext2 ext3 ext4 fuse ntfs vfat xfs)
 
 "$DRACUT" \
 	--install " \
