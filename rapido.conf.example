@@ -343,3 +343,9 @@ LTP_DIR="/opt/ltp"
 # advance, via e.g. "make -C $KERNEL_SRC TARGETS=cgroup kselftest-install"
 #KSELFTEST_DIR="${KERNEL_SRC}/tools/testing/selftests/kselftest_install"
 #######################################
+
+########## cut/sys_param_check.sh ##########
+# Path to sys-param-check test suite source, available at
+# https://github.com/openSUSE/sys-param-check .
+#SYS_PARAM_CHECK_SRC=
+############################################
