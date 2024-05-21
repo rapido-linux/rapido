@@ -22,7 +22,8 @@ _fstests_devs_provision() {
 			 ["SCRATCH_RTDEV"]="" ["TEST_DEV"]="")
 
 	for i in $(ls /sys/block); do
-		ser="$(cat /sys/block/${i}/serial 2>/dev/null)" || continue
+		ser="$(cat /sys/block/${i}/serial 2>/dev/null)" ||
+		ser="$(cat /sys/block/${i}/device/serial 2>/dev/null)" || continue
 		[[ -v "_CFG[$ser]" ]] && _CFG[$ser]="/dev/${i}"
 	done
 
