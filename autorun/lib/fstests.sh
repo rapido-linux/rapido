@@ -82,6 +82,9 @@ _fstests_devs_pool_provision() {
 _fstests_users_groups_provision() {
 	local ug xid="2000"
 
+	echo "daemon:x:2:2:Daemon:/:/sbin/nologin" \
+	     >> /etc/passwd
+	echo "daemon:x:2:" >> /etc/group
 	for ug in fsgqa fsgqa2 123456-fsgqa; do
 		echo "${ug}:x:${xid}:${xid}:${ug} user:/:/bin/bash" \
 			>> /etc/passwd
