@@ -93,5 +93,10 @@ auth	sufficient	pam_rootok.so
 account	sufficient	pam_rootok.so
 session	required	pam_limits.so
 EOF
+	cat > /etc/pam.d/su-l <<EOF
+auth	sufficient	pam_rootok.so
+account	sufficient	pam_rootok.so
+session	required	pam_limits.so
+EOF
 	echo "# su needs this to exist" >> /etc/security/limits.conf
 }
