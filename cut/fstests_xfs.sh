@@ -28,7 +28,7 @@ _rt_require_gcc req_inst stdio.h xfs/xfs.h xfs/xfs_types.h xfs/xfs_fs.h \
 req_inst+=("/usr/include/xfs/*.h")
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep find df sha256sum \
-		   strace mkfs mkfs.xfs free ip su uuidgen losetup \
+		   strace mkfs mkfs.xfs free ip su uuidgen losetup ipcmk \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
