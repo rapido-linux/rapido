@@ -84,6 +84,7 @@ _fstests_users_groups_provision() {
 
 	echo "daemon:x:2:2:Daemon:/:/sbin/nologin" \
 	     >> /etc/passwd
+	echo "root:x:0:" >> /etc/group
 	echo "daemon:x:2:" >> /etc/group
 	for ug in fsgqa fsgqa2 123456-fsgqa; do
 		echo "${ug}:x:${xid}:${xid}:${ug} user:/:/bin/bash" \
