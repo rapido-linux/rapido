@@ -17,13 +17,15 @@ _fstests_devs_zram_setup() {
 # any dev with a serial number matching an fstests param will be used
 _fstests_devs_provision() {
 	local cfg_path="$1"
-	local i ser
+	local i ser _ser
 	declare -A _CFG=(["SCRATCH_DEV"]="" ["SCRATCH_LOGDEV"]="" \
 			 ["SCRATCH_RTDEV"]="" ["TEST_DEV"]="")
 
 	for i in $(ls /sys/block); do
-		ser="$(cat /sys/block/${i}/serial 2>/dev/null)" ||
-		ser="$(cat /sys/block/${i}/device/serial 2>/dev/null)" || continue
+		_ser="$(cat /sys/block/${i}/serial 2>/dev/null)" ||
+		    _ser="$(cat /sys/block/${i}/device/serial 2>/dev/null)" ||
+		    continue
+		ser="${_ser// }"
 		[[ -v "_CFG[$ser]" ]] && _CFG[$ser]="/dev/${i}"
 	done
 
@@ -44,13 +46,16 @@ _fstests_devs_provision() {
 # provisioned and used instead.
 _fstests_devs_pool_provision() {
 	local cfg_path="$1"
-	local i ser devp
+	local i ser _ser devp
 	declare -A _CFG=(["SCRATCH_LOGDEV"]="" ["SCRATCH_RTDEV"]=""
 			 ["TEST_DEV"]="")
 	declare -a _POOL=()
 
 	for i in $(ls /sys/block); do
-		ser="$(cat /sys/block/${i}/serial 2>/dev/null)" || continue
+		_ser="$(cat /sys/block/${i}/serial 2>/dev/null)" ||
+		    _ser="$(cat /sys/block/${i}/device/serial 2>/dev/null)" ||
+		    continue
+		ser="${_ser// }"
 		devp="/dev/${i}"
 		[[ -v "_CFG[$ser]" ]] && _CFG[$ser]="$devp"
 		[[ $ser == "SCRATCH_DEV"* && -b "$devp" ]] && _POOL+=("$devp")
