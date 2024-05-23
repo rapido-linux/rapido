@@ -22,8 +22,10 @@ _fstests_devs_provision() {
 			 ["SCRATCH_RTDEV"]="" ["TEST_DEV"]="")
 
 	for i in $(ls /sys/block); do
-		ser="$(cat /sys/block/${i}/serial 2>/dev/null)" ||
-		ser="$(cat /sys/block/${i}/device/serial 2>/dev/null)" || continue
+		_ser="$(cat /sys/block/${i}/serial 2>/dev/null)" ||
+		    _ser="$(cat /sys/block/${i}/device/serial 2>/dev/null)" ||
+		    continue
+		ser=$(echo $_ser)
 		[[ -v "_CFG[$ser]" ]] && _CFG[$ser]="/dev/${i}"
 	done
 
@@ -89,6 +91,11 @@ _fstests_users_groups_provision() {
 	# minimal pam config to allow root to use su <user>
 	mkdir -p /etc/pam.d /etc/security
 	cat > /etc/pam.d/su <<EOF
+auth	sufficient	pam_rootok.so
+account	sufficient	pam_rootok.so
+session	required	pam_limits.so
+EOF
+	cat > /etc/pam.d/su-l <<EOF
 auth	sufficient	pam_rootok.so
 account	sufficient	pam_rootok.so
 session	required	pam_limits.so
