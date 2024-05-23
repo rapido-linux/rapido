@@ -22,12 +22,13 @@ TEST_DIR=/mnt/test
 SCRATCH_MNT=/mnt/scratch
 USE_KMEMLEAK=yes
 FSTYP=xfs
+MKFS_OPTIONS=
 EOF
 _fstests_devs_provision "$fstests_cfg"
 . "$fstests_cfg"
 
 mkdir -p "$TEST_DIR" "$SCRATCH_MNT"
-mkfs."${FSTYP}" -f "$TEST_DEV" || _fatal "mkfs failed"
+mkfs."${FSTYP}" ${MKFS_OPTIONS} -f "$TEST_DEV" || _fatal "mkfs failed"
 mount -t "$FSTYP" "$TEST_DEV" "$TEST_DIR" || _fatal
 # xfstests can handle scratch mkfs+mount
 
