@@ -26,7 +26,10 @@ BR_DEV="rapido-br"
 # if specified, an address to configure for the bridge device
 BR_ADDR="192.168.155.1/24"
 
-# if specified, start a dhcp server, listening on $BR_DEV
+# If BR_DHCP_SRV_RANGE is specified, start a DHCP server, listening on $BR_DEV.
+# The dnsmasq server is run on the host.
+# Recommended: Use [DHCPServer] to run a DHCP server on the rapido VM instead.
+# See net-conf.example/vm1/rapido-tap1.network .
 # e.g. BR_DHCP_SRV_RANGE="192.168.155.10,192.168.155.20,12h"
 #BR_DHCP_SRV_RANGE=""
 
