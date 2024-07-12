@@ -1,16 +1,6 @@
 #!/bin/bash
-#
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) SUSE LINUX GmbH 2016-2019, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
@@ -19,7 +9,7 @@ _rt_require_conf_setting BR_DEV TAP_USER TAP_DEV0 TAP_DEV1
 
 # cleanup on premature exit by executing whatever has been prepended to @unwind
 unwind=""
-trap "eval \$unwind" 0 1 2 3 15
+trap "eval \$unwind" 0
 
 ip link add $BR_DEV type bridge || _fail "failed to add $BR_DEV"
 unwind="ip link delete $BR_DEV type bridge; ${unwind}"

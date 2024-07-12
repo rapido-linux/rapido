@@ -8,7 +8,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 echo "-> This helper script will not modify any existing files..."
 
 unwind=""
-trap "eval \$unwind" 0 1 2 3 15
+trap "eval \$unwind" 0
 
 _rapido_vm_conf_write() {
 	local vm_num="$1"

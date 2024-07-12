@@ -1,23 +1,13 @@
 #!/bin/bash
-#
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) SUSE LINUX GmbH 2017, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
-trap "rm $vm_ceph_conf" 0 1 2 3 15
+trap "rm $vm_ceph_conf" 0
 
 _rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/ctdb_cephfs.sh" \
 			"$@"

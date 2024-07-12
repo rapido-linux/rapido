@@ -11,7 +11,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 # without further tweaks.
 
 unwind=""
-trap "eval \$unwind" 0 1 2 3 15
+trap "eval \$unwind" 0
 
 t=$(mktemp --directory "rapido-cpio-to-tar.XXXXXXXXXX")
 [[ -d $t ]] || _fail "mktemp failed"

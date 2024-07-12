@@ -7,7 +7,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 
 vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
-trap "rm $vm_ceph_conf" 0 1 2 3 15
+trap "rm $vm_ceph_conf" 0
 
 _rt_require_dracut_args "$vm_ceph_conf" "${RAPIDO_DIR}/autorun/lib/ceph.sh" \
 			"${RAPIDO_DIR}/autorun/blktests_rbd.sh" "$@"

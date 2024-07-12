@@ -10,7 +10,7 @@ _rt_require_conf_dir LIBURING_SRC
 _rt_mem_resources_set "2G"
 
 test_manifest="$(mktemp --tmpdir iouring_tests.XXXXX)"
-trap "rm $test_manifest" 0 1 2 3 15
+trap "rm $test_manifest" 0
 
 test_files=($(find "${LIBURING_SRC}/test" -type f -executable ! -name '*.sh' \
 		-fprintf "$test_manifest" '%f\n' -printf '%p '))

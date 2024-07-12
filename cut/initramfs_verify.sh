@@ -9,7 +9,7 @@ _rt_require_dracut_args "$RAPIDO_DIR/autorun/initramfs_verify.sh" "$@"
 
 tmp_vdata="$(mktemp --tmpdir -d vdata.XXXXXXXX)"
 # remove tmp once we're done
-trap "rm -rf ${tmp_vdata}/{fiod*,*verify.state}; rmdir $tmp_vdata" 0 1 2 3 15
+trap "rm -rf ${tmp_vdata}/{fiod*,*verify.state}; rmdir $tmp_vdata" 0
 
 fio --directory="${tmp_vdata}" --aux-path="${tmp_vdata}" \
 	--name=verify-wr --rw=write --size=1M --verify=crc32c \

@@ -1,16 +1,6 @@
 #!/bin/bash
-#
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) SUSE LINUX GmbH 2016, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
 
 # This script removes all addresses from $BR_IF, creates $BR_DEV and
 # subsequently adds all previous $BR_IF addresses to the new $BR_DEV.
@@ -67,7 +57,7 @@ BR_IF_DUMP_DIR=`mktemp --tmpdir -d ${BR_IF}_addr_dump.XXXXXXXXXX` || exit 1
 
 # cleanup on premature exit by executing whatever has been prepended to @unwind
 unwind="rmdir $BR_IF_DUMP_DIR"
-trap "eval \$unwind" 0 1 2 3 15
+trap "eval \$unwind" 0
 
 ip -6 addr list dev $BR_IF \
 	| sed -n 's#\(scope \w*\).*$#\1#; s#\s*inet6\s*##p' \

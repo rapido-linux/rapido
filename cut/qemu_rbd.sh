@@ -6,7 +6,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 qemu_args_file="$(mktemp --tmpdir rbd_qemu_args.XXXXX)"
-trap "rm $qemu_args_file" 0 1 2 3 15
+trap "rm $qemu_args_file" 0
 
 _rt_require_dracut_args
 _rt_require_ceph

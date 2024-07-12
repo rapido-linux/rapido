@@ -10,7 +10,7 @@ _rt_mem_resources_set "1024M"
 
 tmp_vdata="$(mktemp --tmpdir -d vdata.XXXXXXXX)"
 # remove tmp once we're done
-trap "rm -f \"${tmp_vdata}\"/{fiod*,*.state}; rmdir \"$tmp_vdata\"" 0 1 2 3 15
+trap "rm -f \"${tmp_vdata}\"/{fiod*,*.state}; rmdir \"$tmp_vdata\"" 0
 
 fio --directory="${tmp_vdata}" --aux-path="${tmp_vdata}" \
 	--name=verify-wr --rw=write --size=1M --verify=crc32c \

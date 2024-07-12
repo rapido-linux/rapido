@@ -8,7 +8,7 @@ export RAPIDO_SELFTEST_TMPDIR="$(mktemp --tmpdir -d rapido-selftest.XXXXXXX)"
 [ -d "$RAPIDO_SELFTEST_TMPDIR" ] || exit 1
 CLEANUP="rm -f ${RAPIDO_SELFTEST_TMPDIR}/*; rmdir $RAPIDO_SELFTEST_TMPDIR"
 # cleanup tmp dir when done
-trap "$CLEANUP" 0 1 2 3 15
+trap "$CLEANUP" 0
 
 _usage() {
 	echo -e "usage:\n"
