@@ -11,7 +11,7 @@ _rt_cpu_resources_set "1"
 _rt_mem_resources_set "512M"
 
 "$DRACUT" \
-	--install "nc hostname" \
+	--install "resize ps nc hostname" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
