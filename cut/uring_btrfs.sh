@@ -15,6 +15,8 @@ trap "rm $test_manifest" 0
 test_files=($(find "${LIBURING_SRC}/test" -type f -executable ! -name '*.sh' \
 		-fprintf "$test_manifest" '%f\n' -printf '%p '))
 test_files+=("${LIBURING_SRC}/test/runtests.sh")
+test_files+=( $(find "${LIBURING_SRC}/examples" -type f -executable \
+		-printf '%p ') )
 [[ -f "${LIBURING_SRC}/test/config.local" ]] \
 	&& test_files+=("${LIBURING_SRC}/test/config.local")	# optional conf
 
