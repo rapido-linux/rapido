@@ -5,7 +5,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_btrfs_zoned.sh" "$@"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
+			"$RAPIDO_DIR/autorun/fstests_btrfs_zoned.sh" "$@"
 _rt_require_fstests
 req_inst=()
 _rt_require_btrfs_progs req_inst

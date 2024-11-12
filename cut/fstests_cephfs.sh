@@ -9,7 +9,7 @@ vm_ceph_conf="$(mktemp --tmpdir vm_ceph_conf.XXXXX)"
 # remove tmp file once we're done
 trap "rm $vm_ceph_conf" 0
 
-_rt_require_dracut_args "$vm_ceph_conf" \
+_rt_require_dracut_args "$vm_ceph_conf" "$RAPIDO_DIR/autorun/lib/fstests.sh" \
 			"$RAPIDO_DIR/autorun/fstests_cephfs.sh" "$@"
 _rt_require_networking
 _rt_require_ceph

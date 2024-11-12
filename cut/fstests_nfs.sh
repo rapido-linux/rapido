@@ -5,7 +5,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/fstests_nfs.sh" "$@"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/fstests.sh" \
+			"$RAPIDO_DIR/autorun/fstests_nfs.sh" "$@"
 _rt_require_fstests
 pam_paths=()
 _rt_require_pam_mods pam_paths "pam_rootok.so" "pam_limits.so"
