@@ -46,11 +46,11 @@ cat > "$cfg_file" << EOF
 	store dos attributes = yes
 EOF
 
-ksmbd.mountd -c "$cfg_file" -u "$users_db" \
+ksmbd.mountd --config="$cfg_file" --pwddb="$users_db" \
 	|| _fatal "failed to start ksmbd.mountd"
 set +x
 echo -e "${CIFS_PW}\n${CIFS_PW}\n" \
-	| ksmbd.adduser -a "$CIFS_USER" -c "$cfg_file" -i "$users_db" \
+    | ksmbd.adduser -a "$CIFS_USER" --config="$cfg_file" --pwddb="$users_db" \
 		|| _fatal "failed to add ksmbd user"
 
 pub_ips=()
