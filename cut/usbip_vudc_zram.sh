@@ -10,15 +10,11 @@ _rt_require_networking
 _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 	|| _fail "failed to calculate memory resources"
 _rt_mem_resources_set "$((512 + (zram_bytes / 1048576)))M"
-_rt_require_conf_dir KERNEL_SRC
-usbipd_bin="${KERNEL_SRC}/tools/usb/usbip/src/.libs/usbipd"
-[[ -x $usbipd_bin ]] \
-	|| _fail "usbipd binary missing at $usbipd_bin - needs to be compiled?"
+req_inst=()
+_rt_require_usbip_progs req_inst
 
 "$DRACUT" --install "tail blockdev ps rmdir resize dd grep find df sha256sum \
-		   strace mkfs mkfs.xfs free \
-		   ${KERNEL_SRC}/tools/usb/usbip/libsrc/.libs/libusbip.so.0 \
-		   ${usbipd_bin}" \
+		   strace mkfs mkfs.xfs free ${req_inst[*]}" \
 	--add-drivers "usbip-vudc xfs zram lzo lzo-rle" \
 	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
