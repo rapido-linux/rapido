@@ -85,20 +85,17 @@ rapido_cut()
 		exit 1
 	fi
 
-	pushd "$RAPIDO_DIR" > /dev/null
-	cut_script="cut/${testname//-/_}.sh"
+	cut_script="${RAPIDO_DIR}/cut/${testname//-/_}.sh"
 
 	if [[ ! -x $cut_script ]]; then
 		[[ -f $cut_script ]] \
 		  && echo "$cut_script lacks execute permission." \
 		  || echo "$testname not found. See \"rapido list\"."
-		popd > /dev/null
 		exit
 	fi
 
-	./$cut_script "${post_autorun_files[@]}"
+	"$cut_script" "${post_autorun_files[@]}"
 	local cut_status=$?
-	popd > /dev/null
 	[ $cut_status -ne 0 ] && exit $cut_status
 	[ -n "$boot_img" ] || exit 0
 	"${RAPIDO_DIR}/vm.sh"
@@ -109,16 +106,13 @@ rapido_list()
 {
 	local t
 
-	pushd "$RAPIDO_DIR" > /dev/null
-
 	shopt -s nullglob
-	for t in cut/*.sh; do
-		[ -x "$t" ] || continue
+	for t in "$RAPIDO_DIR"/cut/*.sh; do
+		[[ -x "$t" ]] || continue
 		t="${t%.sh}"
-		t="${t//_/-}"
-		echo "${t#cut/}"
+		t="${t##*/cut/}"
+		echo "${t//_/-}"
 	done
-	popd > /dev/null
 }
 
 list_commands()

@@ -8,7 +8,7 @@ set timeout 60
 spawn ./rapido cut -B simple-example
 expect {
 	timeout {exit 1}
-	"dracut: *** Creating initramfs image file"
+	"*** Creating initramfs image file"
 }
 expect {
 	timeout {exit 1}
