@@ -5,7 +5,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/nfsd_btrfs.sh" "$@"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/nfs.sh" \
+			"$RAPIDO_DIR/autorun/nfsd_btrfs.sh" "$@"
 _rt_require_networking
 _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 	|| _fail "failed to calculate memory resources"

@@ -5,7 +5,8 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/nfs_client.sh" "$@"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lib/nfs.sh" \
+			"$RAPIDO_DIR/autorun/nfs_client.sh" "$@"
 _rt_require_networking
 
 "$DRACUT" --install "tail ps rmdir resize dd vim grep find df du truncate \

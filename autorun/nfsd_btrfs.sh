@@ -14,16 +14,7 @@ _vm_ar_hosts_create
 # use a non-configurable UID/GID for now
 nfs_xid="579121"
 nfs_user="nfsuser"
-cat >> /etc/passwd <<EOF
-rpc:x:464:65534:user for rpcbind:/var/lib/empty:/sbin/nologin
-statd:x:463:65533:NFS statd daemon:/var/lib/nfs:/sbin/nologin
-${nfs_user}:x:${nfs_xid}:${nfs_xid}:NFS user:/:/sbin/nologin
-EOF
-cat >> /etc/group <<EOF
-nobody:x:65534:
-nogroup:x:65533:nobody
-${nfs_user}:x:${nfs_xid}:
-EOF
+_nfs_etc_files_setup "$nfs_xid" "$nfs_user"
 
 # may be used as an fstests target, so use FSTESTS_ZRAM_SIZE
 echo "${FSTESTS_ZRAM_SIZE:-1G}" > /sys/block/zram0/disksize \
@@ -35,29 +26,8 @@ mkdir -p "$nfs_share" "/var/lib/nfs"
 mount -t btrfs /dev/zram0 "$nfs_share" || _fatal
 chmod 777 "$nfs_share" || _fatal
 
-cat >> /etc/services <<EOF
-nfs	2049/tcp
-nfs	2049/udp
-sunrpc	111/tcp	rpcbind
-sunrpc	111/udp	rpcbind
-EOF
-
-cat >  /etc/netconfig <<EOF
-udp        tpi_clts      v     inet     udp     -       -
-tcp        tpi_cots_ord  v     inet     tcp     -       -
-udp6       tpi_clts      v     inet6    udp     -       -
-tcp6       tpi_cots_ord  v     inet6    tcp     -       -
-rawip      tpi_raw       -     inet      -      -       -
-local      tpi_cots_ord  -     loopback  -      -       -
-unix       tpi_cots_ord  -     loopback  -      -       -
-EOF
-
 cat > /etc/exports <<EOF
 $nfs_share  *(rw,subtree_check,all_squash,anonuid=${nfs_xid},anongid=${nfs_xid})
-EOF
-
-cat > /etc/nsswitch.conf <<EOF
-rpc:            files usrfiles
 EOF
 
 # rpcbind uses /dev/log for logging
