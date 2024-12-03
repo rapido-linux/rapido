@@ -34,6 +34,11 @@ local      tpi_cots_ord  -     loopback  -      -       -
 unix       tpi_cots_ord  -     loopback  -      -       -
 EOF
 
+	cat > /etc/protocols <<EOF
+tcp 6 TCP
+udp 17 UDP
+EOF
+
 	cat > /etc/nsswitch.conf <<EOF
 rpc:	files usrfiles
 EOF
