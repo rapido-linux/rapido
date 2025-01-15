@@ -341,6 +341,11 @@ LTP_DIR="/opt/ltp"
 #NFS_MOUNT_OPTS=""
 ###############################################
 
+######### autorun/fstests_virtiofs.sh #########
+# mount options to use for virtiofs mount attempts.
+#VIRTIOFS_MOUNT_OPTS=""
+###############################################
+
 ########## cut/kselftest.sh ##########
 # Path to the installation of kselftest, which must be built and installed in
 # advance, via e.g. "make -C $KERNEL_SRC TARGETS=cgroup kselftest-install"
