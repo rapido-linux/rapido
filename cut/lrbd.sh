@@ -1,16 +1,6 @@
 #!/bin/bash
-#
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
@@ -25,6 +15,15 @@ _rt_require_lib req_inst "libssl3.so libsmime3.so libstdc++.so.6 libsoftokn3.so 
 		 libfreeblpriv3.so"	# NSS_InitContext() fails without
 # assign more memory
 _rt_mem_resources_set "1024M"
+
+systemd_conf="$(mktemp --tmpdir systemd_conf.XXXXX)"
+trap "rm $systemd_conf" 0
+
+# ensure /usr is writeable
+cat >"$systemd_conf" <<EOF
+[Manager]
+ProtectSystem=false
+EOF
 
 # _rt_require_rpms ?
 py3_rpms="python3 python3-base python3-setuptools python3-pyudev python3-six \
@@ -52,6 +51,7 @@ rados_cython="${CEPH_SRC}"/build/lib/cython_modules/lib.3/rados.cpython-34m.so
 	--include "$RTSLIB_SRC" "/rtslib/" \
 	--include "$TARGETCLI_SRC" "/targetcli/" \
 	--include "$CONFIGSHELL_SRC" "/configshell/" \
+	--include "$systemd_conf" "/etc/systemd/system.conf.d/60-rapido.conf" \
 	--add-drivers "iscsi_target_mod target_core_mod target_core_rbd" \
 	--modules "base systemd systemd-initrd dracut-systemd" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
