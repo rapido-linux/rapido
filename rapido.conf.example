@@ -357,3 +357,9 @@ LTP_DIR="/opt/ltp"
 # https://github.com/openSUSE/sys-param-check .
 #SYS_PARAM_CHECK_SRC=
 ############################################
+
+############# lklfuse-udev-usb ############
+# Path to a build of the Linux Kernel Library (LKL) source available at
+# https://github.com/lkl/linux .
+#LKL_SRC=
+###########################################
