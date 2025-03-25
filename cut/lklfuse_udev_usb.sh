@@ -44,12 +44,16 @@ EOF
 # --include to place it in /usr/bin path used by the systemd service.
 # loadkeys is run via systemd-vconsole-setup.service. Use true as an alias to
 # avoid unnecessarily needing to install kbd maps.
+# 'file' uses external magic metadata, install it if present.
 "$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep dirname df \
-		   mktemp date file /usr/share/file/magic.mgc strings id find \
+		   mktemp date file strings id find xfs_io \
 		   strace mkfs mkfs.xfs shuf free su uuidgen losetup ipcmk \
 		   which awk touch cut chmod true false unlink lsusb tee gzip \
 		   ${LKL_SRC}/tools/lkl/lklfuse \
 		   ${req_inst[*]}" \
+	--install-optional /usr/share/file/magic.mgc \
+	--install-optional /usr/share/misc/magic.mgc \
+	--install-optional /usr/share/misc/magic \
 	--include ${LKL_SRC}/tools/lkl/lklfuse /usr/bin/lklfuse \
 	--include "${LKL_SRC}/tools/lkl/systemd/lklfuse-mount@.service" \
 		  "/usr/lib/systemd/system/lklfuse-mount@.service" \
