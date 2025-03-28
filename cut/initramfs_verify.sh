@@ -40,3 +40,10 @@ if ! grep -q "^# CONFIG_INITRAMFS_PRESERVE_MTIME" "$kconfig"; then
 	  | cpio -o -H newc -D "$tmp_vdata"  >> "$DRACUT_OUT" \
 		|| _fail "failed to append mtime_chk archive"
 fi
+
+# compressed cpio archives can be mixed with uncompressed...
+fio --directory="${tmp_vdata}" --aux-path="${tmp_vdata}" \
+	--name=verify-wr --rw=write --size=1M --verify=crc32c \
+	--filename=fiod2 || _fail "fio failed to write verification data"
+echo -e "fiod2" | cpio -o -H newc -D "$tmp_vdata" | gzip >> "$DRACUT_OUT" \
+	|| _fail "failed to append compressed archive"
