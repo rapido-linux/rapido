@@ -15,5 +15,8 @@ if [ -d "/fiod.mtime_chk" ]; then
 	[ "$(stat -c %Y /fiod.mtime_chk/2)" == "1641548272" ] || _fatal
 fi
 
+fio --name=verify-rd --rw=read --size=1M --verify=crc32c --filename=/fiod2 \
+	|| _fatal
+
 set +x
 echo "fio data verification successful"

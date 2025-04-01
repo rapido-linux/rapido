@@ -2,18 +2,12 @@
 # SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) SUSE LLC 2025, all rights reserved.
 #
-# Mount a USB attached block device as an unprivileged user via lklfuse.
-# The mount is triggered via udev:61-lklfuse.rules->lklfuse-mount@.service .
-#
-# The USB device can be virtual, e.g.
-# -drive if=none,id=stick,format=raw,file=/path/to/file.img \
-# -device nec-usb-xhci,id=xhci                              \
-# -device usb-storage,bus=xhci.0,drive=stick
+# Environment to run LKL unit tests.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/lklfuse_udev_usb.sh" "$@"
+_rt_require_dracut_args "$RAPIDO_DIR/autorun/lkl_tests.sh" "$@"
 _rt_require_conf_dir LKL_SRC
 req_inst=()
 _rt_require_pam_mods req_inst "pam_rootok.so" "pam_limits.so" "pam_deny.so"
@@ -23,7 +17,8 @@ tmpd="$(mktemp -d --tmpdir lklfuse_tmp.XXXXX)"
 pam_su="${tmpd}/su"
 pam_other="${tmpd}/other"
 etc_nsswitch="${tmpd}/nsswitch.conf"
-trap "rm $pam_su $pam_other $etc_nsswitch ; rmdir $tmpd" 0
+sudo_fake="${tmpd}/sudo.fake"
+trap "rm $pam_su $pam_other $etc_nsswitch $sudo_fake ; rmdir $tmpd" 0
 
 cat > $pam_su <<EOF
 auth	sufficient	pam_rootok.so
@@ -40,35 +35,44 @@ passwd: files
 group: files
 EOF
 
-# lklfuse is installed and included... --install to pull in libs (libfuse3) and
-# --include to place it in /usr/bin path used by the systemd service.
-# loadkeys is run via systemd-vconsole-setup.service. Use true as an alias to
-# avoid unnecessarily needing to install kbd maps.
+cat > "$sudo_fake" <<EOF
+#!/bin/bash -x
+if (( \$UID != 0 )); then
+	echo "error: fake sudo only works as root!"
+	exit 1
+fi
+
+#echo "fake sudo running: \$@"
+\$@
+EOF
+chmod 755 "$sudo_fake"
+
 # 'file' uses external magic metadata, install it if present.
-"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep dirname df \
-		   mktemp date file strings id find xfs_io \
-		   strace mkfs mkfs.xfs shuf free su uuidgen losetup ipcmk \
+"$DRACUT" --install "tail blockdev ps rmdir resize dd vim grep dirname df id \
+		   mktemp date file strings find xfs_io mkfifo ping ping6 ip \
+		   strace mkfs mkfs.ext4 shuf free su uuidgen losetup ipcmk \
 		   which awk touch cut chmod true false unlink lsusb tee gzip \
+		   yes wc tc \
 		   ${LKL_SRC}/tools/lkl/lklfuse \
+		   ${LKL_SRC}/tools/lkl/tests/* \
+		   ${LKL_SRC}/tools/lkl/bin/lkl-hijack.sh \
+		   ${LKL_SRC}/tools/lkl/lib/hijack/liblkl-hijack.so \
 		   ${req_inst[*]}" \
 	--install-optional /usr/share/file/magic.mgc \
 	--install-optional /usr/share/misc/magic.mgc \
 	--install-optional /usr/share/misc/magic \
-	--include ${LKL_SRC}/tools/lkl/lklfuse /usr/bin/lklfuse \
-	--include "${LKL_SRC}/tools/lkl/systemd/lklfuse-mount@.service" \
-		  "/usr/lib/systemd/system/lklfuse-mount@.service" \
-	--include "${LKL_SRC}/tools/lkl/systemd/61-lklfuse.rules" \
-		  "/usr/lib/udev/rules.d/61-lklfuse.rules" \
+	--install-optional netperf \
+	--include ${LKL_SRC}/tools/lkl/lib/liblkl.so /lib/liblkl.so \
 	--include "$pam_su" /etc/pam.d/su \
 	--include "$pam_su" /etc/pam.d/su-l \
 	--include "$pam_other" /etc/pam.d/other \
 	--include "$etc_nsswitch" /etc/nsswitch.conf \
+	--include "$sudo_fake" /bin/sudo \
 	--include "${RAPIDO_DIR}/dracut.conf.d/.empty" \
 		  /etc/security/limits.conf \
 	--include "${RAPIDO_DIR}/dracut.conf.d/.empty" /etc/login.defs \
-	--include /usr/bin/true /usr/bin/loadkeys \
-	--add-drivers "fuse usb-storage xhci-hcd xhci-pci" \
-	--modules "base dracut-systemd" \
+	--add-drivers "fuse" \
+	--modules "base" \
 	"${DRACUT_RAPIDO_ARGS[@]}" \
 	"$DRACUT_OUT" || _fail "dracut failed"
 
