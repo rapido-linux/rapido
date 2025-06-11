@@ -42,5 +42,8 @@ echo user_allow_other >> /etc/fuse3.conf
 
 set +x
 
+# Dracut mounts /dev/shm with noexec. drop it for arch/lkl/mm/mmu_mem.c
+mount -t tmpfs -o remount,mode=1777,nosuid,nodev,strictatime tmpfs /dev/shm
+
 systemctl start systemd-udevd
 udevadm settle
