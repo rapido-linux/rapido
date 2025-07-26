@@ -341,6 +341,12 @@ LTP_DIR="/opt/ltp"
 #NFS_MOUNT_OPTS=""
 ###############################################
 
+############## autorun/autofs*.sh ##############
+# Path to a build of the autofs user-space source available at
+# https://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git/
+#AUTOFS_SRC=""
+###############################################
+
 ######### autorun/fstests_virtiofs.sh #########
 # mount options to use for virtiofs mount attempts.
 #VIRTIOFS_MOUNT_OPTS=""
