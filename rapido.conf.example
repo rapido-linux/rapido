@@ -1,10 +1,17 @@
 # Path to Linux kernel source. Prior to running "rapido cut", the kernel
 # should be built, with modules installed (see KERNEL_INSTALL_MOD_PATH below).
-# If KERNEL_SRC is not set then rapido will attempt to boot the local kernel
-# present under /boot/.
+# If KERNEL_SRC is not set then rapido will attempt to boot a host kernel
+# available under /boot/; either the `uname -r` release, or (if specified) the
+# KERNEL_RELEASE version.
 #
 # e.g. KERNEL_SRC="/home/me/linux"
 #KERNEL_SRC=""
+
+# Only applicable with an empty KERNEL_SRC. KERNEL_RELEASE can be used to
+# override which host kernel should be used, when left empty/unset defaults to
+# `uname -r`.
+# e.g. KERNEL_RELEASE="6.16.3-1-default"
+#KERNEL_RELEASE=""
 
 # If specified, this parameter defines the path that Dracut should use to
 # obtain compiled kernel modules. If left blank, Dracut will use its default
