@@ -9,7 +9,6 @@ jobs:
     container:
       image: registry.opensuse.org/home/mkoutny/containers/opensuse_containers_tumbleweed_containers/rapido-ci:latest
       env:
-        KERNEL_RELEASE: 6.16.7-1-default
         KERNEL_INSTALL_MOD_PATH: /usr/
       options:  -w /test
       volumes:
@@ -20,5 +19,5 @@ jobs:
 
       - name: Run selftest
         run: |
-          /test/selftest/selftest.sh
+          KERNEL_RELEASE=$(cat /usr/src/linux-obj/x86_64/default/include/config/kernel.release) /test/selftest/selftest.sh
 
