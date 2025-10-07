@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.opensuse.org/home/mkoutny/containers/opensuse_containers_tumbleweed_containers/rapido-ci:latest
+      env:
+        KERNEL_INSTALL_MOD_PATH: /usr/
+      options:  -w /test
+      volumes:
+        - ${{ github.workspace }}:/test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run selftest
+        run: |
+          KERNEL_RELEASE=$(cat /usr/src/linux-obj/x86_64/default/include/config/kernel.release) /test/selftest/selftest.sh
+
