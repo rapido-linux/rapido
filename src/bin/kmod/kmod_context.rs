@@ -92,23 +92,19 @@ impl KmodContext {
             module_root: PathBuf::from(dirname),
         };
 
-        // load modules.dep
         ctx.load_hard_dependencies()
             .map_err(|e| format!("Failed to load modules.dep: {}", e))?;
 
-        // load modules.softdep
         ctx.load_soft_dependencies()
             .map_err(|e| format!("Failed to load modules.softdep: {}", e))?;
 
-        // load modules.weakdep
-        ctx.load_weak_dependencies()
-            .map_err(|e| format!("Failed to load modules.weakdep: {}", e))?;
+        if let Err(e) = ctx.load_weak_dependencies() {
+            eprintln!("Old kernel? modules.weakdep load failure ignored: {}", e);
+        }
 
-        // load modules.builtin
         ctx.load_builtin_modules()
             .map_err(|e| format!("Failed to load modules.builtin: {}", e))?;
 
-        // load modules.alias
         ctx.load_aliases()
             .map_err(|e| format!("Failed to load modules.alias: {}", e))?;
 
@@ -884,9 +880,8 @@ mod tests {
         );
         write_test_file(&root_path, "modules.alias", &modules_alias_content);
 
-        // modules.builtin and modules.weakdep are empty.
+        // modules.builtin is empty. modules.weakdep is omitted (like Leap 15.6).
         write_test_file(&root_path, "modules.builtin", "");
-        write_test_file(&root_path, "modules.weakdep", "");
 
         // -- LOAD KmodContext --
         let context = KmodContext::new(&root_path).unwrap();
