@@ -17,10 +17,17 @@ fn main() -> io::Result<()> {
     let mut archive_walker = cpio::archive_walk(f)?;
     while let Some(archive_ent) = archive_walker.next() {
         let archive_ent = archive_ent?;
-        match str::from_utf8(&archive_ent.name) {
-            Ok(s) => println!("{: <9} {}", archive_ent.md.len, s),
-            Err(_) => return Err(io::Error::from(io::ErrorKind::InvalidData)),
-        }
+        let name = match str::from_utf8(&archive_ent.name) {
+            Ok(s) => {
+                // per spec, name must be zero terminated
+                match s.split_once('\0') {
+                    None => Err(io::Error::from(io::ErrorKind::InvalidData)),
+                    Some((n_before_term, after_term)) => Ok(n_before_term),
+                }
+            }
+            Err(_) => Err(io::Error::from(io::ErrorKind::InvalidData)),
+        }?;
+        println!("{: <9} {}", archive_ent.md.len, name);
     }
     Ok(())
 }
