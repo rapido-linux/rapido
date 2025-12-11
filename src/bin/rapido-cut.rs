@@ -814,22 +814,22 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
         Argument::value(
             "install",
             "FILES",
-            "List of files to archive. Space separated with <src>→<dest> support."
+            "Space separated list of files to archive. ELF dependencies are gathered too."
         ),
         Argument::value(
             "install-kmod",
             "MODULES",
-            "space separated list of kernel modules to install with dependencies.",
+            "List of kernel modules to install with dependencies.",
         ),
         Argument::value(
             "include",
             "SRC_PATH DEST_PATH",
-            "space separated list of path pairs to install recursively.",
+            "List of path pairs to install recursively.",
         ),
         Argument::value(
             "autorun",
             "PROGRAM",
-            "space separated list of files to execute on VM boot, in order.",
+            "List of files to execute on VM boot, in order.",
         ),
         Argument::flag("net", "Install network configuration and dependencies"),
         Argument::short_flag('h', "help", "Print help message."),
@@ -841,21 +841,12 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
         match name {
             "output" => cpio_output = PathBuf::from(value.unwrap()),
             "install" => {
-                for file in value.unwrap().split_whitespace() {
-                    let file_parsed = match file.split_once('→') {
-                        // source only
-                        None => (file.to_string(), None),
-                        // source→dest
-                        Some((s, d)) if s == "" || d == "" => {
-                            return Err(argument::Error::InvalidValue {
-                                value: file.to_owned(),
-                                expected: String::from("empty source or dest"),
-                            });
-                        },
-                        Some((s, d)) => (s.to_string(), Some(d.to_string())),
-                    };
-                    state.bins.names.push(file_parsed);
-                }
+                let mut files: Vec<(String, Option<String>)> = value
+                    .unwrap()
+                    .split_whitespace()
+                    .map(|f| (f.to_string(), None))
+                    .collect();
+                state.bins.names.append(&mut files);
             }
             "install-kmod" => {
                 let kmod_parsed: argument::Result<Vec<String>> = value
