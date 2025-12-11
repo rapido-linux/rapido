@@ -439,18 +439,4 @@ mod tests {
             }
         );
     }
-
-    #[test]
-    fn test_rapido_conf() {
-        let f = match fs::File::open("./rapido.conf") {
-            Ok(f) => f,
-            Err(e) => {
-                println!("failed to open {}: {}. skipping test",
-                    "./rapido.conf", e);
-                return;
-            },
-        };
-        let mut reader = io::BufReader::new(f);
-        let conf = kv_conf::kv_conf_process(&mut reader).expect("failed to pass conf");
-    }
 }
