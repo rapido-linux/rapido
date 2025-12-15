@@ -288,8 +288,6 @@ fn gather_archive_bins<W: Seek + Write>(
         let got = match path_stat(&bin_src, &BIN_PATHS) {
             Some(fse) => fse,
             None => {
-                // TODO: drop missing tracking, as we fail immediately
-                bins.missing.push(bins.off);
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
                     format!("{} missing from: {:?}", bin_src, BIN_PATHS)
@@ -379,7 +377,6 @@ fn gather_archive_libs<W: Seek + Write>(
         let got = match path_stat(&lib_src, &LIB_PATHS) {
             Some(fse) => fse,
             None => {
-                libs.missing.push(libs.off);
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
                     format!("{} missing from: {:?}", lib_src, LIB_PATHS)
@@ -441,12 +438,11 @@ fn gather_archive_libs<W: Seek + Write>(
                 dout!("archived lib: {:?}", got.path);
             },
             _ => {
-                // only support file/symlink library entries
                 eprintln!(
                     "{:?}: libs gathering only supports symlinks or files, not {:o}",
                     got.path, amd.mode
                 );
-                libs.missing.push(libs.off);
+                return Err(io::Error::from(io::ErrorKind::InvalidInput));
             },
         };
     }
@@ -638,8 +634,10 @@ fn gather_archive_kmods<W: Seek + Write>(
             &mut cpio_writer
         ) {
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
-                eprintln!("failed to find {name}");
-                // TODO: flag missing modules
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("{} missing from: {:?}", name, kmod_src_root)
+                ));
             },
             Err(e) => return Err(e),
             Ok(_) => {},
@@ -660,6 +658,7 @@ fn gather_archive_kmods<W: Seek + Write>(
             ) {
                 Err(e) if e.kind() == io::ErrorKind::NotFound => {
                     dout!("Module data path {:?} missing", data_src_path);
+                    // TODO: only install required, and return error if missing
                 },
                 Err(e) => return Err(e),
                 Ok(_) => {},
@@ -681,7 +680,16 @@ fn gather_archive_data<W: Seek + Write>(
     while let Some(item) = data.items.get(data.off) {
         data.off += 1;
 
-        let src_md = fs::symlink_metadata(&item.src)?;    // TODO catch missing
+        let src_md = match fs::symlink_metadata(&item.src) {
+            Ok(md) => md,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("{:?} missing", item.src)
+                ));
+            }
+            Err(e) => return Err(e),
+        };
         let src_amd = cpio::ArchiveMd::from(cpio_state, &src_md)?;
 
         if !paths_seen.insert(item.dst.clone()) {
@@ -961,14 +969,12 @@ fn main() -> io::Result<()> {
                 ("bash".to_string(), None),
             ),
             off: 0,
-            missing: vec!(),
         },
         libs: Gather {
             names: vec!(),
             off: 0,
-            missing: vec!(),
         },
-        // TODO: kmods currently only tracks user-requested modules.
+        // kmods currently only tracks user-requested modules.
         // Dependencies are omitted and missing mods aren't tracked.
         kmods: vec!(),
         data: GatherData {
