@@ -21,7 +21,7 @@ _vm_start() {
 	local vm_pid_file="${QEMU_PID_DIR}/rapido_vm${vm_num}.pid"
 	local netd_flag netd_mach_id i vm_tap tap_mac n f
 	local vm_resources=()
-	local vm_num_kparam="rdinit=/rapido-init rapido.vm_num=${vm_num}"
+	local vm_num_kparam="rdinit=/rdinit rapido.vm_num=${vm_num}"
 	local net_conf="${VM_NET_CONF}/vm${vm_num}"
 	local qemu_netdev=()
 	local kcmdline=(rd.systemd.unit=dracut-cmdline.service \

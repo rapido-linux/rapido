@@ -954,7 +954,7 @@ fn main() -> io::Result<()> {
     let mut state = CutState {
         bins: Gather {
             names: vec!(
-                (RAPIDO_INIT_PATH.to_string(), Some("/init".to_string())),
+                (RAPIDO_INIT_PATH.to_string(), Some("/rdinit".to_string())),
                 // rapido-init core deps
                 ("mount".to_string(), None),
                 ("setsid".to_string(), None),

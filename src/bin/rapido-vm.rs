@@ -255,7 +255,7 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs> {
 fn vm_start(vm_num: u64, vm_pid_file: &str, initramfs_img: &str, conf: &HashMap<String,String>) -> io::Result<()> {
     let mut qemu_args = vm_qemu_args_get(conf)?;
     let mut kcmdline = format!(
-        "rdinit=/init console={} rapido.vm_num={}",
+        "rdinit=/rdinit console={} rapido.vm_num={}",
         qemu_args.console,
         vm_num
     );
