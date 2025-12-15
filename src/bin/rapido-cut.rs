@@ -44,7 +44,7 @@ struct Fsent {
     md: fs::Metadata,
 }
 
-// TODO: this should be merged with GatherEnt
+// TODO: this should be merged with GatherEnt, with a static option too
 struct GatherItem {
     src: PathBuf,
     dst: PathBuf,
@@ -63,7 +63,7 @@ enum GatherEnt {
     Name(String),
     // Same as above, but destination is explicitly provided.
     NameDst(String, String),
-    // TODO NameStatic(&str),
+    NameStatic(&'static str),
 }
 
 struct Gather {
@@ -305,10 +305,14 @@ fn gather_archive_bins<W: Seek + Write>(
             GatherEnt::Name(n) => {
                 got = path_stat(&n, &BIN_PATHS)?;
                 &got.path
-            },
+            }
             GatherEnt::NameDst(n, d) => {
                 got = path_stat(&n, &BIN_PATHS)?;
                 &path::absolute(d)?
+            }
+            GatherEnt::NameStatic(n) => {
+                got = path_stat(n, &BIN_PATHS)?;
+                &got.path
             }
         };
 
@@ -393,10 +397,14 @@ fn gather_archive_libs<W: Seek + Write>(
             GatherEnt::Name(n) => {
                 got = path_stat(&n, &LIB_PATHS)?;
                 &got.path
-            },
+            }
             GatherEnt::NameDst(n, d) => {
                 got = path_stat(&n, &LIB_PATHS)?;
                 &path::absolute(d)?
+            }
+            GatherEnt::NameStatic(n) => {
+                got = path_stat(n, &LIB_PATHS)?;
+                &got.path
             }
         };
 
@@ -980,9 +988,9 @@ fn main() -> io::Result<()> {
                     "/rdinit".to_string()
                 ),
                 // rapido-init core deps
-                GatherEnt::Name("mount".to_string()),
-                GatherEnt::Name("setsid".to_string()),
-                GatherEnt::Name("bash".to_string()),
+                GatherEnt::NameStatic("mount"),
+                GatherEnt::NameStatic("setsid"),
+                GatherEnt::NameStatic("bash"),
             ),
             off: 0,
         },
@@ -1049,7 +1057,6 @@ fn main() -> io::Result<()> {
         Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e.to_string())),
     };
 
-    // XXX would be nice to avoid all of the to_string() calls below...
     state.kmods.extend(
         rapido::conf_kmod_deps(&conf, state.net_enabled)
             .into_iter()
@@ -1063,17 +1070,17 @@ fn main() -> io::Result<()> {
             flags: 0,
         });
         state.bins.names.extend([
-            GatherEnt::Name("udevadm".to_string()),
-            GatherEnt::Name("systemd-udevd".to_string()),
-            GatherEnt::Name("systemd-networkd".to_string()),
-            GatherEnt::Name("systemd-networkd-wait-online".to_string()),
-            GatherEnt::Name("ip".to_string()),
-            GatherEnt::Name("ping".to_string())
+            GatherEnt::NameStatic("udevadm"),
+            GatherEnt::NameStatic("systemd-udevd"),
+            GatherEnt::NameStatic("systemd-networkd"),
+            GatherEnt::NameStatic("systemd-networkd-wait-online"),
+            GatherEnt::NameStatic("ip"),
+            GatherEnt::NameStatic("ping")
         ]);
     }
     if state.kmods.len() > 0 {
         // TODO only install if we have non-builtin kmods!
-        state.bins.names.extend([GatherEnt::Name("modprobe".to_string())]);
+        state.bins.names.extend([GatherEnt::NameStatic("modprobe")]);
     }
 
     let cpio_props = cpio::ArchiveProperties{
