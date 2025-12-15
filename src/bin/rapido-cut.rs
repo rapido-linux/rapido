@@ -17,8 +17,10 @@ mod kmod;
 use kmod::kmod_context::{KmodContext, ModuleStatus, MODULE_DB_FILES};
 extern crate kv_conf;
 
-const BIN_PATHS: [&str; 3] = [ "/usr/bin", "/usr/sbin", "/usr/lib/systemd" ];
-const LIB_PATHS: [&str; 3] = [ "/usr/lib64", "/usr/lib", "/usr/lib64/systemd" ];
+// On usr-merge systems, /X may be a symlink to /usr/X .
+// We should probably allow search paths to be set at build and/or runtime
+const BIN_PATHS: [&str; 5] = ["/usr/bin", "/usr/sbin","/usr/lib/systemd", "/bin", "/sbin"];
+const LIB_PATHS: [&str; 5] = ["/usr/lib64", "/usr/lib","/usr/lib64/systemd", "/lib64", "/lib"];
 // FIXME: we shouldn't assume rapido-init location
 const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
@@ -286,8 +288,12 @@ fn gather_archive_bins<W: Seek + Write>(
         let got = match path_stat(&bin_src, &BIN_PATHS) {
             Some(fse) => fse,
             None => {
+                // TODO: drop missing tracking, as we fail immediately
                 bins.missing.push(bins.off);
-                continue;
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("{} missing from: {:?}", bin_src, BIN_PATHS)
+                ));
             }
         };
         let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
@@ -374,7 +380,10 @@ fn gather_archive_libs<W: Seek + Write>(
             Some(fse) => fse,
             None => {
                 libs.missing.push(libs.off);
-                continue;
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("{} missing from: {:?}", lib_src, LIB_PATHS)
+                ));
             }
         };
         let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
