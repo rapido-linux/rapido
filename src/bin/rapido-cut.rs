@@ -26,7 +26,7 @@ const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
 const RAPIDO_BASH_RC_PATH: &str = "vm_autorun.env";
 
-const GATHER_ITEM_MISSING: u32 =        1<<0;
+// XXX use next: 1<<0;
 const GATHER_ITEM_IGNORE_PARENT: u32 =  1<<1;
 
 // Don't print debug messages on release builds...
@@ -44,6 +44,7 @@ struct Fsent {
     md: fs::Metadata,
 }
 
+// TODO: this should be merged with GatherEnt
 struct GatherItem {
     src: PathBuf,
     dst: PathBuf,
@@ -56,16 +57,21 @@ struct GatherData {
     off: usize,
 }
 
+enum GatherEnt {
+    // Name String may be an absolute host-source-path or a relative path
+    // resolved via path_stat(). Destination matches source.
+    Name(String),
+    // Same as above, but destination is explicitly provided.
+    NameDst(String, String),
+    // TODO NameStatic(&str),
+}
+
 struct Gather {
-    // The names tuple is (host-source-path, Option<initramfs-destination).
-    // If Option is None then the destination path will match the source.
     // Dependencies (elf, kmod, etc.) are added to the end of the gather
     // list as they are found.
-    names: Vec<(String, Option<String>)>,
+    names: Vec<GatherEnt>,
     // offset that we are currently processing
     off: usize,
-    // @names offset which couldn't be found
-    missing: Vec<usize>,
 }
 
 // We *should* be running as an unprivileged process, so don't filter or block
@@ -103,8 +109,8 @@ fn elf_deps(
     f: &fs::File,
     path: &Path,
     dups_filter: &mut HashSet<String>
-) -> Result<Vec<(String, Option<String>)>, io::Error> {
-    let mut ret: Vec<(String, Option<String>)> = vec![];
+) -> Result<Vec<GatherEnt>, io::Error> {
+    let mut ret: Vec<GatherEnt> = vec![];
 
     let mut file = match ElfStream::<AnyEndian, _>::open_stream(f) {
         Ok(f) => f,
@@ -160,7 +166,7 @@ fn elf_deps(
                 let s = sraw.to_string();
                 if dups_filter.insert(s.clone()) {
                     dout!("new elf dependency({:?}): {:?}", str_off, s);
-                    ret.push((s, None));
+                    ret.push(GatherEnt::Name(s));
                 } else {
                     dout!("duplicate elf dependency({:?}): {:?}", str_off, sraw);
                 }
@@ -249,7 +255,7 @@ fn gather_archive_file<W: Seek + Write>(
     dst: &Path,
     amd: &cpio::ArchiveMd,
     mode_mask: Option<u32>,
-    libs_names: &mut Vec<(String, Option<String>)>,
+    libs_names: &mut Vec<GatherEnt>,
     libs_seen: &mut HashSet<String>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
@@ -283,8 +289,14 @@ fn gather_archive_bins<W: Seek + Write>(
     mut cpio_writer: W,
 ) -> io::Result<()> {
 
-    while let Some((bin_src, bin_dst)) = bins.names.get(bins.off) {
+    while let Some(ent) = bins.names.get(bins.off) {
         bins.off += 1;
+        let (bin_src, bin_dst) = match ent {
+            // TODO: should be able to drop the Option for dst
+            GatherEnt::Name(n) => (n, None),
+            GatherEnt::NameDst(n, d) => (n, Some(d)),
+        };
+
         let got = match path_stat(&bin_src, &BIN_PATHS) {
             Some(fse) => fse,
             None => {
@@ -334,7 +346,7 @@ fn gather_archive_bins<W: Seek + Write>(
                 dout!("archived symlink: {:?} ({:?})", got.path, canon_tgt);
 
                 if let Ok(t) = canon_tgt.into_os_string().into_string() {
-                    bins.names.push((t, None));
+                    bins.names.push(GatherEnt::Name(t));
                 } else {
                     eprintln!("non utf-8 symlink target {:?}", &got.path);
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
@@ -372,8 +384,13 @@ fn gather_archive_libs<W: Seek + Write>(
     mut cpio_writer: W,
 ) -> io::Result<()> {
 
-    while let Some((lib_src, lib_dst)) = libs.names.get(libs.off) {
+    while let Some(ent) = libs.names.get(libs.off) {
         libs.off += 1;
+        let (lib_src, lib_dst) = match ent {
+            GatherEnt::Name(n) => (n, None),
+            GatherEnt::NameDst(n, d) => (n, Some(d)),
+        };
+
         let got = match path_stat(&lib_src, &LIB_PATHS) {
             Some(fse) => fse,
             None => {
@@ -418,7 +435,7 @@ fn gather_archive_libs<W: Seek + Write>(
                 dout!("archived lib symlink: {:?} ({:?})", got.path, canon_tgt);
 
                 if let Ok(t) = canon_tgt.into_os_string().into_string() {
-                    libs.names.push((t, None));
+                    libs.names.push(GatherEnt::Name(t));
                 } else {
                     eprintln!("non utf-8 symlink target {:?}", &got.path);
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
@@ -858,10 +875,10 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
         match name {
             "output" => cpio_output = PathBuf::from(value.unwrap()),
             "install" => {
-                let mut files: Vec<(String, Option<String>)> = value
+                let mut files: Vec<GatherEnt> = value
                     .unwrap()
                     .split_whitespace()
-                    .map(|f| (f.to_string(), None))
+                    .map(|f| GatherEnt::Name(f.to_string()))
                     .collect();
                 state.bins.names.append(&mut files);
             }
@@ -962,11 +979,14 @@ fn main() -> io::Result<()> {
     let mut state = CutState {
         bins: Gather {
             names: vec!(
-                (RAPIDO_INIT_PATH.to_string(), Some("/rdinit".to_string())),
+                GatherEnt::NameDst(
+                    RAPIDO_INIT_PATH.to_string(),
+                    "/rdinit".to_string()
+                ),
                 // rapido-init core deps
-                ("mount".to_string(), None),
-                ("setsid".to_string(), None),
-                ("bash".to_string(), None),
+                GatherEnt::Name("mount".to_string()),
+                GatherEnt::Name("setsid".to_string()),
+                GatherEnt::Name("bash".to_string()),
             ),
             off: 0,
         },
@@ -1047,17 +1067,17 @@ fn main() -> io::Result<()> {
             flags: 0,
         });
         state.bins.names.extend([
-            ("udevadm".to_string(), None),
-            ("systemd-udevd".to_string(), None),
-            ("systemd-networkd".to_string(), None),
-            ("systemd-networkd-wait-online".to_string(), None),
-            ("ip".to_string(), None),
-            ("ping".to_string(), None)
+            GatherEnt::Name("udevadm".to_string()),
+            GatherEnt::Name("systemd-udevd".to_string()),
+            GatherEnt::Name("systemd-networkd".to_string()),
+            GatherEnt::Name("systemd-networkd-wait-online".to_string()),
+            GatherEnt::Name("ip".to_string()),
+            GatherEnt::Name("ping".to_string())
         ]);
     }
     if state.kmods.len() > 0 {
         // TODO only install if we have non-builtin kmods!
-        state.bins.names.extend([("modprobe".to_string(), None)]);
+        state.bins.names.extend([GatherEnt::Name("modprobe".to_string())]);
     }
 
     let cpio_props = cpio::ArchiveProperties{
