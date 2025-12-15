@@ -76,18 +76,23 @@ struct Gather {
 
 // We *should* be running as an unprivileged process, so don't filter or block
 // access to parent or special paths; this should all be handled by the OS.
-fn path_stat(name: &str, search_paths: &[&str]) -> Option<Fsent> {
+fn path_stat(name: &str, search_paths: &[&str]) -> Result<Fsent, io::Error> {
     dout!("resolving path for {:?}", name);
     // if name has any separator in it then we should handle it as a relative
     // or absolute path. This should be close enough as a check.
     if name.contains(std::path::MAIN_SEPARATOR_STR) {
         dout!("using relative / absolute path {:?} as-is", name);
         return match fs::symlink_metadata(name) {
-            Ok(md) => Some(Fsent {
+            Ok(md) => Ok(Fsent {
                 path: path::absolute(name).expect("absolute failed for good path"),
                 md: md
             }),
-            Err(_) => None,
+            Err(_) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("{} missing", name)
+                ));
+            }
         }
     }
 
@@ -96,11 +101,14 @@ fn path_stat(name: &str, search_paths: &[&str]) -> Option<Fsent> {
         let p = PathBuf::from(dir).join(name);
         let md = fs::symlink_metadata(&p);
         if md.is_ok() {
-            return Some(Fsent {path: p, md: md.unwrap()});
+            return Ok(Fsent {path: p, md: md.unwrap()});
         }
     }
 
-    None
+    return Err(io::Error::new(
+        io::ErrorKind::NotFound,
+        format!("{} missing from: {:?}", name, search_paths)
+    ));
 }
 
 // Parse ELF NEEDED entries to gather shared object dependencies
@@ -291,27 +299,20 @@ fn gather_archive_bins<W: Seek + Write>(
 
     while let Some(ent) = bins.names.get(bins.off) {
         bins.off += 1;
-        let (bin_src, bin_dst) = match ent {
-            // TODO: should be able to drop the Option for dst
-            GatherEnt::Name(n) => (n, None),
-            GatherEnt::NameDst(n, d) => (n, Some(d)),
-        };
 
-        let got = match path_stat(&bin_src, &BIN_PATHS) {
-            Some(fse) => fse,
-            None => {
-                return Err(io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("{} missing from: {:?}", bin_src, BIN_PATHS)
-                ));
+        let mut got;
+        let dst = match ent {
+            GatherEnt::Name(n) => {
+                got = path_stat(&n, &BIN_PATHS)?;
+                &got.path
+            },
+            GatherEnt::NameDst(n, d) => {
+                got = path_stat(&n, &BIN_PATHS)?;
+                &path::absolute(d)?
             }
         };
-        let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
-        let dst = match bin_dst {
-            None => &got.path,
-            Some(d) => &path::absolute(d)?,
-        };
 
+        let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
         gather_archive_dirs(
             dst.parent(),
             &amd,
@@ -325,7 +326,7 @@ fn gather_archive_bins<W: Seek + Write>(
                 // - the host path must match the initramfs dest path
                 // - targets be resolvable; no dangling / arbitrary links
                 // - multiple indirect links will be collapsed
-                if bin_dst.is_some() {
+                if let GatherEnt::NameDst(_, _) = ent {
                     eprintln!("symlink source and cpio dest paths must match");
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
                 }
@@ -375,7 +376,7 @@ fn gather_archive_bins<W: Seek + Write>(
     Ok(())
 }
 
-// TODO?: this is very similar to gather_archive_bins; combine?
+// TODO: this is *very* similar to gather_archive_bins; combine!
 fn gather_archive_libs<W: Seek + Write>(
     libs: &mut Gather,
     libs_seen: &mut HashSet<String>,
@@ -386,25 +387,20 @@ fn gather_archive_libs<W: Seek + Write>(
 
     while let Some(ent) = libs.names.get(libs.off) {
         libs.off += 1;
-        let (lib_src, lib_dst) = match ent {
-            GatherEnt::Name(n) => (n, None),
-            GatherEnt::NameDst(n, d) => (n, Some(d)),
-        };
 
-        let got = match path_stat(&lib_src, &LIB_PATHS) {
-            Some(fse) => fse,
-            None => {
-                return Err(io::Error::new(
-                    io::ErrorKind::NotFound,
-                    format!("{} missing from: {:?}", lib_src, LIB_PATHS)
-                ));
+        let mut got;
+        let dst = match ent {
+            GatherEnt::Name(n) => {
+                got = path_stat(&n, &LIB_PATHS)?;
+                &got.path
+            },
+            GatherEnt::NameDst(n, d) => {
+                got = path_stat(&n, &LIB_PATHS)?;
+                &path::absolute(d)?
             }
         };
+
         let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
-        let dst = match lib_dst {
-            None => &got.path,
-            Some(d) => &path::absolute(d)?,
-        };
         gather_archive_dirs(
             dst.parent(),
             &amd,
@@ -414,7 +410,7 @@ fn gather_archive_libs<W: Seek + Write>(
         )?;
         match amd.mode & cpio::S_IFMT {
             cpio::S_IFLNK => {
-                if lib_dst.is_some() {
+                if let GatherEnt::NameDst(_, _) = ent {
                     eprintln!("symlink source and cpio dest paths must match");
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
                 }
