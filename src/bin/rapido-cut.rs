@@ -300,7 +300,7 @@ fn gather_archive_bins<W: Seek + Write>(
     while let Some(ent) = bins.names.get(bins.off) {
         bins.off += 1;
 
-        let mut got;
+        let got;
         let dst = match ent {
             GatherEnt::Name(n) => {
                 got = path_stat(&n, &BIN_PATHS)?;
@@ -392,7 +392,7 @@ fn gather_archive_libs<W: Seek + Write>(
     while let Some(ent) = libs.names.get(libs.off) {
         libs.off += 1;
 
-        let mut got;
+        let got;
         let dst = match ent {
             GatherEnt::Name(n) => {
                 got = path_stat(&n, &LIB_PATHS)?;
