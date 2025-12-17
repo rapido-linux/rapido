@@ -64,6 +64,8 @@ enum GatherEnt {
     // Same as above, but destination is explicitly provided.
     NameDst(String, String),
     NameStatic(&'static str),
+    // Ignore if missing, instead of aborting.
+    NameTry(String),
 }
 
 struct Gather {
@@ -270,6 +272,8 @@ fn gather_archive_file<W: Seek + Write>(
 ) -> io::Result<()> {
     let mut f = fs::OpenOptions::new().read(true).open(src)?;
     if mode_mask.is_none() || mode_mask.unwrap() & amd.mode != 0 {
+        // XXX NameTry bins do *not* result in NameTry libs; if a binary is
+        // installed then it's reasonable to assume presence of libs.
         match elf_deps(&f, src, libs_seen) {
             Ok(mut d) => libs_names.append(&mut d),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput => {
@@ -312,6 +316,13 @@ fn gather_archive_bins<W: Seek + Write>(
             }
             GatherEnt::NameStatic(n) => {
                 got = path_stat(n, &BIN_PATHS)?;
+                &got.path
+            }
+            GatherEnt::NameTry(n) => {
+                got = match path_stat(&n, &BIN_PATHS) {
+                    Err(_) => continue,
+                    Ok(got) => got,
+                };
                 &got.path
             }
         };
@@ -404,6 +415,13 @@ fn gather_archive_libs<W: Seek + Write>(
             }
             GatherEnt::NameStatic(n) => {
                 got = path_stat(n, &LIB_PATHS)?;
+                &got.path
+            }
+            GatherEnt::NameTry(n) => {
+                got = match path_stat(&n, &LIB_PATHS) {
+                    Err(_) => continue,
+                    Ok(got) => got,
+                };
                 &got.path
             }
         };
@@ -855,6 +873,11 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
             "Space separated list of files to archive. ELF dependencies are gathered too."
         ),
         Argument::value(
+            "try-install",
+            "FILES",
+            "List of files to archive, if present, along with ELF dependencies."
+        ),
+        Argument::value(
             "install-kmod",
             "MODULES",
             "List of kernel modules to install with dependencies.",
@@ -883,6 +906,14 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
                     .unwrap()
                     .split_whitespace()
                     .map(|f| GatherEnt::Name(f.to_string()))
+                    .collect();
+                state.bins.names.append(&mut files);
+            }
+            "try-install" => {
+                let mut files: Vec<GatherEnt> = value
+                    .unwrap()
+                    .split_whitespace()
+                    .map(|f| GatherEnt::NameTry(f.to_string()))
                     .collect();
                 state.bins.names.append(&mut files);
             }
