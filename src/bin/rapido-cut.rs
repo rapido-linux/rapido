@@ -78,7 +78,15 @@ struct Gather {
 
 // We *should* be running as an unprivileged process, so don't filter or block
 // access to parent or special paths; this should all be handled by the OS.
-fn path_stat(name: &str, search_paths: &[&str]) -> Result<Fsent, io::Error> {
+fn path_stat(ent: &GatherEnt, search_paths: &[&str]) -> Result<Fsent, io::Error> {
+
+    let name: &str = match ent {
+        GatherEnt::Name(n) => &n,
+        GatherEnt::NameDst(n, _) => n,
+        GatherEnt::NameStatic(n) => n,
+        GatherEnt::NameTry(n) => &n,
+    };
+
     dout!("resolving path for {:?}", name);
     // if name has any separator in it then we should handle it as a relative
     // or absolute path. This should be close enough as a check.
@@ -303,27 +311,18 @@ fn gather_archive_bins<W: Seek + Write>(
     while let Some(ent) = bins.names.get(bins.off) {
         bins.off += 1;
 
-        let got;
+        let got = match path_stat(&ent, &BIN_PATHS) {
+            Err(e) => {
+                if let GatherEnt::NameTry(_) = ent {
+                    continue;
+                }
+                return Err(e);
+            }
+            Ok(g) => g,
+        };
         let dst = match ent {
-            GatherEnt::Name(n) => {
-                got = path_stat(&n, &BIN_PATHS)?;
-                &got.path
-            }
-            GatherEnt::NameDst(n, d) => {
-                got = path_stat(n, &BIN_PATHS)?;
-                &path::absolute(d)?
-            }
-            GatherEnt::NameStatic(n) => {
-                got = path_stat(n, &BIN_PATHS)?;
-                &got.path
-            }
-            GatherEnt::NameTry(n) => {
-                got = match path_stat(&n, &BIN_PATHS) {
-                    Err(_) => continue,
-                    Ok(got) => got,
-                };
-                &got.path
-            }
+            GatherEnt::NameDst(_, d) => &path::absolute(d)?,
+            _ => &got.path,
         };
 
         let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
@@ -390,7 +389,7 @@ fn gather_archive_bins<W: Seek + Write>(
     Ok(())
 }
 
-// TODO: this is *very* similar to gather_archive_bins; combine!
+// TODO: this is very similar to gather_archive_bins; combine?
 fn gather_archive_libs<W: Seek + Write>(
     libs: &mut Gather,
     libs_seen: &mut HashSet<String>,
@@ -402,27 +401,18 @@ fn gather_archive_libs<W: Seek + Write>(
     while let Some(ent) = libs.names.get(libs.off) {
         libs.off += 1;
 
-        let got;
+        let got = match path_stat(&ent, &LIB_PATHS) {
+            Err(e) => {
+                if let GatherEnt::NameTry(_) = ent {
+                    continue;
+                }
+                return Err(e);
+            }
+            Ok(g) => g,
+        };
         let dst = match ent {
-            GatherEnt::Name(n) => {
-                got = path_stat(&n, &LIB_PATHS)?;
-                &got.path
-            }
-            GatherEnt::NameDst(n, d) => {
-                got = path_stat(n, &LIB_PATHS)?;
-                &path::absolute(d)?
-            }
-            GatherEnt::NameStatic(n) => {
-                got = path_stat(n, &LIB_PATHS)?;
-                &got.path
-            }
-            GatherEnt::NameTry(n) => {
-                got = match path_stat(&n, &LIB_PATHS) {
-                    Err(_) => continue,
-                    Ok(got) => got,
-                };
-                &got.path
-            }
+            GatherEnt::NameDst(_, d) => &path::absolute(d)?,
+            _ => &got.path,
         };
 
         let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
