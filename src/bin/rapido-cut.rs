@@ -66,6 +66,8 @@ enum GatherEnt {
     NameDst(&'static str, &'static str),
     // Ignore if missing, instead of aborting.
     NameTry(String),
+    // library with extra search path(s) from ELF RUNPATH
+    LibRunPath(String, Vec<String>),
 }
 
 struct Gather {
@@ -85,12 +87,24 @@ fn path_stat(ent: &GatherEnt, search_paths: &[&str]) -> Result<Fsent, io::Error>
         GatherEnt::NameDst(n, _) => n,
         GatherEnt::NameStatic(n) => n,
         GatherEnt::NameTry(n) => &n,
+        // it might be cleaner to add an extra enum for paths with separator...
+        GatherEnt::LibRunPath(n, _) if n.contains(path::MAIN_SEPARATOR_STR) => &n,
+        GatherEnt::LibRunPath(n, paths) => {
+            for dir in paths.iter() {
+                let p = PathBuf::from(dir).join(n);
+                if let Ok(md) = fs::symlink_metadata(&p) {
+                    return Ok(Fsent {path: p, md: md});
+                }
+            }
+            // fallback to search_paths
+            &n
+        }
     };
 
     dout!("resolving path for {:?}", name);
     // if name has any separator in it then we should handle it as a relative
     // or absolute path. This should be close enough as a check.
-    if name.contains(std::path::MAIN_SEPARATOR_STR) {
+    if name.contains(path::MAIN_SEPARATOR_STR) {
         dout!("using relative / absolute path {:?} as-is", name);
         return match fs::symlink_metadata(name) {
             Ok(md) => Ok(Fsent {
@@ -116,7 +130,12 @@ fn path_stat(ent: &GatherEnt, search_paths: &[&str]) -> Result<Fsent, io::Error>
 
     return Err(io::Error::new(
         io::ErrorKind::NotFound,
-        format!("{} missing from: {:?}", name, search_paths)
+        match ent {
+            GatherEnt::LibRunPath(_, p) => {
+                format!("{} missing from: {:?} & {:?}", name, p, search_paths)
+            }
+            _ => format!("{} missing from: {:?}", name, search_paths),
+        }
     ));
 }
 
