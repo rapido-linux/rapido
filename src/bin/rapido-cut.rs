@@ -101,9 +101,8 @@ fn path_stat(name: &str, search_paths: &[&str]) -> Result<Fsent, io::Error> {
     // TODO: search all paths and prefer non-symlink if multiple?
     for dir in search_paths.iter() {
         let p = PathBuf::from(dir).join(name);
-        let md = fs::symlink_metadata(&p);
-        if md.is_ok() {
-            return Ok(Fsent {path: p, md: md.unwrap()});
+        if let Ok(md) = fs::symlink_metadata(&p) {
+            return Ok(Fsent {path: p, md: md});
         }
     }
 
