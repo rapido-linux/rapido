@@ -61,9 +61,9 @@ enum GatherEnt {
     // Name String may be an absolute host-source-path or a relative path
     // resolved via path_stat(). Destination matches source.
     Name(String),
-    // Same as above, but destination is explicitly provided.
-    NameDst(String, String),
     NameStatic(&'static str),
+    // Same as above, but destination is explicitly provided.
+    NameDst(&'static str, &'static str),
     // Ignore if missing, instead of aborting.
     NameTry(String),
 }
@@ -311,7 +311,7 @@ fn gather_archive_bins<W: Seek + Write>(
                 &got.path
             }
             GatherEnt::NameDst(n, d) => {
-                got = path_stat(&n, &BIN_PATHS)?;
+                got = path_stat(n, &BIN_PATHS)?;
                 &path::absolute(d)?
             }
             GatherEnt::NameStatic(n) => {
@@ -410,7 +410,7 @@ fn gather_archive_libs<W: Seek + Write>(
                 &got.path
             }
             GatherEnt::NameDst(n, d) => {
-                got = path_stat(&n, &LIB_PATHS)?;
+                got = path_stat(n, &LIB_PATHS)?;
                 &path::absolute(d)?
             }
             GatherEnt::NameStatic(n) => {
@@ -1014,10 +1014,7 @@ fn main() -> io::Result<()> {
     let mut state = CutState {
         bins: Gather {
             names: vec!(
-                GatherEnt::NameDst(
-                    RAPIDO_INIT_PATH.to_string(),
-                    "/rdinit".to_string()
-                ),
+                GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
                 // rapido-init core deps
                 GatherEnt::NameStatic("mount"),
                 GatherEnt::NameStatic("setsid"),
