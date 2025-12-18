@@ -7,6 +7,7 @@ use std::io::{self, BufRead};
 use std::os::unix::fs::FileTypeExt;
 use std::path;
 use std::process;
+use std::str;
 
 use rapido::host_kernel_vers;
 

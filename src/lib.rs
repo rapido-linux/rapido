@@ -5,6 +5,7 @@ use std::fs;
 use std::io;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::str;
 
 // ./rapido.conf default path can be overridden by RAPIDO_CONF env var
 pub const RAPIDO_CONF_PATH: &str = "rapido.conf";

@@ -9,6 +9,7 @@ use std::io::prelude::*;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::MetadataExt as UnixMetadataExt;
 use std::path::Path;
+use std::str;
 
 macro_rules! NEWC_HDR_FMT {
     () => {
@@ -550,7 +551,7 @@ fn archive_read_newc_md(hdr_md: &[u8]) -> io::Result<(ArchiveMd, u32)> {
     let namesize = md_iter.next().unwrap()?;
     if namesize == 0 || namesize > (PATH_MAX + 1) as u32 {
         return Err(
-            io::Error::new(io::ErrorKind::InvalidFilename, "invalid namesize")
+            io::Error::new(io::ErrorKind::InvalidData, "invalid namesize")
         );
     }
 
