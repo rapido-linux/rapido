@@ -8,7 +8,7 @@ use std::str;
 fn main() -> io::Result<()> {
     let mut args = env::args_os();
     if args.len() != 2 {
-        println!("Usage: lsinitramfs INITRAMFS");
+        println!("Usage: lscpio INITRAMFS");
         return Err(io::Error::from(io::ErrorKind::InvalidInput));
     }
 
