@@ -19,8 +19,8 @@ extern crate kv_conf;
 
 // On usr-merge systems, /X may be a symlink to /usr/X .
 // We should probably allow search paths to be set at build and/or runtime
-const BIN_PATHS: [&str; 5] = ["/usr/bin", "/usr/sbin","/usr/lib/systemd", "/bin", "/sbin"];
-const LIB_PATHS: [&str; 5] = ["/usr/lib64", "/usr/lib","/usr/lib64/systemd", "/lib64", "/lib"];
+const BIN_PATHS: [&str; 5] = ["/usr/bin", "/usr/sbin", "/usr/lib/systemd", "/bin", "/sbin"];
+const LIB_PATHS: [&str; 4] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib"];
 // FIXME: we shouldn't assume rapido-init location
 const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
