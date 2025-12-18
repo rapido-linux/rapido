@@ -6,6 +6,7 @@ on:
 # "cargo" default package results in v1.75, which doesn't support v4 lock files
 # "cargo test uses lib and bins only, as doc test breaks for some reason
 # chmod vmlinuz-`uname -r` as it's 0600 by default
+# chmod /dev/kvm to allow non-root QEMU to use it
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,8 +29,12 @@ jobs:
         run: |
           cargo-1.85 build --offline --release
           cp -r net-conf.example/ net-conf
+          touch rapido.conf
           sudo EDITOR=cat ./rapido setup-network -o $USER -b rapido-br -a "192.168.155.10/24"
           sudo chmod 0644 /boot/vmlinuz-*
+          sudo chmod 0666 /dev/kvm
       - name: boot VM test
         run: |
-         ./rapido cut -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
+         ./rapido cut -B -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
+         ./target/release/lsinitramfs initrds/myinitrd
+         ./rapido boot
