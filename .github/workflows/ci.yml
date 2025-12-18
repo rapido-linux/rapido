@@ -3,21 +3,33 @@ name: CI
 on:
   pull_request:
 
+# "cargo" default package results in v1.75, which doesn't support v4 lock files
+# "cargo test uses lib and bins only, as doc test breaks for some reason
+# chmod vmlinuz-`uname -r` as it's 0600 by default
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: registry.opensuse.org/home/mkoutny/containers/opensuse_containers_tumbleweed_containers/rapido-ci:latest
-      env:
-        KERNEL_INSTALL_MOD_PATH: /usr/
-      options:  -w /test
-      volumes:
-        - ${{ github.workspace }}:/test
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Run selftest
+      - name: install rust
         run: |
-          KERNEL_RELEASE=$(cat /usr/src/linux-obj/x86_64/default/include/config/kernel.release) /test/selftest/selftest.sh
-
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends --no-install-suggests cargo-1.85 rustc qemu-system-x86
+      - name: cargo test
+      - run: |
+          cargo-1.85 test --offline --lib --bins
+          pushd src/cpio
+          cargo-1.85 test --offline --lib --bins
+          popd
+          pushd src/kv-conf/
+          cargo-1.85 test --offline --lib --bins
+          popd
+      - name: build and setup rapido net
+      - run: |
+          cargo-1.85 build --offline --release
+          cp -r net-conf.example/ net-conf
+          sudo EDITOR=cat ./rapido setup-network -o $USER -b rapido-br -a "192.168.155.10/24"
+          sudo chmod 0644 /boot/vmlinuz-*
+      - name: boot VM test
+      - run: |
+         ./rapido cut -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
