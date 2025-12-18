@@ -22,20 +22,21 @@ rapido-cut \
 	--include "dracut.conf.d/.empty /rapido-rsc/mem/${mem_rsc}" \
 	--install "ls cat mkdir cp mv rm ln sed readlink sleep \
 		   umount findmnt dmesg uname \
-		   tail blockdev ps rmdir resize dd vim grep find df sha256sum \
+		   tail blockdev ps rmdir resize dd grep find df sha256sum \
 		   strace mkfs mkfs.ext4 e2fsck tune2fs shuf free ip su \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
 		   id sort uniq date expr tac diff head dirname seq \
 		   basename tee egrep yes mkswap timeout realpath blkdiscard \
-		   fstrim fio logger dmsetup chattr lsattr cmp stat \
-		   dbench /usr/share/dbench/client.txt hostname getconf md5sum \
+		   fstrim logger dmsetup chattr lsattr cmp stat \
+		   hostname getconf md5sum \
 		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
 		   repquota setquota quotacheck quotaon pvremove vgremove \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
-		   chgrp du fgrep pgrep tar rev kill duperemove \
-		   fsverity keyctl openssl /etc/ssl/openssl.cnf \
+		   chgrp du fgrep pgrep tar rev kill \
 		   swapon swapoff xfs_freeze fsck ${req_inst[*]}" \
+	--try-install "resize dbench /usr/share/dbench/client.txt duperemove \
+		       fsverity keyctl openssl /etc/ssl/openssl.cnf nano fio" \
 	--include "$FSTESTS_SRC $FSTESTS_SRC" \
 	--install-kmod "zram lzo lzo_rle dm_snapshot dm_flakey btrfs raid6_pq \
 			loop scsi_debug dm_log_writes xxhash_generic ext4 \
