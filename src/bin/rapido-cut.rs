@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0 OR GPL-3.0)
 // Copyright (C) 2025 SUSE LLC
 use std::collections::{HashMap, HashSet};
-use std::convert::TryInto;
+use std::convert::TryFrom;
 use std::env;
 use std::fs;
 use std::io;
@@ -139,8 +139,8 @@ fn path_stat(ent: &GatherEnt, search_paths: &[&str]) -> Result<Fsent, io::Error>
     ));
 }
 
-// Parse ELF NEEDED entries to gather shared object dependencies
-// This function intentionally ignores any DT_RPATH paths.
+// Parse ELF DT_NEEDED entries to gather shared object dependencies.
+// DT_RUNPATH entries are retained as extra library search paths.
 fn elf_deps(
     f: &fs::File,
     path: &Path,
@@ -161,7 +161,7 @@ fn elf_deps(
     let dynamics = match file.dynamic() {
         Ok(d) => {
             if d.is_none() {
-                dout!("Failed to find .dynamic for {:?}", path);
+                eprintln!("Failed to find .dynamic for {:?}", path);
                 return Ok(ret);
             }
             d.unwrap()
@@ -171,16 +171,22 @@ fn elf_deps(
         },
     };
 
-    let dyna_offs: Vec<usize> = dynamics.iter()
-        .filter_map(|dyna| {
-            if dyna.d_tag != abi::DT_NEEDED {
-                return None;
+    let mut runpath_offs: Vec<usize> = vec!();
+    let mut needed_offs: Vec<usize> = vec!();
+    for dyna in dynamics.iter() {
+        let v = match dyna.d_tag {
+            abi::DT_NEEDED => &mut needed_offs,
+            abi::DT_RUNPATH => &mut runpath_offs,
+            _ => continue,
+        };
+
+        match usize::try_from(dyna.d_val()) {
+            Err(e) => {
+                return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
             }
-            let str_off: usize = dyna.d_val().try_into()
-                .expect("failed to get dyna offset");
-            Some(str_off)
-        })
-        .collect();
+            Ok(str_off) => v.push(str_off),
+        }
+    }
 
     let dynsyms_strs = match file.dynamic_symbol_table() {
         Err(e) => {
@@ -196,13 +202,28 @@ fn elf_deps(
         },
     };
 
-    for str_off in dyna_offs {
+    // get full list of runpaths first
+    let runpaths: Vec<String> = runpath_offs.into_iter().filter_map(|o| {
+        match dynsyms_strs.get(o) {
+            Err(_) => None,
+            Ok(s) => Some(s.to_string()),
+        }
+    }).collect();
+
+    for str_off in needed_offs {
         match dynsyms_strs.get(str_off) {
             Ok(sraw) => {
                 let s = sraw.to_string();
                 if dups_filter.insert(s.clone()) {
                     dout!("new elf dependency({:?}): {:?}", str_off, s);
-                    ret.push(GatherEnt::Name(s));
+                    if runpaths.len() > 0 {
+                        // would be nice to avoid cloning for every lib here:
+                        // perhaps add a single GatherEnt::PathPush/Pop pair?
+                        // RUNPATH rare enough that it's prob not worth it.
+                        ret.push(GatherEnt::LibRunPath(s, runpaths.clone()));
+                    } else {
+                        ret.push(GatherEnt::Name(s));
+                    }
                 } else {
                     dout!("duplicate elf dependency({:?}): {:?}", str_off, sraw);
                 }
