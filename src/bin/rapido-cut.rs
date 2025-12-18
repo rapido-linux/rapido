@@ -8,6 +8,7 @@ use std::io;
 use std::io::Seek;
 use std::io::Write;
 use std::path::{self, Path, PathBuf, Component};
+
 use elf::abi;
 use elf::ElfStream;
 use elf::endian::AnyEndian;
@@ -17,10 +18,12 @@ mod kmod;
 use kmod::kmod_context::{KmodContext, ModuleStatus, MODULE_DB_FILES};
 extern crate kv_conf;
 
+// We should probably allow default search paths to be set at build time.
 // On usr-merge systems, /X may be a symlink to /usr/X .
-// We should probably allow search paths to be set at build and/or runtime
 const BIN_PATHS: [&str; 5] = ["/usr/bin", "/usr/sbin", "/usr/lib/systemd", "/bin", "/sbin"];
-const LIB_PATHS: [&str; 4] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib"];
+// Extra search paths may be added at runtime via ELF RUNPATH/LibRunPath.
+// x86_64-linux-gnu is for Debian/Ubuntu.
+const LIB_PATHS: [&str; 5] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib", "/usr/lib/x86_64-linux-gnu"];
 // FIXME: we shouldn't assume rapido-init location
 const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
