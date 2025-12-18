@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
                 // per spec, name must be zero terminated
                 match s.split_once('\0') {
                     None => Err(io::Error::from(io::ErrorKind::InvalidData)),
-                    Some((n_before_term, after_term)) => Ok(n_before_term),
+                    Some((n_before_term, _)) => Ok(n_before_term),
                 }
             }
             Err(_) => Err(io::Error::from(io::ErrorKind::InvalidData)),
