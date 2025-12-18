@@ -5,7 +5,8 @@
 PATH="target/release:${PATH}"
 rapido-cut \
 	--autorun "autorun/simple_network.sh $*" \
-	--install "resize ps nc hostname cat ls" \
+	--install "ps nc hostname cat ls" \
+	--try-install "resize" \
 	--net \
 	--include "dracut.conf.d/.empty /rapido-rsc/cpu/1" \
 	--include "dracut.conf.d/.empty /rapido-rsc/mem/512M"
