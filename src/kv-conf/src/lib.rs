@@ -42,12 +42,16 @@ fn kv_var_sub(block: &str, map: &HashMap<String, String>) -> io::Result<String> 
 // process a single conf line.
 // Roughly attempts to work similar to Bash variable assignment.
 // Doesn't support multiple assignments on a single line.
-// @line: line to process
-// @map: hashmap to stash any full, valid key+val into
-// returns: error or multi-line unprocessed portion of @line
-fn kv_process(line: &str, map: &mut HashMap<String, String>) -> io::Result<Option<String>> {
+// @line: line buffer to process. Processed data removed on return.
+// @varmap: hashmap to use for any ${} variable substitution.
+// returns: error or processed key-value pair. @line retains unprocessed portions.
+fn kv_process(
+    line: &mut String,
+    varmap: &HashMap<String, String>,
+) -> io::Result<Option<(String, String)>> {
     // ignore empty / comment lines
     if line.trim_start() == "" || line.trim_start().starts_with("#") {
+        line.clear();
         return Ok(None);
     }
 
@@ -119,7 +123,7 @@ fn kv_process(line: &str, map: &mut HashMap<String, String>) -> io::Result<Optio
 
         let var_got: String;
         if var_next {
-            var_got = kv_var_sub(quoteblock, &map)?;
+            var_got = kv_var_sub(quoteblock, &varmap)?;
             quoteblock = &var_got;
             var_next = false;
         }
@@ -179,13 +183,14 @@ fn kv_process(line: &str, map: &mut HashMap<String, String>) -> io::Result<Optio
             }
         }
 
-        let mut ml_kv = ml.to_string();
-        ml_kv.push_str(push_space);
-        return Ok(Some(ml_kv));
+        *line = ml.to_string();
+        line.push_str(push_space);
+        return Ok(None);
     }
 
-    map.insert(key.to_string(), unquoted_val);
-    Ok(None)
+    let k = key.to_string();
+    line.clear();
+    Ok(Some((k, unquoted_val)))
 }
 
 //
@@ -223,9 +228,11 @@ pub fn kv_conf_process_append<R: io::BufRead>(
                 };
                 return Err(io::Error::new(e.kind(), msg));
             }
-            // remainder may contain multi-line string
-            Ok(remainder) if remainder.is_some() => buffer = remainder.unwrap(),
-            Ok(_) => buffer.clear(),
+            // buffer may be retain unprocessed data for multiline
+            Ok(kv) => match kv {
+                Some((k, v)) => map.insert(k, v),
+                None => None,
+            },
         };
     }
     Ok(())
