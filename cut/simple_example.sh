@@ -14,7 +14,7 @@
 # --include copies a specific file or directory-tree to the given image
 # destination. --try-install is similar but won't abort if missing.
 
-# --install-kmod provides a list of kernel modules, which will be obtained from
+# --kmods provides a list of kernel modules, which will be obtained from
 # the rapido.conf KERNEL_INSTALL_MOD_PATH directory, or host kernel modules
 # directory if unset.
 PATH="target/release:${PATH}"
@@ -22,7 +22,7 @@ rapido-cut \
 	--autorun "autorun/simple_example.sh $*" \
 	--install "ls cat sleep ps rmdir dd mkfs.xfs" \
 	--try-install "resize" \
-	--install-kmod "zram lzo lzo_rle"
+	--kmods "zram lzo lzo_rle"
 
 # rapido-cut writes the initramfs image to the rapido.conf DRACUT_OUT specified
 # path, or an explicit path provided via --output parameter.

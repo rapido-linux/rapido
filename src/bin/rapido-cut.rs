@@ -922,7 +922,7 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
             "List of files to archive, if present, along with ELF dependencies."
         ),
         Argument::value(
-            "install-kmod",
+            "kmods",
             "MODULES",
             "List of kernel modules to install with dependencies.",
         ),
@@ -961,7 +961,7 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
                     .collect();
                 state.bins.names.append(&mut files);
             }
-            "install-kmod" => {
+            "kmods" => {
                 let kmod_parsed: argument::Result<Vec<String>> = value
                     .unwrap()
                     .split_whitespace()

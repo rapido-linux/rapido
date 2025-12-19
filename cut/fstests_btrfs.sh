@@ -38,6 +38,5 @@ rapido-cut \
 	--try-install "resize dbench /usr/share/dbench/client.txt duperemove \
 		       fsverity keyctl openssl /etc/ssl/openssl.cnf nano fio" \
 	--include "$FSTESTS_SRC $FSTESTS_SRC" \
-	--install-kmod "zram lzo lzo_rle dm_snapshot dm_flakey btrfs raid6_pq \
-			loop scsi_debug dm_log_writes xxhash_generic ext4 \
-			virtio_blk"
+	--kmods "zram lzo lzo_rle dm_snapshot dm_flakey btrfs raid6_pq \
+		 loop scsi_debug dm_log_writes xxhash_generic ext4 virtio_blk"
