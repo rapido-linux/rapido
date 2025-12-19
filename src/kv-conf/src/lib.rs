@@ -50,17 +50,18 @@ fn kv_process(
     varmap: &HashMap<String, String>,
 ) -> io::Result<Option<(String, String)>> {
     // ignore empty / comment lines
-    if line.trim_start() == "" || line.trim_start().starts_with("#") {
+    let trimmed_line = line.trim_start();
+    if trimmed_line == "" || trimmed_line.starts_with("#") {
         line.clear();
         return Ok(None);
     }
 
     // split at first '='
-    let (key, val) = match line.split_once('=') {
+    let (key, val) = match trimmed_line.split_once('=') {
         None => {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "missing ="));
         }
-        Some((k, v)) => (k.trim_start(), v),
+        Some((k, v)) => (k, v),
     };
 
     if key == "" {
@@ -173,7 +174,7 @@ fn kv_process(
     if inquote != Quoted::No {
         // newline and any spaces collapsed into one space, unless escaped within "
         let mut push_space = " ";
-        let mut ml = line.trim_end();
+        let mut ml = trimmed_line.trim_end();
         if ml.ends_with("\\") && inquote == Quoted::Double {
             ml = ml.strip_suffix("\\").unwrap();
             let l = ml.len();
