@@ -7,31 +7,22 @@ const CONF_LINE_MAX: usize = 1024 * 100;
 
 // substitute ${VAR} strings with values from previously seen keys in @map.
 // no support for env var substitution. No callouts via $(), etc.
-fn kv_var_sub(block: &str, map: &HashMap<String, String>) -> io::Result<String> {
+fn kv_var_sub(block: &str, map: &HashMap<String, String>) -> Result<String, &'static str> {
     // only support {} wrapped variables that we've already encountered
     let mut varblock = block.split_inclusive(&['{', '}']);
     if varblock.next() != Some("{") {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "variables must be wrapped in {} braces",
-        ));
+        return Err("variables must be wrapped in {} braces");
     }
     let var = varblock.next();
     if var.is_none() || !var.unwrap().ends_with("}") {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "no closing brace for variable",
-        ));
+        return Err("no closing brace for variable");
     }
     let key = var.unwrap().strip_suffix("}").unwrap();
 
     let subbed = match map.get(key) {
         Some(val) => val.clone(),
         None => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "invalid variable substitution: not seen",
-            ))
+            return Err("invalid variable substitution: not seen");
         }
     };
     //println!("subbed for {}: {}", key, subbed);
@@ -124,7 +115,10 @@ fn kv_process(
 
         let var_got: String;
         if var_next {
-            var_got = kv_var_sub(quoteblock, &varmap)?;
+            var_got = match kv_var_sub(quoteblock, &varmap) {
+                Err(m) => return io::Error::new(io::ErrorKind::InvalidInput, m),
+                Ok(v) => v,
+            };
             quoteblock = &var_got;
             var_next = false;
         }
