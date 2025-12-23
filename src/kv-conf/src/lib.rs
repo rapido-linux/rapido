@@ -210,10 +210,11 @@ pub fn kv_conf_process_append<R: io::BufRead>(
     for linenum in 1.. {
         match rdr.read_line(&mut buffer) {
             Err(e) => return Err(e),
-            Ok(n) if n == 0 => {
-                // EOF
-                break;
+            Ok(n) if n == 0 && buffer.len() != 0 => {
+                let msg = format!("unexpected EOF at line {}", linenum);
+                return Err(io::Error::new(io::ErrorKind::InvalidInput, msg));
             }
+            Ok(n) if n == 0 => break,
             Ok(n) if n > CONF_LINE_MAX => {
                 let msg = format!("line {} too long", linenum);
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, msg));
@@ -303,6 +304,13 @@ mod tests {
             kv_conf_process(c).expect("kv_conf_process failed"),
             HashMap::from([("key".to_string(), "qu\'oted".to_string())])
         );
+
+        let c = io::Cursor::new("key=\"eof_before_closing_quote");
+        let e = kv_conf_process(c).expect_err("kv_conf_process passed");
+        assert_eq!(
+            format!("{:?}", e),
+            "Custom { kind: InvalidInput, error: \"unexpected EOF at line 2\" }"
+        );
     }
 
     #[test]
@@ -329,6 +337,12 @@ mod tests {
         assert_eq!(
             kv_conf_process(c).expect("kv_conf_process failed"),
             HashMap::from([("key".to_string(), "val".to_string())])
+        );
+
+        let c = io::Cursor::new("k=not#a#comment #comment");
+        assert_eq!(
+            kv_conf_process(c).expect("kv_conf_process failed"),
+            HashMap::from([("k".to_string(), "not#a#comment".to_string())])
         );
     }
 
