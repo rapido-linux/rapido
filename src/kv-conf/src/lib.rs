@@ -179,6 +179,22 @@ fn kv_process(
     Ok(Some((k, unquoted_val)))
 }
 
+fn kv_read_line<R: io::BufRead>(mut rdr: R, linenum: u64, buf: &mut String) -> io::Result<usize> {
+    let n = rdr.read_line(buf)?;
+    if n == 0 && buf.len() != 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("line {}: unexpected EOF", linenum),
+        ));
+    } else if n > CONF_LINE_MAX {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("line {}: too long", linenum),
+        ));
+    }
+    Ok(n)
+}
+
 //
 // Example:
 // fn main() {
@@ -193,19 +209,10 @@ pub fn kv_conf_process_append<R: io::BufRead>(
     let mut buffer = String::new();
 
     for linenum in 1.. {
-        match rdr.read_line(&mut buffer) {
-            Err(e) => return Err(e),
-            Ok(n) if n == 0 && buffer.len() != 0 => {
-                let msg = format!("line {}: unexpected EOF", linenum);
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, msg));
-            }
-            Ok(n) if n == 0 => break,
-            Ok(n) if n > CONF_LINE_MAX => {
-                let msg = format!("line {}: too long", linenum);
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, msg));
-            }
-            Ok(_) => {}
-        };
+        let n = kv_read_line(&mut rdr, linenum, &mut buffer)?;
+        if n == 0 {
+            break;
+        }
 
         match kv_process(&mut buffer, map) {
             Err(m) => {
@@ -215,6 +222,37 @@ pub fn kv_conf_process_append<R: io::BufRead>(
                 ))
             }
             // buffer may be retain unprocessed data for multiline
+            Ok(kv) => match kv {
+                Some((k, v)) => map.insert(k, v),
+                None => None,
+            },
+        };
+    }
+    Ok(())
+}
+
+// same as kv_conf_process_append() except variable lookup is done from
+// @varmap, while kv entries are stored separately in @map.
+pub fn kv_conf_process_append_separate<R: io::BufRead>(
+    mut rdr: R,
+    varmap: &HashMap<String, String>,
+    map: &mut HashMap<String, String>,
+) -> io::Result<()> {
+    let mut buffer = String::new();
+
+    for linenum in 1.. {
+        let n = kv_read_line(&mut rdr, linenum, &mut buffer)?;
+        if n == 0 {
+            break;
+        }
+
+        match kv_process(&mut buffer, varmap) {
+            Err(m) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("line {}: {}", linenum, m),
+                ))
+            }
             Ok(kv) => match kv {
                 Some((k, v)) => map.insert(k, v),
                 None => None,
@@ -552,6 +590,31 @@ mod tests {
         assert_eq!(
             format!("{:?}", e),
             "Custom { kind: InvalidInput, error: \"line 3: variables must be wrapped in {} braces\" }"
+        );
+    }
+
+    #[test]
+    fn test_append_varmap() {
+        let c = io::Cursor::new("key=val\nextra=overhere");
+        let varmap = kv_conf_process(c).expect("kv_conf_process failed");
+        assert_eq!(
+            varmap,
+            HashMap::from([
+                ("key".to_string(), "val".to_string()),
+                ("extra".to_string(), "overhere".to_string()),
+            ])
+        );
+
+        let mut sepmap: HashMap<String, String> = HashMap::new();
+        let c = io::Cursor::new("key=separate\nnextkey=stuff${extra}");
+        kv_conf_process_append_separate(c, &varmap, &mut sepmap)
+            .expect("kv_conf_process_append_separate failed");
+        assert_eq!(
+            sepmap,
+            HashMap::from([
+                ("key".to_string(), "separate".to_string()),
+                ("nextkey".to_string(), "stuffoverhere".to_string()),
+            ])
         );
     }
 }
