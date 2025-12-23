@@ -39,7 +39,7 @@ fn kv_var_sub(block: &str, map: &HashMap<String, String>) -> Result<String, &'st
 fn kv_process(
     line: &mut String,
     varmap: &HashMap<String, String>,
-) -> io::Result<Option<(String, String)>> {
+) -> Result<Option<(String, String)>, &'static str> {
     // ignore empty / comment lines
     let trimmed_line = line.trim_start();
     if trimmed_line == "" || trimmed_line.starts_with("#") {
@@ -50,16 +50,16 @@ fn kv_process(
     // split at first '='
     let (key, val) = match trimmed_line.split_once('=') {
         None => {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "missing ="));
+            return Err("missing =");
         }
         Some((k, v)) => (k, v),
     };
 
     if key == "" {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty key"));
+        return Err("empty key");
     }
     if key.contains(&['\\', '/', '\"', '\'', ' ', '\t', '$', '#', '.', '`']) {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid key"));
+        return Err("invalid key");
     }
 
     #[derive(PartialEq)]
@@ -83,16 +83,13 @@ fn kv_process(
                 break;
             } else {
                 // bad escape. on bash the \ is kept if quoted, or dropped if not
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, quoteblock));
+                return Err("bad escape");
             }
             escape_next = false;
             unquoted_val.push_str(quoteblock);
 
             if quoteblock.len() != 1 {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "expected escaped char at split boundary",
-                ));
+                return Err("expected escaped char at split boundary");
             }
             continue;
         }
@@ -106,19 +103,13 @@ fn kv_process(
             } else if quoteblock.trim_start() == "" {
                 continue;
             } else {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "unexpected whitespace",
-                ));
+                return Err("unexpected whitespace");
             }
         }
 
         let var_got: String;
         if var_next {
-            var_got = match kv_var_sub(quoteblock, &varmap) {
-                Err(m) => return io::Error::new(io::ErrorKind::InvalidInput, m),
-                Ok(v) => v,
-            };
+            var_got = kv_var_sub(quoteblock, &varmap)?;
             quoteblock = &var_got;
             var_next = false;
         }
@@ -205,24 +196,23 @@ pub fn kv_conf_process_append<R: io::BufRead>(
         match rdr.read_line(&mut buffer) {
             Err(e) => return Err(e),
             Ok(n) if n == 0 && buffer.len() != 0 => {
-                let msg = format!("unexpected EOF at line {}", linenum);
+                let msg = format!("line {}: unexpected EOF", linenum);
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, msg));
             }
             Ok(n) if n == 0 => break,
             Ok(n) if n > CONF_LINE_MAX => {
-                let msg = format!("line {} too long", linenum);
+                let msg = format!("line {}: too long", linenum);
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, msg));
             }
             Ok(_) => {}
         };
 
         match kv_process(&mut buffer, map) {
-            Err(e) => {
-                let msg = match e.get_ref() {
-                    Some(eref) => format!("line {}: {:?}", linenum, eref),
-                    None => format!("error on line {}", linenum),
-                };
-                return Err(io::Error::new(e.kind(), msg));
+            Err(m) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("line {}: {}", linenum, m),
+                ))
             }
             // buffer may be retain unprocessed data for multiline
             Ok(kv) => match kv {
@@ -303,7 +293,7 @@ mod tests {
         let e = kv_conf_process(c).expect_err("kv_conf_process passed");
         assert_eq!(
             format!("{:?}", e),
-            "Custom { kind: InvalidInput, error: \"unexpected EOF at line 2\" }"
+            "Custom { kind: InvalidInput, error: \"line 2: unexpected EOF\" }"
         );
     }
 
@@ -561,7 +551,7 @@ mod tests {
         // we probably shouldn't rely on error fmt output stability
         assert_eq!(
             format!("{:?}", e),
-            "Custom { kind: InvalidInput, error: \"line 3: \\\"variables must be wrapped in {} braces\\\"\" }"
+            "Custom { kind: InvalidInput, error: \"line 3: variables must be wrapped in {} braces\" }"
         );
     }
 }
