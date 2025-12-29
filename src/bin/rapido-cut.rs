@@ -24,6 +24,10 @@ const BIN_PATHS: [&str; 5] = ["/usr/bin", "/usr/sbin", "/usr/lib/systemd", "/bin
 // Extra search paths may be added at runtime via ELF RUNPATH/LibRunPath.
 // x86_64-linux-gnu is for Debian/Ubuntu.
 const LIB_PATHS: [&str; 5] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib", "/usr/lib/x86_64-linux-gnu"];
+// FIXME: don't assume cwd parent location
+const MANIFEST_PATHS: [&str; 1] = ["manifest"];
+// keys which can be used in manifest files (matching cli parameters)
+const MANIFEST_KEYS: [&str; 5] = ["install", "try_install", "include", "kmods", "autorun"];
 // FIXME: we shouldn't assume rapido-init location
 const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
@@ -846,6 +850,64 @@ fn gather_archive_data<W: Seek + Write>(
     Ok(())
 }
 
+fn gather_manifest_entries(
+    conf: &HashMap<String, String>,
+    state: &mut CutState,
+) -> io::Result<()> {
+    while let Some(fest) = state.manifests.names.get(state.manifests.off) {
+        state.manifests.off += 1;
+
+        let got = match path_stat(&fest, &MANIFEST_PATHS) {
+            Err(e) => {
+                if let GatherEnt::NameTry(_) = fest {
+                    continue;
+                }
+                return Err(e);
+            }
+            Ok(g) => g,
+        };
+        let f = fs::OpenOptions::new().read(true).open(&got.path)?;
+        let mut fest_map = HashMap::new();
+        if let Err(e) = kv_conf::kv_conf_process_append_separate(
+            io::BufReader::new(f),
+            &conf,
+            &mut fest_map,
+        ) {
+            eprintln!("failed to process manifest {:?}: {:?}", got.path, e);
+            return Err(e);
+        }
+
+        // Only a few options are supported ATM. In future we may wish to
+        // support manifests with dependency manifests, but that might get
+        // a little ugly WRT ordering (e.g. autorun sequence in reverse).
+        for k in MANIFEST_KEYS {
+            match fest_map.remove(k) {
+                Some(v) => match args_process_one(k, Some(&v), state) {
+                    Err(e) => {
+                        eprintln!("manifest {:?} entry {}={}: {}", got.path, k, v, e);
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidInput,
+                            e.to_string()
+                        ));
+                    }
+                    Ok(()) => {},
+                }
+                None => {},
+            }
+        }
+        if !fest_map.is_empty() {
+            eprintln!(
+                "Manifest {:?} unsupported: {:?}\nSupported keys: {:?}",
+                got.path,
+                fest_map,
+                MANIFEST_KEYS
+            );
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+    }
+    Ok(())
+}
+
 fn populate_default_symlinks<W: Seek + Write>(
     paths_seen: &HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
@@ -898,6 +960,7 @@ struct CutState {
     data: GatherData,
     net_enabled: bool,
     autoruns: u32,
+    manifests: Gather,
 }
 
 fn args_usage(params: &[Argument]) {
@@ -916,7 +979,7 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                 .collect();
             state.bins.names.append(&mut files);
         }
-        "try-install" => {
+        "try-install" | "try_install" => {
             let mut files: Vec<GatherEnt> = value
                 .unwrap()
                 .split_whitespace()
@@ -1002,6 +1065,14 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                 state.autoruns += 1;
             }
         }
+        "manifest" => {
+            let mut manifests: Vec<GatherEnt> = value
+                .unwrap()
+                .split_whitespace()
+                .map(|f| GatherEnt::Name(f.to_string()))
+                .collect();
+            state.manifests.names.append(&mut manifests);
+        }
         "net" => state.net_enabled = true,
         "help" => return Err(argument::Error::PrintHelp),
         _ => unreachable!(),
@@ -1040,6 +1111,11 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
             "autorun",
             "PROGRAM",
             "List of files to execute on VM boot, in order.",
+        ),
+        Argument::value(
+            "manifest",
+            "FILES",
+            "List of manifest files, as an alternative to params, e.g. install=bash",
         ),
         Argument::flag("net", "Install network configuration and dependencies"),
         Argument::short_flag('h', "help", "Print help message."),
@@ -1090,6 +1166,10 @@ fn main() -> io::Result<()> {
         },
         net_enabled: false,
         autoruns: 0,
+        manifests: Gather {
+            names: vec!(),
+            off: 0,
+        },
     };
 
     let conf = match rapido::host_rapido_conf_open(rapido::RAPIDO_CONF_PATH) {
@@ -1129,6 +1209,9 @@ fn main() -> io::Result<()> {
         Err(argument::Error::PrintHelp) => return Ok(()),
         Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e.to_string())),
     };
+
+    // manifests files carry install/include/kmod/autorun directives
+    gather_manifest_entries(&conf, &mut state)?;
 
     state.kmods.extend(
         rapido::conf_kmod_deps(&conf, state.net_enabled)
