@@ -960,7 +960,6 @@ struct CutState {
     libs: Gather,
     kmods: Vec<String>,
     data: GatherData,
-    net_enabled: bool,
     autoruns: u32,
     manifests: Gather,
 }
@@ -1075,7 +1074,6 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                 .collect();
             state.manifests.names.append(&mut manifests);
         }
-        "net" => state.net_enabled = true,
         "help" => return Err(argument::Error::PrintHelp),
         _ => unreachable!(),
     };
@@ -1119,7 +1117,6 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
             "FILES",
             "List of manifest files, as an alternative to params, e.g. install=bash",
         ),
-        Argument::flag("net", "Install network configuration and dependencies"),
         Argument::short_flag('h', "help", "Print help message."),
     ];
 
@@ -1166,7 +1163,6 @@ fn main() -> io::Result<()> {
             ),
             off: 0,
         },
-        net_enabled: false,
         autoruns: 0,
         manifests: Gather {
             names: vec!(),
@@ -1216,26 +1212,10 @@ fn main() -> io::Result<()> {
     gather_manifest_entries(&conf, &mut state)?;
 
     state.kmods.extend(
-        rapido::conf_kmod_deps(&conf, state.net_enabled)
+        rapido::conf_kmod_deps(&conf, false)
             .into_iter()
             .map(|s| s.to_string())
     );
-    if state.net_enabled {
-        state.data.items.push(GatherItem {
-            // unwrap: VM_NET_CONF set in conf_defaults()
-            src: PathBuf::from(conf.get("VM_NET_CONF").unwrap()),
-            dst: PathBuf::from("/rapido-rsc/net"),
-            flags: 0,
-        });
-        state.bins.names.extend([
-            GatherEnt::NameStatic("udevadm"),
-            GatherEnt::NameStatic("systemd-udevd"),
-            GatherEnt::NameStatic("systemd-networkd"),
-            GatherEnt::NameStatic("systemd-networkd-wait-online"),
-            GatherEnt::NameStatic("ip"),
-            GatherEnt::NameStatic("ping")
-        ]);
-    }
     if state.kmods.len() > 0 {
         // TODO only install if we have non-builtin kmods!
         state.bins.names.extend([GatherEnt::NameStatic("modprobe")]);
@@ -1369,7 +1349,6 @@ mod tests {
                 items: vec!(),
                 off: 0,
             },
-            net_enabled: false,
             autoruns: 0,
             manifests: Gather {
                 names: vec!(GatherEnt::Name(tfest.clone())),

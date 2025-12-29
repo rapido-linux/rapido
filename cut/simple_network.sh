@@ -7,6 +7,6 @@ rapido-cut \
 	--autorun "autorun/simple_network.sh $*" \
 	--install "ps nc hostname cat ls" \
 	--try-install "resize" \
-	--net \
+	--manifest net.fest \
 	--include "dracut.conf.d/.empty /rapido-rsc/cpu/1" \
 	--include "dracut.conf.d/.empty /rapido-rsc/mem/512M"

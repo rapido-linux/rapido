@@ -34,4 +34,5 @@ rapido-cut \
 
 # rapido VMs are not networked by default. To add networking configuration
 # (see rapido.conf NET_CONF) and systemd-network dependencies to the image,
-# append the parameter: --net
+# a manifest/net.fest file is provided as a convenience. It can be used via:
+#--manifest net.fest
