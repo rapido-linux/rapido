@@ -891,6 +891,7 @@ fn populate_default_symlinks<W: Seek + Write>(
 }
 
 struct CutState {
+    cpio_output_arg: Option<PathBuf>,
     bins: Gather,
     libs: Gather,
     kmods: Vec<String>,
@@ -903,8 +904,112 @@ fn args_usage(params: &[Argument]) {
     argument::print_help("rapido-cut", "", params);
 }
 
-fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf> {
-    let mut cpio_output = PathBuf::from(out_def);
+fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> argument::Result<()> {
+    // unwrap: callers ensure value is Some if arg requires one
+    match name {
+        "output" => state.cpio_output_arg = Some(PathBuf::from(value.unwrap())),
+        "install" => {
+            let mut files: Vec<GatherEnt> = value
+                .unwrap()
+                .split_whitespace()
+                .map(|f| GatherEnt::Name(f.to_string()))
+                .collect();
+            state.bins.names.append(&mut files);
+        }
+        "try-install" => {
+            let mut files: Vec<GatherEnt> = value
+                .unwrap()
+                .split_whitespace()
+                .map(|f| GatherEnt::NameTry(f.to_string()))
+                .collect();
+            state.bins.names.append(&mut files);
+        }
+        "kmods" => {
+            let kmod_parsed: argument::Result<Vec<String>> = value
+                .unwrap()
+                .split_whitespace()
+                .map(|f| {
+                    f.parse().map_err(|_| argument::Error::InvalidValue {
+                        value: f.to_owned(),
+                        expected: String::from("MODULES must be utf-8 strings"),
+                    })
+                })
+                .collect();
+            state.kmods.append(&mut kmod_parsed?);
+        }
+        "include" => {
+            let mut iter = value.unwrap().split_whitespace();
+            while let Some(src) = iter.next() {
+                let dst = match iter.next() {
+                    None => return Err(argument::Error::InvalidValue {
+                        value: src.to_string(),
+                        expected: String::from("SRC DEST pairs"),
+                    }),
+                    Some(d) => {
+                        let dst = PathBuf::from(d);
+                        if !dst.is_absolute() {
+                            return Err(argument::Error::InvalidValue {
+                                value: d.to_string(),
+                                expected: String::from(
+                                    "DEST paths must be absolute"
+                                ),
+                            });
+                        }
+                        dst
+                    },
+                };
+                state.data.items.push(GatherItem {
+                    src: PathBuf::from(src),
+                    dst,
+                    flags: 0,
+                });
+            }
+        }
+        "autorun" => {
+            for file in value.unwrap().split_whitespace() {
+                let src = PathBuf::from(file);
+                if !src.is_file() {
+                    return Err(argument::Error::InvalidValue {
+                        value: file.to_owned(),
+                        expected: String::from("file missing"),
+                    });
+                }
+                let dst = match src.file_name() {
+                    None => return Err(
+                        argument::Error::InvalidValue {
+                            value: file.to_owned(),
+                            expected: String::from("bad file"),
+                        }
+                    ),
+                    Some(n) if n.to_str().is_none() => return Err(
+                        argument::Error::InvalidValue {
+                            value: file.to_owned(),
+                            expected: String::from("bad file"),
+                        }
+                    ),
+                    Some(n) => PathBuf::from(&format!(
+                        "/rapido_autorun/{:03}-{}",
+                        state.autoruns,
+                        n.to_str().unwrap()
+                    )),
+                };
+                // TODO: it'd be better if we place these after the rapido-rsc
+                // entries, so that the boot time rsc check is faster.
+
+                state.data.items.push(
+                    GatherItem { src, dst, flags: 0 }
+                );
+                state.autoruns += 1;
+            }
+        }
+        "net" => state.net_enabled = true,
+        "help" => return Err(argument::Error::PrintHelp),
+        _ => unreachable!(),
+    };
+    Ok(())
+}
+
+fn args_process(state: &mut CutState) -> argument::Result<()> {
     let params = &[
         Argument::value(
             "output",
@@ -942,108 +1047,7 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
 
     let args = env::args().skip(1); // skip binary name
     let match_res = argument::set_arguments(args, params, |name, value| {
-        // unwrap: set_arguments(f) value will be Some if arg requires one
-        match name {
-            "output" => cpio_output = PathBuf::from(value.unwrap()),
-            "install" => {
-                let mut files: Vec<GatherEnt> = value
-                    .unwrap()
-                    .split_whitespace()
-                    .map(|f| GatherEnt::Name(f.to_string()))
-                    .collect();
-                state.bins.names.append(&mut files);
-            }
-            "try-install" => {
-                let mut files: Vec<GatherEnt> = value
-                    .unwrap()
-                    .split_whitespace()
-                    .map(|f| GatherEnt::NameTry(f.to_string()))
-                    .collect();
-                state.bins.names.append(&mut files);
-            }
-            "kmods" => {
-                let kmod_parsed: argument::Result<Vec<String>> = value
-                    .unwrap()
-                    .split_whitespace()
-                    .map(|f| {
-                        f.parse().map_err(|_| argument::Error::InvalidValue {
-                            value: f.to_owned(),
-                            expected: String::from("MODULES must be utf-8 strings"),
-                        })
-                    })
-                    .collect();
-                state.kmods.append(&mut kmod_parsed?);
-            }
-            "include" => {
-                let mut iter = value.unwrap().split_whitespace();
-                while let Some(src) = iter.next() {
-                    let dst = match iter.next() {
-                        None => return Err(argument::Error::InvalidValue {
-                            value: src.to_string(),
-                            expected: String::from("SRC DEST pairs"),
-                        }),
-                        Some(d) => {
-                            let dst = PathBuf::from(d);
-                            if !dst.is_absolute() {
-                                return Err(argument::Error::InvalidValue {
-                                    value: d.to_string(),
-                                    expected: String::from(
-                                        "DEST paths must be absolute"
-                                    ),
-                                });
-                            }
-                            dst
-                        },
-                    };
-                    state.data.items.push(GatherItem {
-                        src: PathBuf::from(src),
-                        dst,
-                        flags: 0,
-                    });
-                }
-            }
-            "autorun" => {
-                for file in value.unwrap().split_whitespace() {
-                    let src = PathBuf::from(file);
-                    if !src.is_file() {
-                        return Err(argument::Error::InvalidValue {
-                            value: file.to_owned(),
-                            expected: String::from("file missing"),
-                        });
-                    }
-                    let dst = match src.file_name() {
-                        None => return Err(
-                            argument::Error::InvalidValue {
-                                value: file.to_owned(),
-                                expected: String::from("bad file"),
-                            }
-                        ),
-                        Some(n) if n.to_str().is_none() => return Err(
-                            argument::Error::InvalidValue {
-                                value: file.to_owned(),
-                                expected: String::from("bad file"),
-                            }
-                        ),
-                        Some(n) => PathBuf::from(&format!(
-                            "/rapido_autorun/{:03}-{}",
-                            state.autoruns,
-                            n.to_str().unwrap()
-                        )),
-                    };
-                    // TODO: it'd be better if we place these after the rapido-rsc
-                    // entries, so that the boot time rsc check is faster.
-
-                    state.data.items.push(
-                        GatherItem { src, dst, flags: 0 }
-                    );
-                    state.autoruns += 1;
-                }
-            }
-            "net" => state.net_enabled = true,
-            "help" => return Err(argument::Error::PrintHelp),
-            _ => unreachable!(),
-        };
-        Ok(())
+        args_process_one(name, value, state)
     });
 
     if let Err(e) = match_res {
@@ -1051,11 +1055,12 @@ fn args_process(out_def: &str, state: &mut CutState) -> argument::Result<PathBuf
         return Err(e);
     }
 
-    Ok(cpio_output)
+    Ok(())
 }
 
 fn main() -> io::Result<()> {
     let mut state = CutState {
+        cpio_output_arg: None,
         bins: Gather {
             names: vec!(
                 GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
@@ -1119,11 +1124,7 @@ fn main() -> io::Result<()> {
         },
     };
 
-    let cpio_out_path = match args_process(
-        // unwrap: DRACUT_OUT set in conf_defaults()
-        conf.get("DRACUT_OUT").unwrap(),
-        &mut state
-    ) {
+    match args_process(&mut state) {
         Ok(p) => p,
         Err(argument::Error::PrintHelp) => return Ok(()),
         Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e.to_string())),
@@ -1161,6 +1162,11 @@ fn main() -> io::Result<()> {
         ..cpio::ArchiveProperties::default()
     };
     let mut cpio_state = cpio::ArchiveState::new(&cpio_props);
+    let cpio_out_path = match state.cpio_output_arg {
+        Some(p) => p,
+        // unwrap: DRACUT_OUT set in conf_defaults()
+        None => PathBuf::from(&conf.get("DRACUT_OUT").unwrap()),
+    };
 
     let mut cpio_writer = match fs::OpenOptions::new()
         .read(false)
