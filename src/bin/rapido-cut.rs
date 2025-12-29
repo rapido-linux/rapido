@@ -51,7 +51,8 @@ struct Fsent {
     md: fs::Metadata,
 }
 
-// TODO: this should be merged with GatherEnt, with a static option too
+// TODO: merge with GatherEnt, with a static option too?
+#[derive(PartialEq, Debug)]
 struct GatherItem {
     src: PathBuf,
     dst: PathBuf,
@@ -64,6 +65,7 @@ struct GatherData {
     off: usize,
 }
 
+#[derive(PartialEq, Debug)]
 enum GatherEnt {
     // Name String may be an absolute host-source-path or a relative path
     // resolved via path_stat(). Destination matches source.
@@ -1311,4 +1313,93 @@ fn main() -> io::Result<()> {
     println!("initramfs {} written ({} bytes)", cpio_out_path.display(), len);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Read;
+
+    struct TempDir {
+        pub dir: PathBuf,
+        pub dirname: String,
+    }
+    impl TempDir {
+        pub fn new() -> TempDir {
+            let mut b = [0u8; 16];
+            let mut dirname = String::from("test-rapido-cut-");
+            fs::File::open("/dev/urandom").unwrap().read_exact(&mut b).unwrap();
+            for i in &b {
+                dirname.push_str(&format!("{:02x}", i));
+            }
+            fs::create_dir(&dirname).unwrap();
+            TempDir { dir: PathBuf::from(&dirname), dirname }
+        }
+    }
+
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            assert!(self.dir.is_dir());
+            fs::remove_dir_all(&self.dir).unwrap();
+        }
+    }
+
+    #[test]
+    fn test_gather_manifest() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+        let tfest = format!("{}/testmanifest.fest", td.dirname);
+        fs::write(
+            &tfest,
+            "install=\"bash\"\ninclude=\"${VM_NET_CONF} /net\"\n"
+        ).expect("failed to write manifest");
+
+        let mut state = CutState{
+            cpio_output_arg: None,
+            bins: Gather {
+                names: vec!(GatherEnt::NameStatic("ls")),
+                off: 0,
+            },
+            libs: Gather {
+                names: vec!(),
+                off: 0,
+            },
+            kmods: vec!(),
+            data: GatherData {
+                items: vec!(),
+                off: 0,
+            },
+            net_enabled: false,
+            autoruns: 0,
+            manifests: Gather {
+                names: vec!(GatherEnt::Name(tfest.clone())),
+                off: 0,
+            },
+        };
+        gather_manifest_entries(&conf, &mut state)
+            .expect("failed to parse manifest");
+
+        assert_eq!(
+            state.bins.names,
+            vec!(
+                GatherEnt::NameStatic("ls"),
+                GatherEnt::Name("bash".to_string()),
+            )
+        );
+        assert_eq!(
+            state.data.items,
+            vec!(GatherItem{
+                src: PathBuf::from(conf.get("VM_NET_CONF").unwrap()),
+                dst: PathBuf::from("/net"),
+                flags: 0,
+            })
+        );
+
+        // parse again, this time with one unsupported key
+        fs::write(&tfest, "unsupported=v\ninstall=mkdir")
+            .expect("failed to write manifest");
+        state.manifests.off = 0;
+        gather_manifest_entries(&conf, &mut state)
+            .expect_err("parse bad manifest");
+    }
 }
