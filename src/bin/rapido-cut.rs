@@ -1004,7 +1004,7 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
         "include" => {
             let mut iter = value.unwrap().split_whitespace();
             while let Some(src) = iter.next() {
-                let dst = match iter.next() {
+                match iter.next() {
                     None => return Err(argument::Error::InvalidValue {
                         value: src.to_string(),
                         expected: String::from("SRC DEST pairs"),
@@ -1019,14 +1019,19 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                                 ),
                             });
                         }
-                        dst
+                        let gi = GatherItem {
+                            src: PathBuf::from(src),
+                            dst,
+                            flags: 0,
+                        };
+                        // optimization: rsc paths first to speed up rapido-vm
+                        if gi.dst.starts_with("/rapido-rsc") {
+                            state.data.items.insert(0, gi);
+                        } else {
+                            state.data.items.push(gi);
+                        }
                     },
                 };
-                state.data.items.push(GatherItem {
-                    src: PathBuf::from(src),
-                    dst,
-                    flags: 0,
-                });
             }
         }
         "autorun" => {
