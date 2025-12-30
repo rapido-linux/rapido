@@ -1217,9 +1217,7 @@ fn main() -> io::Result<()> {
     gather_manifest_entries(&conf, &mut state)?;
 
     state.kmods.extend(
-        rapido::conf_kmod_deps(&conf, false)
-            .into_iter()
-            .map(|s| s.to_string())
+        rapido::conf_kmod_deps(&conf).into_iter().map(|s| s.to_string())
     );
     if state.kmods.len() > 0 {
         // TODO only install if we have non-builtin kmods!

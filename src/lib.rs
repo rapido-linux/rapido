@@ -58,21 +58,15 @@ pub fn conf_src_or_host_kernel_vers(
     }
 }
 
-// return kmod dependencies based on @has_net and rapido @conf qemu parameters
-pub fn conf_kmod_deps(conf: &HashMap<String, String>, has_net: bool) -> Vec<&str> {
-    let mut deps = vec!();
-
-    match conf.get("QEMU_EXTRA_ARGS") {
-        Some(v) if v.contains("virtio-rng-pci") => deps.push("virtio_rng"),
-        Some(_) | None => {},
+// return kmod dependencies based on rapido @conf qemu parameters
+pub fn conf_kmod_deps(conf: &HashMap<String, String>) -> Vec<&str> {
+    let mut deps = match conf.get("QEMU_EXTRA_ARGS") {
+        Some(v) if v.contains("virtio-rng-pci") => vec!("virtio_rng"),
+        Some(_) | None => vec!(),
     };
 
     if conf.get("VIRTFS_SHARE_PATH").is_some() {
         deps.extend(&["9pnet", "9pnet_virtio", "9p"]);
-    }
-
-    if has_net {
-	deps.extend(&["virtio_net", "af_packet"]);
     }
 
     deps
@@ -162,9 +156,8 @@ mod tests {
         let conf: HashMap<String, String> = HashMap::from([
             ("QEMU_EXTRA_ARGS".to_string(), "-device virtio-rng-pci".to_string())
         ]);
-        let kmods = conf_kmod_deps(&conf, true);
+        let kmods = conf_kmod_deps(&conf);
         assert!(kmods.contains(&"virtio_rng"));
-        assert!(kmods.contains(&"virtio_net"));
     }
 
     #[test]

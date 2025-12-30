@@ -155,14 +155,12 @@ fn kcli_parse(kcmdline: &[u8]) -> io::Result<KcliArgs> {
 }
 
 // FIXME: if all modules are builtin then rapido-cut won't install modprobe
-fn kmods_load(conf: &HashMap<String, String>, has_net: bool) -> io::Result<()> {
-    let kmods = rapido::conf_kmod_deps(conf, has_net);
-
+fn kmods_load(kmods: &Vec<&str>) -> io::Result<()> {
     if kmods.len() > 0 {
         match Command::new("modprobe")
             .env("PATH", "/usr/sbin:/usr/bin:/sbin:/bin")
             .arg("-a")
-            .args(&kmods)
+            .args(kmods)
             .status() {
             Err(e) => {
                 eprintln!("modprobe error: {:?}", e);
@@ -358,7 +356,11 @@ fn init_main() -> io::Result<()> {
     let has_dyn_debug = conf.contains_key("DYN_DEBUG_MODULES") || conf.contains_key("DYN_DEBUG_FILES");
     let has_virtfs = conf.contains_key("VIRTFS_SHARE_PATH");
 
-    kmods_load(&conf, has_net)?;
+    let mut kmods = rapido::conf_kmod_deps(&conf);
+    if has_net {
+        kmods.extend(&["virtio_net", "af_packet"]);
+    }
+    kmods_load(&kmods)?;
 
     init_mount(has_dyn_debug, has_virtfs)?;
 
