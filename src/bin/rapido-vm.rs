@@ -61,19 +61,18 @@ fn vm_resource_line_process(line: &[u8], rscs: &mut VmResources) -> io::Result<b
         [b'r', b'a', b'p', b'i', b'd', b'o', b'-', b'r', b's', b'c', b'/',
          b'c', b'p', b'u', b'/', val @ ..] => {
             rscs.cpus = match str::from_utf8(val) {
-                Ok(s) if s.parse::<u32>().is_ok() => s.parse::<u32>().unwrap(),
-                Err(_) | Ok(_) => {
-                    return Err(io::Error::from(io::ErrorKind::InvalidData));
+                Ok(s) => match s.parse::<u32>() {
+                    Err(_) => Err(io::Error::from(io::ErrorKind::InvalidData)),
+                    Ok(sp) => Ok(sp),
                 },
-            };
-        },
+                Err(_) => Err(io::Error::from(io::ErrorKind::InvalidData)),
+            }?;
+        }
         // rapido-rsc/mem/
         [b'r', b'a', b'p', b'i', b'd', b'o', b'-', b'r', b's', b'c', b'/',
          b'm', b'e', b'm', b'/', val @ ..] => {
             rscs.mem = match str::from_utf8(val) {
-                Err(_) => {
-                    Err(io::Error::from(io::ErrorKind::InvalidData))
-                },
+                Err(_) => Err(io::Error::from(io::ErrorKind::InvalidData)),
                 Ok(s) => {
                     match s.rsplit_once(['m', 'M', 'g', 'G']) {
                         None if s.parse::<u64>().is_ok() => Ok(s.to_string()),
@@ -470,5 +469,11 @@ mod tests {
 
         let line = b"not/a/root/rapido-rsc/path";
         assert_eq!(vm_resource_line_process(line, &mut rscs).unwrap(), false);
+
+        let line = b"rapido-rsc/mem/5GG";
+        assert!(vm_resource_line_process(line, &mut rscs).is_err());
+
+        let line = b"rapido-rsc/mem/5mG";
+        assert!(vm_resource_line_process(line, &mut rscs).is_err());
     }
 }
