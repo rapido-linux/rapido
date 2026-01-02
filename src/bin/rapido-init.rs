@@ -68,7 +68,7 @@ struct KcliArgs<'a> {
     console: Option<&'a str>,
 }
 
-fn kcli_parse(kcmdline: &[u8]) -> io::Result<KcliArgs> {
+fn kcli_parse(kcmdline: &[u8]) -> io::Result<KcliArgs<'_>> {
     let mut args = KcliArgs {
         rapido_hostname: None,
         rapido_vm_num: None,
@@ -83,7 +83,7 @@ fn kcli_parse(kcmdline: &[u8]) -> io::Result<KcliArgs> {
     // from the corresponding "key = " strings. For now they're vim compiled
     // via: s/\(.\)/b'\1', /g
 
-    for w in kcmdline.split(|c| matches!(c, b' ')) {
+    for w in kcmdline.split(|c| *c == b' ' || *c == b'\n') {
         match w {
             // rapido.hostname
             [b'r', b'a', b'p', b'i', b'd', b'o', b'.',
@@ -402,7 +402,7 @@ mod tests {
 
     #[test]
     fn test_kcli_parse() {
-        let kcli = b"rapido.vm_num=3";
+        let kcli = b"rapido.vm_num=3\n";
         assert_eq!(
             kcli_parse(kcli).expect("kcli_parse failed"),
             KcliArgs {
