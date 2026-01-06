@@ -22,7 +22,7 @@ rapido-cut \
 	--include "dracut.conf.d/.empty /rapido-rsc/mem/${mem_rsc}" \
 	--install "ls cat mkdir cp mv rm ln sed readlink sleep \
 		   umount findmnt dmesg uname \
-		   tail blockdev ps rmdir resize dd grep find df sha256sum \
+		   tail blockdev ps rmdir dd grep find df sha256sum \
 		   strace mkfs mkfs.ext4 e2fsck tune2fs shuf free ip su \
 		   which perl awk bc touch cut chmod true false unlink \
 		   mktemp getfattr setfattr chacl attr killall hexdump sync \
@@ -35,7 +35,7 @@ rapido-cut \
 		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
 		   chgrp du fgrep pgrep tar rev kill \
 		   swapon swapoff xfs_freeze fsck ${req_inst[*]}" \
-	--try-install "resize dbench /usr/share/dbench/client.txt duperemove \
+	--try-install "dbench /usr/share/dbench/client.txt duperemove \
 		       fsverity keyctl openssl /etc/ssl/openssl.cnf nano fio" \
 	--include "$FSTESTS_SRC $FSTESTS_SRC" \
 	--kmods "zram lzo lzo_rle dm_snapshot dm_flakey btrfs raid6_pq \

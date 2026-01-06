@@ -21,7 +21,6 @@ PATH="target/release:${PATH}"
 rapido-cut \
 	--autorun "autorun/simple_example.sh $*" \
 	--install "ls cat sleep ps rmdir dd mkfs.xfs" \
-	--try-install "resize" \
 	--kmods "zram lzo lzo_rle"
 
 # rapido-cut writes the initramfs image to the rapido.conf DRACUT_OUT specified

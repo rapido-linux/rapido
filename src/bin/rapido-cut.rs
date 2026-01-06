@@ -1148,6 +1148,7 @@ fn main() -> io::Result<()> {
                 GatherEnt::NameStatic("mount"),
                 GatherEnt::NameStatic("setsid"),
                 GatherEnt::NameStatic("bash"),
+                GatherEnt::NameStatic("stty"),
             ),
             off: 0,
         },

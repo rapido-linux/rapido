@@ -252,6 +252,39 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs> {
     return Ok(qemu_args);
 }
 
+// TODO: call TIOCGWINSZ ioctl directly?
+fn host_stty_size(kcmdline: &mut String, kparam: &'static str) -> Option<()> {
+    let out = match process::Command::new("stty")
+        .args(&["size"])
+        .stdout(process::Stdio::piped())
+        .spawn() {
+        Err(_) => return None,
+        Ok(p) => match p.wait_with_output() {
+            Err(_) => return None,
+            Ok(o) if !o.status.success() => return None,
+            Ok(o) => o.stdout,
+        }
+    };
+
+    let mut iter = out.split(|c| !matches!(*c, b'0'..=b'9'));
+    let rows = iter.next()?;
+    let cols = iter.next()?;
+    if rows.len() < 1 || cols.len() < 1 {
+        eprintln!("bogus stty output {:?} {:?}", rows, cols);
+        return None;
+    }
+
+    kcmdline.push_str(kparam);
+    for c in rows {
+        kcmdline.push(char::from(*c));
+    }
+    kcmdline.push(',');
+    for c in cols {
+        kcmdline.push(char::from(*c));
+    }
+    Some(())
+}
+
 fn vm_start(vm_num: u64, vm_pid_file: &str, initramfs_img: &str, conf: &HashMap<String,String>) -> io::Result<()> {
     let mut qemu_args = vm_qemu_args_get(conf)?;
     let mut kcmdline = format!(
@@ -259,6 +292,7 @@ fn vm_start(vm_num: u64, vm_pid_file: &str, initramfs_img: &str, conf: &HashMap<
         qemu_args.console,
         vm_num
     );
+    host_stty_size(&mut kcmdline, " rapido.stty=");
     let net_conf_dir = format!(
         "{}/vm{}",
         conf.get("VM_NET_CONF").expect("VM_NET_CONF not set"),

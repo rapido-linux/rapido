@@ -127,6 +127,23 @@ fn kcli_parse(kcmdline: &[u8]) -> io::Result<KcliArgs<'_>> {
                 };
                 args.rapido_tap_mac = Some(map);
             },
+            // rapido.stty=<rows>,<cols>
+            [b'r', b'a', b'p', b'i', b'd', b'o', b'.',
+            b's', b't', b't', b'y', b'=', rows_cols @ ..] => {
+                let (rows, cols) = match str::from_utf8(rows_cols) {
+                    Err(_) => Err(io::Error::from(io::ErrorKind::InvalidData)),
+                    Ok(rs_cs) => match rs_cs.split_once(',') {
+                        None => Err(io::Error::from(io::ErrorKind::InvalidData)),
+                        Some((r, c)) => Ok((r, c)),
+                    }
+                }?;
+                if rows.parse::<u32>().is_err() || cols.parse::<u32>().is_err() {
+                    return Err(io::Error::from(io::ErrorKind::InvalidData));
+                }
+                // Call stty now so we don't need to stash. Ignore failures.
+                let _ = Command::new("stty").args(&["rows", &rows, "cols", &cols])
+                    .status();
+            },
             // systemd.machine_id
             [b's', b'y', b's', b't', b'e', b'm', b'd', b'.',
             b'm', b'a', b'c', b'h', b'i', b'n', b'e', b'_', b'i', b'd', b'=',
