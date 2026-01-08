@@ -320,25 +320,23 @@ fn gather_archive_file<W: Seek + Write>(
     src: &Path,
     dst: &Path,
     amd: &cpio::ArchiveMd,
-    mode_mask: Option<u32>,
     libs_names: &mut Vec<GatherEnt>,
     libs_seen: &mut HashSet<String>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
     let mut f = fs::OpenOptions::new().read(true).open(src)?;
-    if mode_mask.is_none() || mode_mask.unwrap() & amd.mode != 0 {
-        // XXX NameTry bins do *not* result in NameTry libs; if a binary is
-        // installed then it's reasonable to assume presence of libs.
-        match elf_deps(&f, src, libs_seen) {
-            Ok(mut d) => libs_names.append(&mut d),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput => {
-                dout!("executable {:?} not an elf", src);
-            },
-            Err(e) => {
-                dout!("failed to obtain dependencies for elf {:?}: {:?}", src, e);
-            },
-        }
+
+    // XXX NameTry bins do *not* result in NameTry libs; if a binary is
+    // installed then it's reasonable to assume presence of libs.
+    match elf_deps(&f, src, libs_seen) {
+        Ok(mut d) => libs_names.append(&mut d),
+        Err(ref e) if e.kind() == io::ErrorKind::InvalidInput => {
+            dout!("executable {:?} not an elf", src);
+        },
+        Err(e) => {
+            dout!("failed to obtain dependencies for elf {:?}: {:?}", src, e);
+        },
     }
     // don't check for '#!' interpreters like Dracut, it's messy
 
@@ -420,7 +418,6 @@ fn gather_archive_bins<W: Seek + Write>(
                     &got.path,
                     &dst,
                     &amd,
-                    Some(0o111),
                     &mut libs.names,
                     libs_seen,
                     cpio_state,
@@ -506,7 +503,6 @@ fn gather_archive_libs<W: Seek + Write>(
                     &got.path,
                     &dst,
                     &amd,
-                    None,
                     &mut libs.names,
                     libs_seen,
                     cpio_state,
