@@ -161,6 +161,8 @@ fn path_stat(ent: &GatherEnt) -> Result<Fsent, io::Error> {
 
 // Parse ELF DT_NEEDED entries to gather shared object dependencies.
 // DT_RUNPATH entries are retained as extra library search paths.
+// XXX NameTry bins result in Lib or LibRunPath entries; if a binary
+// is installed then it's reasonable to require presence of libs.
 fn elf_deps(
     f: &fs::File,
     path: &Path,
@@ -170,12 +172,12 @@ fn elf_deps(
 
     let mut file = match ElfStream::<AnyEndian, _>::open_stream(f) {
         Ok(f) => f,
-        Err(e) => {
+        Err(_) => {
             // ParseError::BadOffset / ParseError::BadMagic is returned
             // immediately for empty / non-elf, which we want to ignore.
-            return Err(io::Error::new(io::ErrorKind::InvalidInput,
-                    e.to_string()));
-        },
+            dout!("file {:?} not an elf", path);
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
     };
 
     let dynamics = match file.dynamic() {
@@ -187,7 +189,8 @@ fn elf_deps(
             d.unwrap()
         },
         Err(e) => {
-            return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
+            eprintln!("{:?} elf .dynamic error: {:?}", path, e);
+            return Err(io::Error::from(io::ErrorKind::InvalidData));
         },
     };
 
@@ -201,8 +204,9 @@ fn elf_deps(
         };
 
         match usize::try_from(dyna.d_val()) {
-            Err(e) => {
-                return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
+            Err(_) => {
+                eprintln!("{:?} bad elf dynamic off {:?}", path, dyna);
+                return Err(io::Error::from(io::ErrorKind::InvalidData));
             }
             Ok(str_off) => v.push(str_off),
         }
@@ -210,7 +214,8 @@ fn elf_deps(
 
     let dynsyms_strs = match file.dynamic_symbol_table() {
         Err(e) => {
-            return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
+            eprintln!("{:?} bad elf dynamic sym table: {:?}", path, e);
+            return Err(io::Error::from(io::ErrorKind::InvalidData));
         },
         Ok(tup) => {
             if tup.is_none() {
@@ -249,8 +254,8 @@ fn elf_deps(
                 }
             },
             Err(e) => {
-                return Err(io::Error::new(io::ErrorKind::InvalidData,
-                        e.to_string()));
+                eprintln!("{:?} bad elf dynamic sym table: {:?}", path, e);
+                return Err(io::Error::from(io::ErrorKind::InvalidData));
             },
         };
     }
@@ -399,25 +404,17 @@ fn gather_archive_elfs<W: Seek + Write>(
                 }
             },
             cpio::S_IFREG if amd.len > 0 => {
-                let src = &got.path;
-                let mut f = fs::OpenOptions::new().read(true).open(src)?;
+                let mut f = fs::OpenOptions::new().read(true).open(&got.path)?;
 
-                // XXX NameTry bins do *not* result in NameTry libs; if a binary
-                // is installed then it's reasonable to assume presence of libs.
-                match elf_deps(&f, src, libs_seen) {
-                    Ok(mut d) => elfs.names.append(&mut d),
-                    Err(ref e) if e.kind() == io::ErrorKind::InvalidInput => {
-                        dout!("executable {:?} not an elf", src);
-                    }
-                    Err(e) => {
-                        dout!("failed to obtain dependencies for elf {:?}: {:?}", src, e);
-                    }
+                // ignore elf_deps errors: file is non-elf or malformed
+                if let Ok(mut d) = elf_deps(&f, &got.path, libs_seen) {
+                    elfs.names.append(&mut d);
                 }
                 // don't check for '#!' interpreters like Dracut, it's messy
 
                 f.seek(io::SeekFrom::Start(0))?;
                 cpio::archive_file(cpio_state, dst, &amd, &f, &mut cpio_writer)?;
-                dout!("archived elf: {:?}→{:?}", src, dst);
+                dout!("archived elf: {:?}→{:?}", got.path, dst);
             },
             _ => {
                 cpio::archive_path(cpio_state, &dst, &amd, &mut cpio_writer)?;
