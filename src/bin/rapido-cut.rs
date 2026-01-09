@@ -327,36 +327,6 @@ fn gather_archive_dirs<W: Seek + Write>(
     Ok(())
 }
 
-fn gather_archive_file<W: Seek + Write>(
-    src: &Path,
-    dst: &Path,
-    amd: &cpio::ArchiveMd,
-    libs_names: &mut Vec<GatherEnt>,
-    libs_seen: &mut HashSet<String>,
-    cpio_state: &mut cpio::ArchiveState,
-    mut cpio_writer: W,
-) -> io::Result<()> {
-    let mut f = fs::OpenOptions::new().read(true).open(src)?;
-
-    // XXX NameTry bins do *not* result in NameTry libs; if a binary is
-    // installed then it's reasonable to assume presence of libs.
-    match elf_deps(&f, src, libs_seen) {
-        Ok(mut d) => libs_names.append(&mut d),
-        Err(ref e) if e.kind() == io::ErrorKind::InvalidInput => {
-            dout!("executable {:?} not an elf", src);
-        },
-        Err(e) => {
-            dout!("failed to obtain dependencies for elf {:?}: {:?}", src, e);
-        },
-    }
-    // don't check for '#!' interpreters like Dracut, it's messy
-
-    f.seek(io::SeekFrom::Start(0))?;
-    cpio::archive_file(cpio_state, dst, &amd, &f, &mut cpio_writer)?;
-
-    Ok(())
-}
-
 fn gather_archive_elfs<W: Seek + Write>(
     elfs: &mut Gather,
     libs_seen: &mut HashSet<String>,
@@ -429,16 +399,25 @@ fn gather_archive_elfs<W: Seek + Write>(
                 }
             },
             cpio::S_IFREG => {
-                gather_archive_file(
-                    &got.path,
-                    &dst,
-                    &amd,
-                    &mut elfs.names,
-                    libs_seen,
-                    cpio_state,
-                    &mut cpio_writer
-                )?;
-                dout!("archived elf: {:?}→{:?}", got.path, dst);
+                let src = &got.path;
+                let mut f = fs::OpenOptions::new().read(true).open(src)?;
+
+                // XXX NameTry bins do *not* result in NameTry libs; if a binary
+                // is installed then it's reasonable to assume presence of libs.
+                match elf_deps(&f, src, libs_seen) {
+                    Ok(mut d) => elfs.names.append(&mut d),
+                    Err(ref e) if e.kind() == io::ErrorKind::InvalidInput => {
+                        dout!("executable {:?} not an elf", src);
+                    }
+                    Err(e) => {
+                        dout!("failed to obtain dependencies for elf {:?}: {:?}", src, e);
+                    }
+                }
+                // don't check for '#!' interpreters like Dracut, it's messy
+
+                f.seek(io::SeekFrom::Start(0))?;
+                cpio::archive_file(cpio_state, dst, &amd, &f, &mut cpio_writer)?;
+                dout!("archived elf: {:?}→{:?}", src, dst);
             },
             _ => {
                 cpio::archive_path(cpio_state, &dst, &amd, &mut cpio_writer)?;
