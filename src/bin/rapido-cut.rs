@@ -75,8 +75,12 @@ enum GatherEnt {
     NameDst(&'static str, &'static str),
     // Ignore if missing, instead of aborting.
     NameTry(String),
+    // Same as Name, except search LIB_PATHS
+    Lib(String),
     // library with extra search path(s) from ELF RUNPATH
     LibRunPath(String, Vec<String>),
+    // Same as Name, except search MANIFEST_PATHS
+    Manifest(String),
 }
 
 struct Gather {
@@ -89,13 +93,13 @@ struct Gather {
 
 // We *should* be running as an unprivileged process, so don't filter or block
 // access to parent or special paths; this should all be handled by the OS.
-fn path_stat(ent: &GatherEnt, search_paths: &[&str]) -> Result<Fsent, io::Error> {
-
+fn path_stat(ent: &GatherEnt) -> Result<Fsent, io::Error> {
     let name: &str = match ent {
         GatherEnt::Name(n) => &n,
         GatherEnt::NameDst(n, _) => n,
         GatherEnt::NameStatic(n) => n,
         GatherEnt::NameTry(n) => &n,
+        GatherEnt::Lib(n) => &n,
         // it might be cleaner to add an extra enum for paths with separator...
         GatherEnt::LibRunPath(n, _) if n.contains(path::MAIN_SEPARATOR_STR) => &n,
         GatherEnt::LibRunPath(n, paths) => {
@@ -105,9 +109,10 @@ fn path_stat(ent: &GatherEnt, search_paths: &[&str]) -> Result<Fsent, io::Error>
                     return Ok(Fsent {path: p, md: md});
                 }
             }
-            // fallback to search_paths
+            // fallback to LIB_PATHS search
             &n
         }
+        GatherEnt::Manifest(n) => &n,
     };
 
     dout!("resolving path for {:?}", name);
@@ -129,7 +134,13 @@ fn path_stat(ent: &GatherEnt, search_paths: &[&str]) -> Result<Fsent, io::Error>
         }
     }
 
-    // TODO: search all paths and prefer non-symlink if multiple?
+    // TODO: set search_paths with name above. Tuple assignment didn't work for me.
+    let search_paths: &[&str] = match ent {
+        GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) => &LIB_PATHS,
+        GatherEnt::Manifest(_) => &MANIFEST_PATHS,
+        _ => &BIN_PATHS,
+    };
+
     for dir in search_paths.iter() {
         let p = PathBuf::from(dir).join(name);
         if let Ok(md) = fs::symlink_metadata(&p) {
@@ -231,7 +242,7 @@ fn elf_deps(
                         // RUNPATH rare enough that it's prob not worth it.
                         ret.push(GatherEnt::LibRunPath(s, runpaths.clone()));
                     } else {
-                        ret.push(GatherEnt::Name(s));
+                        ret.push(GatherEnt::Lib(s));
                     }
                 } else {
                     dout!("duplicate elf dependency({:?}): {:?}", str_off, sraw);
@@ -358,7 +369,7 @@ fn gather_archive_bins<W: Seek + Write>(
     while let Some(ent) = bins.names.get(bins.off) {
         bins.off += 1;
 
-        let got = match path_stat(&ent, &BIN_PATHS) {
+        let got = match path_stat(&ent) {
             Err(e) => {
                 if let GatherEnt::NameTry(_) = ent {
                     continue;
@@ -447,13 +458,9 @@ fn gather_archive_libs<W: Seek + Write>(
     while let Some(ent) = libs.names.get(libs.off) {
         libs.off += 1;
 
-        let got = match path_stat(&ent, &LIB_PATHS) {
-            Err(e) => {
-                if let GatherEnt::NameTry(_) = ent {
-                    continue;
-                }
-                return Err(e);
-            }
+        let got = match path_stat(&ent) {
+            // Do or do not. There is no try: NameTry bins add non-try libs.
+            Err(e) => return Err(e),
             Ok(g) => g,
         };
         let dst = match ent {
@@ -492,7 +499,7 @@ fn gather_archive_libs<W: Seek + Write>(
                 dout!("archived lib symlink: {:?} ({:?})", got.path, canon_tgt);
 
                 if let Ok(t) = canon_tgt.into_os_string().into_string() {
-                    libs.names.push(GatherEnt::Name(t));
+                    libs.names.push(GatherEnt::Lib(t));
                 } else {
                     eprintln!("non utf-8 symlink target {:?}", &got.path);
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
@@ -855,7 +862,7 @@ fn gather_manifest_entries(
     while let Some(fest) = state.manifests.names.get(state.manifests.off) {
         state.manifests.off += 1;
 
-        let got = match path_stat(&fest, &MANIFEST_PATHS) {
+        let got = match path_stat(&fest) {
             Err(e) => {
                 if let GatherEnt::NameTry(_) = fest {
                     continue;
@@ -1071,7 +1078,7 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
             let mut manifests: Vec<GatherEnt> = value
                 .unwrap()
                 .split_whitespace()
-                .map(|f| GatherEnt::Name(f.to_string()))
+                .map(|f| GatherEnt::Manifest(f.to_string()))
                 .collect();
             state.manifests.names.append(&mut manifests);
         }
@@ -1351,7 +1358,7 @@ mod tests {
             },
             autoruns: 0,
             manifests: Gather {
-                names: vec!(GatherEnt::Name(tfest.clone())),
+                names: vec!(GatherEnt::Manifest(tfest.clone())),
                 off: 0,
             },
         };
