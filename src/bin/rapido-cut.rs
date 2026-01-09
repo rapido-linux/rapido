@@ -398,7 +398,7 @@ fn gather_archive_elfs<W: Seek + Write>(
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
                 }
             },
-            cpio::S_IFREG => {
+            cpio::S_IFREG if amd.len > 0 => {
                 let src = &got.path;
                 let mut f = fs::OpenOptions::new().read(true).open(src)?;
 
