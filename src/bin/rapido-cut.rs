@@ -357,17 +357,16 @@ fn gather_archive_file<W: Seek + Write>(
     Ok(())
 }
 
-fn gather_archive_bins<W: Seek + Write>(
-    bins: &mut Gather,
-    libs: &mut Gather,
+fn gather_archive_elfs<W: Seek + Write>(
+    elfs: &mut Gather,
     libs_seen: &mut HashSet<String>,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
 
-    while let Some(ent) = bins.names.get(bins.off) {
-        bins.off += 1;
+    while let Some(ent) = elfs.names.get(elfs.off) {
+        elfs.off += 1;
 
         let got = match path_stat(&ent) {
             Err(e) => {
@@ -417,8 +416,13 @@ fn gather_archive_bins<W: Seek + Write>(
                 )?;
                 dout!("archived symlink: {:?} ({:?})", got.path, canon_tgt);
 
+                // could add a Path ent type to avoid String conversion here...
                 if let Ok(t) = canon_tgt.into_os_string().into_string() {
-                    bins.names.push(GatherEnt::Name(t));
+                    let tgtent = match ent {
+                        GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) => GatherEnt::Lib(t),
+                        _ => GatherEnt::Name(t),
+                    };
+                    elfs.names.push(tgtent);
                 } else {
                     eprintln!("non utf-8 symlink target {:?}", &got.path);
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
@@ -429,100 +433,16 @@ fn gather_archive_bins<W: Seek + Write>(
                     &got.path,
                     &dst,
                     &amd,
-                    &mut libs.names,
+                    &mut elfs.names,
                     libs_seen,
                     cpio_state,
                     &mut cpio_writer
                 )?;
-                dout!("archived bin: {:?}→{:?}", got.path, dst);
+                dout!("archived elf: {:?}→{:?}", got.path, dst);
             },
             _ => {
                 cpio::archive_path(cpio_state, &dst, &amd, &mut cpio_writer)?;
                 dout!("archived other: {:?}→{:?}", got.path, dst);
-            },
-        };
-    }
-
-    Ok(())
-}
-
-// TODO: this is very similar to gather_archive_bins; combine?
-fn gather_archive_libs<W: Seek + Write>(
-    libs: &mut Gather,
-    libs_seen: &mut HashSet<String>,
-    paths_seen: &mut HashSet<PathBuf>,
-    cpio_state: &mut cpio::ArchiveState,
-    mut cpio_writer: W,
-) -> io::Result<()> {
-
-    while let Some(ent) = libs.names.get(libs.off) {
-        libs.off += 1;
-
-        let got = match path_stat(&ent) {
-            // Do or do not. There is no try: NameTry bins add non-try libs.
-            Err(e) => return Err(e),
-            Ok(g) => g,
-        };
-        let dst = match ent {
-            GatherEnt::NameDst(_, d) => &path::absolute(d)?,
-            _ => &got.path,
-        };
-
-        let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
-        gather_archive_dirs(
-            dst.parent(),
-            &amd,
-            paths_seen,
-            cpio_state,
-            &mut cpio_writer
-        )?;
-        match amd.mode & cpio::S_IFMT {
-            cpio::S_IFLNK => {
-                if let GatherEnt::NameDst(_, _) = ent {
-                    eprintln!("symlink source and cpio dest paths must match");
-                    return Err(io::Error::from(io::ErrorKind::InvalidInput));
-                }
-                let canon_tgt = match got.path.canonicalize() {
-                    Err(e) => {
-                        eprintln!("{:?} canonicalize failed: {:?}", got.path, e);
-                        continue;
-                    },
-                    Ok(t) => t,
-                };
-                cpio::archive_symlink(
-                    cpio_state,
-                    &got.path,
-                    &amd,
-                    &canon_tgt,
-                    &mut cpio_writer
-                )?;
-                dout!("archived lib symlink: {:?} ({:?})", got.path, canon_tgt);
-
-                if let Ok(t) = canon_tgt.into_os_string().into_string() {
-                    libs.names.push(GatherEnt::Lib(t));
-                } else {
-                    eprintln!("non utf-8 symlink target {:?}", &got.path);
-                    return Err(io::Error::from(io::ErrorKind::InvalidInput));
-                }
-            },
-            cpio::S_IFREG => {
-                gather_archive_file(
-                    &got.path,
-                    &dst,
-                    &amd,
-                    &mut libs.names,
-                    libs_seen,
-                    cpio_state,
-                    &mut cpio_writer
-                )?;
-                dout!("archived lib: {:?}", got.path);
-            },
-            _ => {
-                eprintln!(
-                    "{:?}: libs gathering only supports symlinks or files, not {:o}",
-                    got.path, amd.mode
-                );
-                return Err(io::Error::from(io::ErrorKind::InvalidInput));
             },
         };
     }
@@ -959,8 +879,7 @@ fn populate_default_symlinks<W: Seek + Write>(
 
 struct CutState {
     cpio_output_arg: Option<PathBuf>,
-    bins: Gather,
-    libs: Gather,
+    elfs: Gather,
     kmods: Vec<String>,
     data: GatherData,
     autoruns: u32,
@@ -981,7 +900,7 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                 .split_whitespace()
                 .map(|f| GatherEnt::Name(f.to_string()))
                 .collect();
-            state.bins.names.append(&mut files);
+            state.elfs.names.append(&mut files);
         }
         "try-install" | "try_install" => {
             let mut files: Vec<GatherEnt> = value
@@ -989,7 +908,7 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                 .split_whitespace()
                 .map(|f| GatherEnt::NameTry(f.to_string()))
                 .collect();
-            state.bins.names.append(&mut files);
+            state.elfs.names.append(&mut files);
         }
         "kmods" => {
             let kmod_parsed: argument::Result<Vec<String>> = value
@@ -1144,7 +1063,7 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
 fn main() -> io::Result<()> {
     let mut state = CutState {
         cpio_output_arg: None,
-        bins: Gather {
+        elfs: Gather {
             names: vec!(
                 GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
                 // rapido-init core deps
@@ -1153,10 +1072,6 @@ fn main() -> io::Result<()> {
                 GatherEnt::NameStatic("bash"),
                 GatherEnt::NameStatic("stty"),
             ),
-            off: 0,
-        },
-        libs: Gather {
-            names: vec!(),
             off: 0,
         },
         // kmods currently only tracks user-requested modules.
@@ -1225,7 +1140,7 @@ fn main() -> io::Result<()> {
     );
     if state.kmods.len() > 0 {
         // TODO only install if we have non-builtin kmods!
-        state.bins.names.extend([GatherEnt::NameStatic("modprobe")]);
+        state.elfs.names.extend([GatherEnt::NameStatic("modprobe")]);
     }
 
     let cpio_props = cpio::ArchiveProperties{
@@ -1267,18 +1182,8 @@ fn main() -> io::Result<()> {
         &mut cpio_writer
     )?;
 
-    // process bins before libs, as they may add to libs *and* bins
-    gather_archive_bins(
-        &mut state.bins,
-        &mut state.libs,
-        &mut libs_seen,
-        &mut paths_seen,
-        &mut cpio_state,
-        &mut cpio_writer
-    )?;
-
-    gather_archive_libs(
-        &mut state.libs,
+    gather_archive_elfs(
+        &mut state.elfs,
         &mut libs_seen,
         &mut paths_seen,
         &mut cpio_state,
@@ -1343,12 +1248,8 @@ mod tests {
 
         let mut state = CutState{
             cpio_output_arg: None,
-            bins: Gather {
+            elfs: Gather {
                 names: vec!(GatherEnt::NameStatic("ls")),
-                off: 0,
-            },
-            libs: Gather {
-                names: vec!(),
                 off: 0,
             },
             kmods: vec!(),
@@ -1366,7 +1267,7 @@ mod tests {
             .expect("failed to parse manifest");
 
         assert_eq!(
-            state.bins.names,
+            state.elfs.names,
             vec!(
                 GatherEnt::NameStatic("ls"),
                 GatherEnt::Name("bash".to_string()),
