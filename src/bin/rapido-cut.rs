@@ -69,13 +69,16 @@ struct GatherData {
 enum GatherEnt {
     // Name String may be an absolute host-source-path or a relative path
     // resolved via path_stat(). Destination matches source.
+    // ELF dependencies are gathered for all Name* types if an execute mode
+    // flag is present on the source file.
     Name(String),
     NameStatic(&'static str),
     // Same as above, but destination is explicitly provided.
     NameDst(&'static str, &'static str),
     // Ignore if missing, instead of aborting.
     NameTry(String),
-    // Same as Name, except search LIB_PATHS
+    // Same as Name, except search LIB_PATHS. Lib* types trigger ELF dependency
+    // gathering regardles of mode flags.
     Lib(String),
     // library with extra search path(s) from ELF RUNPATH
     LibRunPath(String, Vec<String>),
@@ -352,9 +355,10 @@ fn gather_archive_elfs<W: Seek + Write>(
             }
             Ok(g) => g,
         };
-        let dst = match ent {
-            GatherEnt::NameDst(_, d) => &path::absolute(d)?,
-            _ => &got.path,
+        let (dst, lib_ent) = match ent {
+            GatherEnt::NameDst(_, d) => (&path::absolute(d)?, false),
+            GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) => (&got.path, true),
+            _ => (&got.path, false),
         };
 
         let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
@@ -393,9 +397,9 @@ fn gather_archive_elfs<W: Seek + Write>(
 
                 // could add a Path ent type to avoid String conversion here...
                 if let Ok(t) = canon_tgt.into_os_string().into_string() {
-                    let tgtent = match ent {
-                        GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) => GatherEnt::Lib(t),
-                        _ => GatherEnt::Name(t),
+                    let tgtent = match lib_ent {
+                        true => GatherEnt::Lib(t),
+                        false => GatherEnt::Name(t),
                     };
                     elfs.names.push(tgtent);
                 } else {
@@ -406,13 +410,15 @@ fn gather_archive_elfs<W: Seek + Write>(
             cpio::S_IFREG if amd.len > 0 => {
                 let mut f = fs::OpenOptions::new().read(true).open(&got.path)?;
 
-                // ignore elf_deps errors: file is non-elf or malformed
-                if let Ok(mut d) = elf_deps(&f, &got.path, libs_seen) {
-                    elfs.names.append(&mut d);
-                }
-                // don't check for '#!' interpreters like Dracut, it's messy
+                if amd.mode & 0o111 != 0 || lib_ent {
+                    // ignore elf_deps errors: file is non-elf or malformed
+                    if let Ok(mut d) = elf_deps(&f, &got.path, libs_seen) {
+                        elfs.names.append(&mut d);
+                    }
+                    // don't check for '#!' interpreters like Dracut, it's messy
 
-                f.seek(io::SeekFrom::Start(0))?;
+                    f.seek(io::SeekFrom::Start(0))?;
+                }
                 cpio::archive_file(cpio_state, dst, &amd, &f, &mut cpio_writer)?;
                 dout!("archived elf: {:?}→{:?}", got.path, dst);
             },
