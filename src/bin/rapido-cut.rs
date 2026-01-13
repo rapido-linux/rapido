@@ -764,15 +764,7 @@ fn gather_manifest_entries(
     while let Some(fest) = state.manifests.names.get(state.manifests.off) {
         state.manifests.off += 1;
 
-        let got = match path_stat(&fest) {
-            Err(e) => {
-                if let GatherEnt::NameTry(_) = fest {
-                    continue;
-                }
-                return Err(e);
-            }
-            Ok(g) => g,
-        };
+        let got = path_stat(&fest)?;
         let f = fs::OpenOptions::new().read(true).open(&got.path)?;
         let mut fest_map = HashMap::new();
         if let Err(e) = kv_conf::kv_conf_process_append_separate(
