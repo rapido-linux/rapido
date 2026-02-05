@@ -1122,7 +1122,7 @@ fn main() -> io::Result<()> {
         data_align: 4096,
         ..cpio::ArchiveProperties::default()
     };
-    let mut cpio_state = cpio::ArchiveState::new(&cpio_props);
+    let mut cpio_state = cpio::ArchiveState::new(cpio_props);
     let cpio_out_path = match state.cpio_output_arg {
         Some(p) => p,
         // unwrap: DRACUT_OUT set in conf_defaults()

@@ -78,9 +78,9 @@ impl ArchiveProperties {
     }
 }
 
-pub struct ArchiveState<'a> {
+pub struct ArchiveState {
     // static properties, provided during initialization
-    props: &'a ArchiveProperties,
+    props: ArchiveProperties,
     // offset from the start of this archive
     off: u64,
     // next mapped inode number, used instead of source file inode numbers to
@@ -89,8 +89,8 @@ pub struct ArchiveState<'a> {
     ino: u32,
 }
 
-impl ArchiveState<'_> {
-    pub fn new(props: &ArchiveProperties) -> ArchiveState {
+impl ArchiveState {
+    pub fn new(props: ArchiveProperties) -> ArchiveState {
         ArchiveState {
             off: 0,
             ino: props.initial_ino,

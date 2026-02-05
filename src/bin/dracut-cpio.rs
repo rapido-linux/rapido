@@ -16,7 +16,7 @@ const LIST_SEPARATOR: u8 = b'\n';
 fn archive_loop<R: BufRead, W: Seek + Write>(
     mut reader: R,
     mut writer: W,
-    props: &cpio::ArchiveProperties,
+    props: cpio::ArchiveProperties,
 ) -> io::Result<u64> {
     if props.data_align > 0 && (props.initial_data_off + u64::from(props.data_align)) % 4 != 0 {
         // must satisfy both data_align and cpio 4-byte padding alignment
@@ -243,19 +243,20 @@ fn main() -> io::Result<()> {
     let stdin = io::stdin();
     let mut reader = io::BufReader::new(stdin);
 
-    let _wrote = archive_loop(&mut reader, &mut writer, &props)?;
+    let initial_off = props.initial_data_off;
+    let wrote = archive_loop(&mut reader, &mut writer, props)?;
 
-    if props.initial_data_off > 0 {
+    if initial_off > 0 {
         println!(
             "appended {} bytes to archive {} at offset {}",
-            _wrote,
+            wrote,
             output_path.display(),
-            props.initial_data_off
+            initial_off
         );
     } else {
         println!(
             "wrote {} bytes to archive {}",
-            _wrote,
+            wrote,
             output_path.display()
         );
     }
@@ -438,7 +439,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new("file.txt\n".as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert_eq!(wrote, 512);
 
@@ -460,7 +461,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new("file.txt\n".as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 2 + 33);
 
@@ -482,7 +483,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new("./file.txt\n".as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert_eq!(wrote, 512);
 
@@ -504,7 +505,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new("dir\n".as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert_eq!(wrote, 512);
 
@@ -528,7 +529,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new(file_list.as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 3 + 512 * 32);
 
@@ -552,7 +553,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new(file_list.as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 4 + 512 * 32);
 
@@ -576,7 +577,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new(file_list.as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 4 + 512 * 32);
 
@@ -600,7 +601,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new("file.txt\nsymlink.txt\n".as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert_eq!(wrote, 512);
 
@@ -623,7 +624,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new("fifo\n".as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert_eq!(wrote, 512);
 
@@ -651,7 +652,7 @@ mod tests {
         let f = fs::File::create(&drout).unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::Cursor::new("/dev/zero\n".as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(drout);
         assert_eq!(wrote, 512);
 
@@ -677,7 +678,7 @@ mod tests {
         let wrote = archive_loop(
             &mut reader,
             &mut writer,
-            &cpio::ArchiveProperties {
+            cpio::ArchiveProperties {
                 data_align: 4096,
                 ..cpio::ArchiveProperties::default()
             },
@@ -742,7 +743,7 @@ mod tests {
         let wrote = archive_loop(
             &mut reader,
             &mut writer,
-            &cpio::ArchiveProperties {
+            cpio::ArchiveProperties {
                 data_align: 4096,
                 initial_data_off: data_before_cpio.len() as u64,
                 ..cpio::ArchiveProperties::default()
@@ -783,7 +784,7 @@ mod tests {
         let res = archive_loop(
             &mut reader,
             &mut writer,
-            &cpio::ArchiveProperties {
+            cpio::ArchiveProperties {
                 data_align: 4096,
                 initial_data_off: data_before_cpio.len() as u64,
                 ..cpio::ArchiveProperties::default()
@@ -816,7 +817,7 @@ mod tests {
         let f = fs::File::create("dracut/dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new(file_list.as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut/dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 5 + 512 * 8);
 
@@ -869,7 +870,7 @@ mod tests {
         let f = fs::File::create("dracut.cpio").unwrap();
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new(file_list.as_bytes());
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 4 + 512 * 12);
 
@@ -894,7 +895,7 @@ mod tests {
         let wrote = archive_loop(
             &mut reader,
             &mut writer,
-            &cpio::ArchiveProperties {
+            cpio::ArchiveProperties {
                 fixed_mtime: Some(0),
                 ..cpio::ArchiveProperties::default()
             },
@@ -939,7 +940,7 @@ mod tests {
         let mut writer = io::BufWriter::new(f);
         let mut reader = io::BufReader::new(file_list.as_bytes());
         assert_eq!(cpio::ArchiveProperties::default().fixed_mtime, None);
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files
             .push(PathBuf::from("extractor/dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 3 + 33 + 55);
@@ -990,7 +991,7 @@ mod tests {
         let wrote = archive_loop(
             &mut reader,
             &mut writer,
-            &cpio::ArchiveProperties {
+            cpio::ArchiveProperties {
                 fixed_uid: Some(65534),
                 fixed_gid: Some(65534),
                 ..cpio::ArchiveProperties::default()
@@ -1031,7 +1032,7 @@ mod tests {
         let mut reader = io::BufReader::new(file_list.as_bytes());
         assert_eq!(cpio::ArchiveProperties::default().fixed_uid, None);
         assert_eq!(cpio::ArchiveProperties::default().fixed_gid, None);
-        let wrote = archive_loop(&mut reader, &mut writer, &cpio::ArchiveProperties::default()).unwrap();
+        let wrote = archive_loop(&mut reader, &mut writer, cpio::ArchiveProperties::default()).unwrap();
         twd.cleanup_files
             .push(PathBuf::from("extractor/dracut.cpio"));
         assert!(wrote > cpio::NEWC_HDR_LEN * 3 + 33 + 55);
@@ -1087,7 +1088,7 @@ mod tests {
         let wrote = archive_loop(
             &mut reader,
             &mut writer,
-            &cpio::ArchiveProperties::default()
+            cpio::ArchiveProperties::default()
         )
         .unwrap();
         twd.cleanup_files.push(PathBuf::from("dracut_xtr/dracut.cpio"));
@@ -1174,7 +1175,7 @@ mod tests {
         let wrote = archive_loop(
             &mut reader,
             &mut writer,
-            &cpio::ArchiveProperties::default()
+            cpio::ArchiveProperties::default()
         )
         .unwrap();
         twd.cleanup_files.push(drout);
