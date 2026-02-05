@@ -511,6 +511,19 @@ pub struct ArchiveEnt {
     // add &name[0 .. namesize] slice here, or leave it up to caller?
 }
 
+impl ArchiveEnt {
+    // panics if not valid utf-8. Check @name beforehand if undesired.
+    pub fn name_str(&self) -> &str {
+        let s = str::from_utf8(&self.name[0 .. (self.namesize as usize) - 1])
+            .unwrap();
+        // data alignment optimization may leave trailing zeros. strip them...
+        match s.split_once('\0') {
+            None => s,
+            Some((stripped, _)) => stripped,
+        }
+    }
+}
+
 pub struct ArchiveWalker<R: Seek + Read> {
     reader: R,
 }
@@ -637,9 +650,10 @@ mod tests {
         c.seek(io::SeekFrom::Start(0)).unwrap();
 
         let mut aw = archive_walk(c).unwrap();
+        let ae = aw.next().unwrap().unwrap();
 
         assert_eq!(
-            aw.next().unwrap().unwrap(),
+            ae,
             ArchiveEnt{
                 md: amd,
                 namesize: ("hello".len() + 1).try_into().unwrap(),
@@ -651,6 +665,7 @@ mod tests {
                 },
             }
         );
+        assert_eq!(ae.name_str(), "hello");
 
         // cpio trailer entry returns None
         assert!(aw.next().is_none());
@@ -837,6 +852,50 @@ mod tests {
             }
         );
 
+        assert!(aw.next().is_none());
+    }
+
+    // Similar to above, but check how data segment alignemt affects name_str().
+    #[test]
+    fn test_archive_file_aligned() {
+        let mut c = io::Cursor::new(Vec::new());
+        // datalen > 16-byte alignment to trigger name padding
+        let data = b"this is some file data";
+        let amd1 = ArchiveMd{
+            nlink: 1,
+            mode: S_IFREG | 0o777,
+            uid: 1,
+            gid: 2,
+            mtime: 3,
+            rmajor: 4,
+            rminor: 5,
+            len: 0,
+        };
+        let amd2 = ArchiveMd{
+            len: data.len() as u32,
+            ..amd1
+        };
+
+        let p1 = Path::new("hello");
+        let p2 = Path::new("bye");
+        let props = ArchiveProperties{
+            data_align: 16,
+            ..ArchiveProperties::default()
+        };
+        let mut state = ArchiveState::new(&props);
+        archive_path(&mut state, &p1, &amd1, &mut c).unwrap();
+        archive_file(&mut state, &p2, &amd2, io::Cursor::new(data), &mut c).unwrap();
+        // archive path should fail for len > 0 files
+        assert!(archive_path(&mut state, &p2, &amd2, &mut c).is_err());
+
+        c.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = archive_walk(c).unwrap();
+
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "hello");
+
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "bye");
         assert!(aw.next().is_none());
     }
 }
