@@ -466,7 +466,7 @@ fn archive_kmod_path<W: Seek + Write>(
 // easy way to specify the directory for modprobe, so we use symlinks. Booo.
 // See https://src.opensuse.org/pool/kmod/src/branch/factory/README.usrmerge
 fn archive_kmods_symlink<W: Seek + Write>(
-    paths_seen: &mut HashSet<PathBuf>,
+    paths_seen: &HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
@@ -492,7 +492,6 @@ fn archive_kmods_symlink<W: Seek + Write>(
 
 fn gather_archive_kmod_and_deps<W: Seek + Write>(
     name: &str,
-    kmod_src_root: &Path,
     kmod_dst_root: &Path,
     context: &KmodContext,
     paths_seen: &mut HashSet<PathBuf>,
@@ -513,7 +512,7 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
     // and doesn't contain Builtins.
     let kmod_dst = kmod_dst_root.join(&root_mod.rel_path);
     if paths_seen.insert(kmod_dst.clone()) {
-        let kmod_src = kmod_src_root.join(&root_mod.rel_path);
+        let kmod_src = context.module_root.join(&root_mod.rel_path);
         archive_kmod_path(
             &kmod_src,
             &kmod_dst,
@@ -529,7 +528,7 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
     for dep_path in root_mod.hard_deps_paths.iter() {
         let kmod_dst = kmod_dst_root.join(&dep_path);
         if paths_seen.insert(kmod_dst.clone()) {
-            let kmod_src = kmod_src_root.join(&dep_path);
+            let kmod_src = context.module_root.join(&dep_path);
             archive_kmod_path(
                 &kmod_src,
                 &kmod_dst,
@@ -557,7 +556,7 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
         };
         let kmod_dst = kmod_dst_root.join(&m.rel_path);
         if paths_seen.insert(kmod_dst.clone()) {
-            let kmod_src = kmod_src_root.join(&m.rel_path);
+            let kmod_src = context.module_root.join(&m.rel_path);
             match archive_kmod_path(
                 &kmod_src,
                 &kmod_dst,
@@ -579,36 +578,59 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
     Ok(())
 }
 
+struct GatherKmods {
+    kmod_dst_root: PathBuf,
+    kmod_ctx: KmodContext,
+}
+
+impl GatherKmods {
+    pub fn init(conf: &HashMap<String, String>) -> io::Result<Self> {
+        let krel = rapido::conf_src_or_host_kernel_vers(&conf)?;
+        let kmod_dst_root = PathBuf::from("/usr/lib/modules/").join(&krel);
+        let kmod_ctx = match conf.get("KERNEL_INSTALL_MOD_PATH") {
+            // should assert that KERNEL_SRC is set?
+            Some(kmp) if !kmp.is_empty() => {
+                KmodContext::new(
+                    &PathBuf::from(kmp).join(format!("lib/modules/{krel}"))
+                )
+            }
+            None | Some(_) if kmod_dst_root.exists() => {
+                KmodContext::new(&kmod_dst_root)
+            }
+            None | Some(_) => {
+                // assume that we have a non-Tumbleweed system
+                KmodContext::new(&PathBuf::from("/lib/modules/").join(&krel))
+            }
+        };
+
+        let kmod_ctx = match kmod_ctx {
+            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e)),
+            Ok(ctx) => ctx,
+        };
+        Ok(GatherKmods{
+            kmod_dst_root,
+            kmod_ctx,
+        })
+    }
+}
+
 fn gather_archive_kmods<W: Seek + Write>(
     conf: &HashMap<String, String>,
+    gk: &mut Option<GatherKmods>,
     kmods: &Vec<String>,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
-    let krel = rapido::conf_src_or_host_kernel_vers(&conf)?;
-    let kmod_dst_root = PathBuf::from("/usr/lib/modules/").join(&krel);
-    let kmod_src_root = match conf.get("KERNEL_INSTALL_MOD_PATH") {
-        // should assert that KERNEL_SRC is set?
-        Some(kmp) if !kmp.is_empty() => PathBuf::from(kmp).join(format!("lib/modules/{krel}")),
-        None | Some(_) if kmod_dst_root.exists() => kmod_dst_root.clone(),
-        None | Some(_) => {
-            // assume that we have a non-Tumbleweed system
-            PathBuf::from("/lib/modules/").join(&krel)
-        },
-    };
-
-    archive_kmods_symlink(paths_seen, cpio_state, &mut cpio_writer)?;
-
-    let kmod_ctx = match KmodContext::new(&kmod_src_root) {
-        Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e)),
-        Ok(ctx) => ctx,
-    };
+    if gk.is_none() {
+        *gk = Some(GatherKmods::init(conf)?);
+    }
+    let kmod_dst_root = &gk.as_ref().unwrap().kmod_dst_root;
+    let kmod_ctx = &gk.as_ref().unwrap().kmod_ctx;
 
     for name in kmods.iter() {
         match gather_archive_kmod_and_deps(
             &name,
-            &kmod_src_root,
             &kmod_dst_root,
             &kmod_ctx,
             paths_seen,
@@ -618,7 +640,7 @@ fn gather_archive_kmods<W: Seek + Write>(
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
-                    format!("{} missing from: {:?}", name, kmod_src_root)
+                    format!("{} missing from: {:?}", name, kmod_ctx.module_root)
                 ));
             },
             Err(e) => return Err(e),
@@ -630,7 +652,7 @@ fn gather_archive_kmods<W: Seek + Write>(
     for file_name in MODULE_DB_FILES.iter() {
         let data_dst_path = kmod_dst_root.join(file_name);
         if paths_seen.insert(data_dst_path.clone()) {
-            let data_src_path = kmod_src_root.join(file_name);
+            let data_src_path = kmod_ctx.module_root.join(file_name);
             match archive_kmod_path(
                 &data_src_path,
                 &data_dst_path,
@@ -848,6 +870,9 @@ fn populate_default_symlinks<W: Seek + Write>(
             cpio::archive_symlink(cpio_state, p, &amd, tgt, &mut cpio_writer)?;
         }
     }
+
+    // TODO: should only need this if we actually installed kmods
+    archive_kmods_symlink(paths_seen, cpio_state, &mut cpio_writer)?;
     Ok(())
 }
 
@@ -1164,8 +1189,10 @@ fn main() -> io::Result<()> {
         &mut cpio_writer
     )?;
 
+    let mut gk: Option<GatherKmods> = None;
     gather_archive_kmods(
         &conf,
+        &mut gk,
         &state.kmods,
         &mut paths_seen,
         &mut cpio_state,
