@@ -599,18 +599,18 @@ mod tests {
         let root_path = setup_test_dir("harddeps_builtin_dup");
         let mut ctx = set_context(&root_path);
 
-        let modules_dep_content = format!(
-            "kernel/mod_a.ko: kernel/dep1.ko kernel/dep2.ko.xz\n\
-             kernel/mod_b.ko: kernel/dep1.ko\n"
+        let modules_dep_content = concat!(
+            "kernel/mod_a.ko: kernel/dep1.ko kernel/dep2.ko.xz\n",
+            "kernel/mod_b.ko: kernel/dep1.ko\n"
         );
-        write_test_file(&root_path, "modules.dep", &modules_dep_content);
+        write_test_file(&root_path, "modules.dep", modules_dep_content);
 
         // builtin mod_b collides with modules.dep entry
-        let modules_builtin_content = format!(
-            "kernel/builtin_mod1.ko\n\
-             kernel/mod_b.ko\n"
+        let modules_builtin_content = concat!(
+            "kernel/builtin_mod1.ko\n",
+            "kernel/mod_b.ko\n"
         );
-        write_test_file(&root_path, "modules.builtin", &modules_builtin_content);
+        write_test_file(&root_path, "modules.builtin", modules_builtin_content);
 
         ctx.load_hard_dependencies().unwrap();
         assert_eq!(
@@ -638,14 +638,14 @@ mod tests {
         );
 
         // Define aliases
-        let modules_alias_content = format!(
-            "alias alias_1 mod_target\n\
-             alias alias_2 mod_target\n\
-             # this line should be ignored: alias bad_line mod_target\n\
-             alias complex_alias:v*d* mod_target\n\
-             alias mod_name_is_alias mod_target\n"
+        let modules_alias_content = concat!(
+            "alias alias_1 mod_target\n",
+            "alias alias_2 mod_target\n",
+            "# this line should be ignored: alias bad_line mod_target\n",
+            "alias complex_alias:v*d* mod_target\n",
+            "alias mod_name_is_alias mod_target\n"
         );
-        write_test_file(&root_path, "modules.alias", &modules_alias_content);
+        write_test_file(&root_path, "modules.alias", modules_alias_content);
 
         ctx.load_aliases().unwrap();
 
@@ -733,11 +733,11 @@ mod tests {
         write_test_file(&root_path, "kernel/mod_b.ko.xz", "");
 
         // modules.dep (hard deps)
-        let modules_dep_content = format!(
-            "kernel/mod_a.ko: kernel/mod_b.ko.xz kernel/mod_c.ko\n\
-             kernel/mod_b.ko.xz:\n"
+        let modules_dep_content = concat!(
+            "kernel/mod_a.ko: kernel/mod_b.ko.xz kernel/mod_c.ko\n",
+            "kernel/mod_b.ko.xz:\n"
         );
-        write_test_file(&root_path, "modules.dep", &modules_dep_content);
+        write_test_file(&root_path, "modules.dep", modules_dep_content);
 
         // modules.softdep (soft deps)
         let modules_softdep_content = "softdep mod_a pre: mod_d post: mod_e mod_f\n";
@@ -858,27 +858,27 @@ mod tests {
         write_test_file(&root_path, "kernel/fs/fsmodule/fsmodule.ko.zst", "");
 
         // modules.dep: contains all loadable modules
-        let modules_dep_content = format!(
-            "kernel/fs/fsmodule/fsmodule.ko.zst: kernel/lib/other_dep.ko\n\
-             kernel/arch/x86/sub/mod32c-intel.ko.zst:\n\
-             kernel/drivers/char/hw_random/virtio-rng.ko.zst:\n\
-             kernel/lib/other_dep.ko:\n"
+        let modules_dep_content = concat!(
+            "kernel/fs/fsmodule/fsmodule.ko.zst: kernel/lib/other_dep.ko\n",
+            "kernel/arch/x86/sub/mod32c-intel.ko.zst:\n",
+            "kernel/drivers/char/hw_random/virtio-rng.ko.zst:\n",
+            "kernel/lib/other_dep.ko:\n"
         );
-        write_test_file(&root_path, "modules.dep", &modules_dep_content);
+        write_test_file(&root_path, "modules.dep", modules_dep_content);
 
         // modules.softdep: fsmodule has a soft dependency 'mod32c' (the alias)
         let modules_softdep_content = "softdep fsmodule pre: mod32c\n";
         write_test_file(&root_path, "modules.softdep", modules_softdep_content);
 
         // modules.alias: alias 'mod32c' points to 'mod32c_intel'
-        let modules_alias_content = format!(
-            "alias sub-mod32c-intel mod32c_intel\n\
-             alias mod32c-intel mod32c_intel\n\
-             alias sub-mod32c mod32c_intel\n\
-             alias mod32c mod32c_intel\n\
-             alias cpu:type:x86,ven*fam*mod*:feature:*1234* mod32c_intel\n"
+        let modules_alias_content = concat!(
+            "alias sub-mod32c-intel mod32c_intel\n",
+            "alias mod32c-intel mod32c_intel\n",
+            "alias sub-mod32c mod32c_intel\n",
+            "alias mod32c mod32c_intel\n",
+            "alias cpu:type:x86,ven*fam*mod*:feature:*1234* mod32c_intel\n"
         );
-        write_test_file(&root_path, "modules.alias", &modules_alias_content);
+        write_test_file(&root_path, "modules.alias", modules_alias_content);
 
         // modules.builtin is empty. modules.weakdep is omitted (like Leap 15.6).
         write_test_file(&root_path, "modules.builtin", "");
