@@ -584,7 +584,12 @@ struct GatherKmods {
 }
 
 impl GatherKmods {
-    pub fn init(conf: &HashMap<String, String>) -> io::Result<Self> {
+    pub fn init<W: Seek + Write>(
+        conf: &HashMap<String, String>,
+        paths_seen: &mut HashSet<PathBuf>,
+        cpio_state: &mut cpio::ArchiveState,
+        mut cpio_writer: W,
+    ) -> io::Result<Self> {
         let krel = rapido::conf_src_or_host_kernel_vers(&conf)?;
         let kmod_dst_root = PathBuf::from("/usr/lib/modules/").join(&krel);
         let kmod_ctx = match conf.get("KERNEL_INSTALL_MOD_PATH") {
@@ -607,6 +612,30 @@ impl GatherKmods {
             Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e)),
             Ok(ctx) => ctx,
         };
+
+        // XXX this should probably only be done *after* kmod gathering...
+        // add module_data_paths inside initrd
+        for file_name in MODULE_DB_FILES.iter() {
+            let data_dst_path = kmod_dst_root.join(file_name);
+            if paths_seen.insert(data_dst_path.clone()) {
+                let data_src_path = kmod_ctx.module_root.join(file_name);
+                match archive_kmod_path(
+                    &data_src_path,
+                    &data_dst_path,
+                    paths_seen,
+                    cpio_state,
+                    &mut cpio_writer
+                ) {
+                    Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                        dout!("Module data path {:?} missing", data_src_path);
+                        // TODO: only install required, and return error if missing
+                    },
+                    Err(e) => return Err(e),
+                    Ok(_) => {},
+                }
+            }
+        }
+
         Ok(GatherKmods{
             kmod_dst_root,
             kmod_ctx,
@@ -623,7 +652,7 @@ fn gather_archive_kmods<W: Seek + Write>(
     mut cpio_writer: W,
 ) -> io::Result<()> {
     if gk.is_none() {
-        *gk = Some(GatherKmods::init(conf)?);
+        *gk = Some(GatherKmods::init(conf, paths_seen, cpio_state, &mut cpio_writer)?);
     }
     let kmod_dst_root = &gk.as_ref().unwrap().kmod_dst_root;
     let kmod_ctx = &gk.as_ref().unwrap().kmod_ctx;
@@ -646,28 +675,6 @@ fn gather_archive_kmods<W: Seek + Write>(
             Err(e) => return Err(e),
             Ok(_) => {},
         };
-    }
-
-    // add module_data_paths inside initrd
-    for file_name in MODULE_DB_FILES.iter() {
-        let data_dst_path = kmod_dst_root.join(file_name);
-        if paths_seen.insert(data_dst_path.clone()) {
-            let data_src_path = kmod_ctx.module_root.join(file_name);
-            match archive_kmod_path(
-                &data_src_path,
-                &data_dst_path,
-                paths_seen,
-                cpio_state,
-                &mut cpio_writer
-            ) {
-                Err(e) if e.kind() == io::ErrorKind::NotFound => {
-                    dout!("Module data path {:?} missing", data_src_path);
-                    // TODO: only install required, and return error if missing
-                },
-                Err(e) => return Err(e),
-                Ok(_) => {},
-            }
-        }
     }
 
     Ok(())
