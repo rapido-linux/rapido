@@ -16,27 +16,152 @@ _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 # need enough memory for five zram devices
 mem_rsc="$((3072 + (zram_bytes * 5 / 1048576)))M"
 
+fest=$(mktemp --tmpdir simple-example-fest.XXXXX)
+trap "rm \"$fest\"" 0
+cat > "$fest" <<EOF
+file /rapido-rsc/mem/${mem_rsc} dracut.conf.d/.empty
+
+autorun autorun/lib/fstests.sh autorun/fstests_btrfs.sh $*
+
+bin ls
+bin cat
+bin mkdir
+bin cp
+bin mv
+bin rm
+bin ln
+bin sed
+bin readlink
+bin sleep
+bin umount
+bin findmnt
+bin dmesg
+bin uname
+bin tail
+bin blockdev
+bin ps
+bin rmdir
+bin dd
+bin grep
+bin find
+bin df
+bin sha256sum
+bin strace
+bin mkfs
+bin mkfs.ext4
+bin e2fsck
+bin tune2fs
+bin shuf
+bin free
+bin ip
+bin su
+bin which
+bin perl
+bin awk
+bin bc
+bin touch
+bin cut
+bin chmod
+bin true
+bin false
+bin unlink
+bin mktemp
+bin getfattr
+bin setfattr
+bin chacl
+bin attr
+bin killall
+bin hexdump
+bin sync
+bin id
+bin sort
+bin uniq
+bin date
+bin expr
+bin tac
+bin diff
+bin head
+bin dirname
+bin seq
+bin basename
+bin tee
+bin egrep
+bin yes
+bin mkswap
+bin timeout
+bin realpath
+bin blkdiscard
+bin fstrim
+bin logger
+bin dmsetup
+bin chattr
+bin lsattr
+bin cmp
+bin stat
+bin hostname
+bin getconf
+bin md5sum
+bin od
+bin wc
+bin getfacl
+bin setfacl
+bin tr
+bin xargs
+bin sysctl
+bin link
+bin truncate
+bin quota
+bin repquota
+bin setquota
+bin quotacheck
+bin quotaon
+bin pvremove
+bin vgremove
+bin xfs_mkfile
+bin xfs_db
+bin xfs_io
+bin wipefs
+bin filefrag
+bin losetup
+bin chgrp
+bin du
+bin fgrep
+bin pgrep
+bin tar
+bin rev
+bin kill
+bin swapon
+bin swapoff
+bin xfs_freeze
+bin fsck
+
+try-bin dbench
+try-bin /usr/share/dbench/client.txt
+try-bin duperemove
+try-bin fsverity
+try-bin keyctl
+try-bin openssl
+try-bin /etc/ssl/openssl.cnf
+try-bin nano
+try-bin fio
+
+tree $FSTESTS_SRC $FSTESTS_SRC
+
+kmod zram
+kmod lzo
+kmod lzo_rle
+kmod dm_snapshot
+kmod dm_flakey
+kmod btrfs
+kmod raid6_pq
+kmod loop
+kmod scsi_debug
+kmod dm_log_writes
+kmod xxhash_generic
+kmod ext4
+kmod virtio_blk
+EOF
+printf 'bin %s\n' "${req_inst[@]}" >> "$fest"
+
 PATH="target/release:${PATH}"
-rapido-cut \
-	--autorun "autorun/lib/fstests.sh autorun/fstests_btrfs.sh $*" \
-	--include "dracut.conf.d/.empty /rapido-rsc/mem/${mem_rsc}" \
-	--install "ls cat mkdir cp mv rm ln sed readlink sleep \
-		   umount findmnt dmesg uname \
-		   tail blockdev ps rmdir dd grep find df sha256sum \
-		   strace mkfs mkfs.ext4 e2fsck tune2fs shuf free ip su \
-		   which perl awk bc touch cut chmod true false unlink \
-		   mktemp getfattr setfattr chacl attr killall hexdump sync \
-		   id sort uniq date expr tac diff head dirname seq \
-		   basename tee egrep yes mkswap timeout realpath blkdiscard \
-		   fstrim logger dmsetup chattr lsattr cmp stat \
-		   hostname getconf md5sum \
-		   od wc getfacl setfacl tr xargs sysctl link truncate quota \
-		   repquota setquota quotacheck quotaon pvremove vgremove \
-		   xfs_mkfile xfs_db xfs_io wipefs filefrag losetup \
-		   chgrp du fgrep pgrep tar rev kill \
-		   swapon swapoff xfs_freeze fsck ${req_inst[*]}" \
-	--try-install "dbench /usr/share/dbench/client.txt duperemove \
-		       fsverity keyctl openssl /etc/ssl/openssl.cnf nano fio" \
-	--include "$FSTESTS_SRC $FSTESTS_SRC" \
-	--kmods "zram lzo lzo_rle dm_snapshot dm_flakey btrfs raid6_pq \
-		 loop scsi_debug dm_log_writes xxhash_generic ext4 virtio_blk"
+rapido-cut --manifest "$fest"

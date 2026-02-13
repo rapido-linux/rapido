@@ -5,6 +5,7 @@ use std::convert::TryFrom;
 use std::env;
 use std::fs;
 use std::io;
+use std::io::BufRead;
 use std::io::Seek;
 use std::io::Write;
 use std::path::{self, Path, PathBuf, Component};
@@ -46,6 +47,17 @@ macro_rules! dout {
     ($($l:tt)*) => {};
 }
 
+pub const CPIO_AMD_DEFAULT: cpio::ArchiveMd = cpio::ArchiveMd {
+    nlink: 1,
+    mode: cpio::S_IFREG | 0o777,
+    uid: 0,
+    gid: 0,
+    mtime: 0,
+    rmajor: 0,
+    rminor: 0,
+    len: 0,
+};
+
 struct Fsent {
     path: PathBuf,
     md: fs::Metadata,
@@ -86,6 +98,7 @@ enum GatherEnt {
     Manifest(String),
 }
 
+// TODO: wrapper type not needed. loop always moves off to the last.
 struct Gather {
     // Dependencies (elf, kmod, etc.) are added to the end of the gather
     // list as they are found.
@@ -890,10 +903,33 @@ struct CutState {
     data: GatherData,
     autoruns: u32,
     manifests: Gather,
+    // TODO: move elsewhere
+    new_manifests: Vec<io::BufReader<fs::File>>,
 }
+
+// loosely based on the Linux kernel's gen_init_cpio format
+const MANIFEST_FORMAT: &str = "\nManifest format:\n\
+    # a comment\n\
+    bin ELF\n\
+    try-bin ELF\n\
+    kmod MODULE\n\
+    dir NAME\n\
+    file NAME LOCATION\n\
+    autorun LOCATION [LOCATION ...]\n\
+    tree NAME LOCATION\n\
+    slink NAME TARGET\n\
+    include MANIFEST\n\
+    \n\
+    ELF:      path to an ELF formatted file, achived with all needed dependencies\n\
+    MODULE:   kernel module, archived with dependencies\n\
+    NAME:     name of the file or dir in the archive\n\
+    LOCATION: local path to obtain data, user, group, mode etc. for this item\n\
+    MANIFEST: file containing entries described above\n";
+
 
 fn args_usage(params: &[Argument]) {
     argument::print_help("rapido-cut", "", params);
+    print!("{}", MANIFEST_FORMAT);
 }
 
 fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> argument::Result<()> {
@@ -1000,12 +1036,23 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
             }
         }
         "manifest" => {
-            let mut manifests: Vec<GatherEnt> = value
-                .unwrap()
-                .split_whitespace()
-                .map(|f| GatherEnt::Manifest(f.to_string()))
-                .collect();
-            state.manifests.names.append(&mut manifests);
+            // TODO: avoid to_string()
+            match path_stat(&GatherEnt::Manifest(value.unwrap().to_string())) {
+                Err(e) => {
+                    return Err(
+                        argument::Error::InvalidValue {
+                            value: value.unwrap().to_string(),
+                            expected: format!("failed to stat: {:?}", e),
+                        }
+                    );
+                }
+                Ok(fs) => {
+                    match fs::OpenOptions::new().read(true).open(&fs.path) {
+                        Err(e) => return Err(argument::Error::PrintHelp),
+                        Ok(f) => state.new_manifests.push(io::BufReader::new(f)),
+                    };
+                }
+            }
         }
         "help" => return Err(argument::Error::PrintHelp),
         _ => unreachable!(),
@@ -1047,8 +1094,8 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
         ),
         Argument::value(
             "manifest",
-            "FILES",
-            "List of manifest files, as an alternative to params, e.g. install=bash",
+            "FILE",
+            "Manifest file describing initramfs contents",
         ),
         Argument::short_flag('h', "help", "Print help message."),
     ];
@@ -1098,6 +1145,7 @@ fn main() -> io::Result<()> {
             names: vec!(),
             off: 0,
         },
+        new_manifests: vec!(),
     };
 
     let conf = match rapido::host_rapido_conf_open(rapido::RAPIDO_CONF_PATH) {
@@ -1138,17 +1186,6 @@ fn main() -> io::Result<()> {
         Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e.to_string())),
     };
 
-    // manifests files carry install/include/kmod/autorun directives
-    gather_manifest_entries(&conf, &mut state)?;
-
-    state.kmods.extend(
-        rapido::conf_kmod_deps(&conf).into_iter().map(|s| s.to_string())
-    );
-    if state.kmods.len() > 0 {
-        // TODO only install if we have non-builtin kmods!
-        state.elfs.names.extend([GatherEnt::NameStatic("modprobe")]);
-    }
-
     let cpio_props = cpio::ArchiveProperties{
         // Attempt 4K file data alignment within archive for Btrfs/XFS reflinks
         data_align: 4096,
@@ -1175,12 +1212,21 @@ fn main() -> io::Result<()> {
         Ok(f) => io::BufWriter::new(f),
     };
 
-    // @libs_seen is an optimization to avoid resolving already-seen elf deps.
     let mut libs_seen: HashSet<String> = HashSet::new();
-    // avoid archiving already-archived paths
     let mut paths_seen: HashSet<PathBuf> = HashSet::new();
+    let mut gk: Option<GatherKmods> = None;
+    manifest_parse(
+        &conf,
+        &mut gk,
+        &mut libs_seen,
+        &mut paths_seen,
+        &mut cpio_state,
+        &mut cpio_writer,
+        &mut state.new_manifests
+    )?;
 
-    // optimization: rapido-rsc paths are parsed by rapido-vm so put them first
+    // TODO cleanup and remove abstractions:
+    // FIXME: this is only a single file!
     gather_archive_data(
         &mut state.data,
         &mut paths_seen,
@@ -1188,6 +1234,10 @@ fn main() -> io::Result<()> {
         &mut cpio_writer
     )?;
 
+    // TODO only install if we have non-builtin kmods!
+        state.elfs.names.push(GatherEnt::NameStatic("modprobe"));
+
+    // FIXME: this is only a single file!
     gather_archive_elfs(
         &mut state.elfs,
         &mut libs_seen,
@@ -1196,11 +1246,15 @@ fn main() -> io::Result<()> {
         &mut cpio_writer
     )?;
 
-    let mut gk: Option<GatherKmods> = None;
+    // TODO avoid stringify
+    let conf_kmods = rapido::conf_kmod_deps(&conf)
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect();
     gather_archive_kmods(
         &conf,
         &mut gk,
-        &state.kmods,
+        &conf_kmods,
         &mut paths_seen,
         &mut cpio_state,
         &mut cpio_writer
@@ -1215,10 +1269,421 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
+// var replacement mostly copied from kv-conf
+fn sub_path_vars(
+    conf: &HashMap<String, String>,
+    p: &str
+) -> Result<String, &'static str> {
+    // TODO: fastpath if no '$'
+    let mut unquoted_val = String::new();
+    let mut var_next = false;
+    for mut quoteblock in p.split_inclusive('$') {
+        if var_next {
+            var_next = false;
+            let mut varblock = quoteblock.split_inclusive(&['{', '}']);
+            if varblock.next() != Some("{") {
+                return Err("variables must be wrapped in {} braces");
+            }
+            let var = varblock.next();
+            if var.is_none() || !var.unwrap().ends_with("}") {
+                return Err("no closing brace for variable");
+            }
+            let key = var.unwrap().strip_suffix("}").unwrap();
+
+            match conf.get(key) {
+                Some(val) => unquoted_val.push_str(val),
+                None => return Err("invalid variable substitution: not seen"),
+            };
+            match varblock.next() {
+                // retain any post-var content
+                Some(t) => quoteblock = &t,
+                None => continue,
+            };
+        }
+
+        if quoteblock.ends_with("$") {
+            var_next = true;
+            unquoted_val.push_str(quoteblock.strip_suffix("$").unwrap());
+        } else {
+            unquoted_val.push_str(quoteblock);
+        }
+    }
+
+    Ok(unquoted_val)
+}
+
+fn manifest_name_sub(conf: &HashMap<String, String>, name: Option<&str>) -> io::Result<String> {
+    match name {
+        None => {
+            // TODO: move up+up to caller to print full manifest line
+            eprintln!("manifest line missing path");
+            Err(io::Error::from(io::ErrorKind::InvalidData))
+        }
+        Some(p) => match sub_path_vars(conf, p) {
+            Err(emsg) => {
+                eprintln!("{}", emsg);
+                Err(io::Error::from(io::ErrorKind::InvalidData))
+            }
+            Ok(p) => Ok(p),
+        }
+    }
+}
+
+fn manifest_name_sub_abs_path(
+    conf: &HashMap<String, String>,
+    name: Option<&str>
+) -> io::Result<PathBuf> {
+    let p = manifest_name_sub(conf, name)?;
+    match path::absolute(p) {
+        Err(_) => {
+            eprintln!("invalid path for absolute conversion");
+            Err(io::Error::from(io::ErrorKind::InvalidData))
+        }
+        Ok(p) => Ok(p),
+    }
+    // check / store path_seen here?
+}
+
+fn manifest_dir<W: Seek + Write>(
+    conf: &HashMap<String, String>,
+    paths_seen: &mut HashSet<PathBuf>,
+    cpio_state: &mut cpio::ArchiveState,
+    mut cpio_writer: W,
+    name: Option<&str>
+) -> io::Result<()> {
+    let dir = manifest_name_sub_abs_path(conf, name)?;
+    let amd = cpio::ArchiveMd { mode: cpio::S_IFDIR | 0o777, ..CPIO_AMD_DEFAULT };
+    gather_archive_dirs(
+        dir.parent(),
+        &amd,
+        paths_seen,
+        cpio_state,
+        &mut cpio_writer
+    )?;
+    cpio::archive_path(cpio_state, &dir, &amd, &mut cpio_writer)
+}
+
+fn manifest_slink<W: Seek + Write>(
+    conf: &HashMap<String, String>,
+    paths_seen: &mut HashSet<PathBuf>,
+    cpio_state: &mut cpio::ArchiveState,
+    mut cpio_writer: W,
+    name: Option<&str>,
+    slink_tgt: Option<&str>
+) -> io::Result<()> {
+    let p = manifest_name_sub_abs_path(conf, name)?;
+    let tgt = manifest_name_sub_abs_path(conf, slink_tgt)?;
+    let amd = cpio::ArchiveMd { mode: cpio::S_IFLNK | 0o777, ..CPIO_AMD_DEFAULT };
+    gather_archive_dirs(
+        p.parent(),
+        &amd,
+        paths_seen,
+        cpio_state,
+        &mut cpio_writer
+    )?;
+    cpio::archive_symlink(cpio_state, &p, &amd, &tgt, &mut cpio_writer)
+}
+
+fn manifest_file<W: Seek + Write>(
+    conf: &HashMap<String, String>,
+    paths_seen: &mut HashSet<PathBuf>,
+    cpio_state: &mut cpio::ArchiveState,
+    mut cpio_writer: W,
+    name: Option<&str>,
+    src: Option<&str>
+) -> io::Result<()> {
+    let p = manifest_name_sub_abs_path(conf, name)?;
+    // TODO: we could prob make the src file optional (for empty files)
+    let src = manifest_name_sub(conf, src)?;
+
+    let f = fs::File::open(src)?;
+    let src_md = f.metadata()?;
+    // XXX unlike others, amd is based on the src file.
+    let src_amd = cpio::ArchiveMd::from(cpio_state, &src_md)?;
+
+    gather_archive_dirs(
+        p.parent(),
+        &src_amd,
+        paths_seen,
+        cpio_state,
+        &mut cpio_writer
+    )?;
+    cpio::archive_file(cpio_state, &p, &src_amd, &f, &mut cpio_writer)
+}
+
+fn manifest_autorun<W: Seek + Write>(
+    conf: &HashMap<String, String>,
+    paths_seen: &mut HashSet<PathBuf>,
+    autorun_idx: &mut u32,
+    cpio_state: &mut cpio::ArchiveState,
+    mut cpio_writer: W,
+    name: Option<&str>
+) -> io::Result<()> {
+    let src = manifest_name_sub_abs_path(conf, name)?;
+    let dst = match src.file_name() {
+        None => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
+        Some(n) if n.to_str().is_none() => {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+        Some(n) => PathBuf::from(&format!(
+            "/rapido_autorun/{:03}-{}",
+            autorun_idx,
+            n.to_str().unwrap()
+        )),
+    };
+    *autorun_idx += 1;
+
+    let f = fs::File::open(src)?;
+    let src_md = f.metadata()?;
+    let src_amd = cpio::ArchiveMd::from(cpio_state, &src_md)?;
+
+    gather_archive_dirs(
+        // TODO: could shortcut for single /rapido_autorun
+        dst.parent(),
+        &src_amd,
+        paths_seen,
+        cpio_state,
+        &mut cpio_writer
+    )?;
+    cpio::archive_file(cpio_state, &dst, &src_amd, &f, &mut cpio_writer)
+}
+
+fn manifest_tree<W: Seek + Write>(
+    conf: &HashMap<String, String>,
+    paths_seen: &mut HashSet<PathBuf>,
+    cpio_state: &mut cpio::ArchiveState,
+    mut cpio_writer: W,
+    name: Option<&str>,
+    src: Option<&str>
+) -> io::Result<()> {
+    let dst = manifest_name_sub_abs_path(conf, name)?;
+    if !dst.is_absolute() {
+        eprintln!("tree DEST paths must be absolute");
+        return Err(io::Error::from(io::ErrorKind::InvalidInput));
+    }
+    let src = manifest_name_sub(conf, src)?;
+    let mut gather_data = GatherData {
+        items: vec!(
+            GatherItem { src: PathBuf::from(src), dst, flags: 0, },
+        ),
+        off: 0,
+    };
+    gather_archive_data(
+        &mut gather_data,
+        paths_seen,
+        cpio_state,
+        &mut cpio_writer
+    )
+}
+
+fn manifest_parse_one<W: Seek + Write>(
+    conf: &HashMap<String, String>,
+    gk: &mut Option<GatherKmods>,
+    libs_seen: &mut HashSet<String>,
+    paths_seen: &mut HashSet<PathBuf>,
+    autorun_idx: &mut u32,
+    cpio_state: &mut cpio::ArchiveState,
+    mut cpio_writer: W,
+    line: &mut String,
+    fests: &mut Vec<io::BufReader<fs::File>>
+) -> io::Result<()> {
+    let mut iter = line.split_whitespace();
+    let etype = match iter.next() {
+        None => return Ok(()),
+        Some(t) if t.starts_with('#') => return Ok(()),
+        Some(t) => t,
+    };
+
+    match etype {
+        "dir" => {
+            manifest_dir(conf,
+                paths_seen,
+                cpio_state,
+                cpio_writer,
+                iter.next()
+            )
+        }
+        "slink" => {
+            manifest_slink(
+                conf,
+                paths_seen,
+                cpio_state,
+                cpio_writer,
+                iter.next(),
+                iter.next()
+            )
+        }
+        "include" => {
+            let p = manifest_name_sub(conf, iter.next())?;
+            // should we skip already-seen manifests completely?
+            let fs = path_stat(&GatherEnt::Manifest(p))?;
+            let f = fs::OpenOptions::new().read(true).open(&fs.path)?;
+            fests.push(io::BufReader::new(f));
+            Ok(())
+        }
+        "file" => {
+            manifest_file(
+                conf,
+                paths_seen,
+                cpio_state,
+                cpio_writer,
+                iter.next(),
+                iter.next()
+            )
+        }
+        // bin <name>
+        // <name> is used for source and archive destination path.
+        // <name> paths not containing a '/' are searched for under BIN_PATHS,
+        // otherwise they're treated as relative or absolute paths.
+        // If path resolution finds a symlink then the symlink will be archived
+        // and the symlink target will be handled as a "bin" file.
+        //
+        // FIXME: if a symlink target doesn't contain a '/' then it should *not*
+        // trigger BIN_PATHS search.
+        "bin" => {
+            let src = manifest_name_sub(conf, iter.next())?;
+            let mut elf_deps = Gather {
+                names: vec!(GatherEnt::Name(src)),
+                off: 0,
+            };
+            gather_archive_elfs(
+                &mut elf_deps,
+                libs_seen,
+                paths_seen,
+                cpio_state,
+                cpio_writer
+            )
+        }
+        "try-bin" => {
+            let src = manifest_name_sub(conf, iter.next())?;
+            let mut elf_deps = Gather {
+                names: vec!(GatherEnt::NameTry(src)),
+                off: 0,
+            };
+            gather_archive_elfs(
+                &mut elf_deps,
+                libs_seen,
+                paths_seen,
+                cpio_state,
+                cpio_writer
+            )
+        }
+        "kmod" => {
+            match iter.next() {
+                None => Err(io::Error::from(io::ErrorKind::InvalidData)),
+                Some(kmod) => {
+                    gather_archive_kmods(
+                        conf,
+                        gk,
+                        &mut vec!(kmod.to_string()),
+                        paths_seen,
+                        cpio_state,
+                        cpio_writer
+                    )
+                }
+            }
+        }
+        "autorun" => {
+            let autorun_idx_before = *autorun_idx;
+            // old cut script "$*" legacy: autorun supports multiple LOCATIONs
+            while let Some(autorun_path) = iter.next() {
+                manifest_autorun(
+                    conf,
+                    paths_seen,
+                    autorun_idx,
+                    cpio_state,
+                    &mut cpio_writer,
+                    Some(autorun_path)
+                )?;
+            }
+            match autorun_idx_before == *autorun_idx {
+                true => Err(io::Error::from(io::ErrorKind::InvalidData)),
+                false => Ok(()),
+            }
+        }
+        "tree" => {
+            manifest_tree(
+                conf,
+                paths_seen,
+                cpio_state,
+                cpio_writer,
+                iter.next(),
+                iter.next()
+            )
+        }
+
+        // from kernel gen_init_cpio. not needed (yet)...
+        // nod <name> <mode> <uid> <gid> <dev_type> <maj> <min>
+        // pipe <name> <mode> <uid> <gid>
+        // sock <name> <mode> <uid> <gid>
+        _ => Err(io::Error::from(io::ErrorKind::Unsupported)),
+    }?;
+
+    if let Some(trail) = iter.next() {
+        eprintln!("error: unhandled parameter: {}", trail);
+        return Err(io::Error::from(io::ErrorKind::InvalidInput));
+    }
+    Ok(())
+}
+
+fn manifest_parse<W: Seek + Write>(
+    conf: &HashMap<String, String>,
+    gk: &mut Option<GatherKmods>,
+    libs_seen: &mut HashSet<String>,
+    paths_seen: &mut HashSet<PathBuf>,
+    cpio_state: &mut cpio::ArchiveState,
+    mut cpio_out: W,
+    fests: &mut Vec<io::BufReader<fs::File>>,
+) -> io::Result<()> {
+    let mut autorun_idx: u32 = 0;
+    let mut lbuf = String::new();
+    // "include" appends to @fests for immediate handling as .last()
+    loop {
+        let fest: &mut io::BufReader<fs::File> = match fests.last_mut() {
+            None => return Ok(()),
+            Some(fest) => fest,
+        };
+
+        match fest.read_line(&mut lbuf) {
+            Err(e) => {
+                eprintln!("failed to read manifest line: {}", e);
+                return Err(io::Error::from(io::ErrorKind::BrokenPipe));
+            }
+            Ok(n) if n > 16 * 1024 => {
+                eprintln!("line too long: {}", n);
+                return Err(io::Error::from(io::ErrorKind::InvalidInput));
+            }
+            Ok(n) if n == 0 => {
+                // EOF returns 0, leave lbuf empty
+                fests.pop();
+                continue;
+            }
+            Ok(_) => {},
+        }
+
+        if let Err(e) = manifest_parse_one(
+            &conf,
+            gk,
+            libs_seen,
+            paths_seen,
+            &mut autorun_idx,
+            cpio_state,
+            &mut cpio_out,
+            &mut lbuf,
+            fests
+        ) {
+            eprintln!("failed to parse manifest line: {}", lbuf);
+            return Err(e);
+        }
+        lbuf.clear();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::io::Read;
+    use std::ffi::OsString;
 
     struct TempDir {
         pub dir: PathBuf,
@@ -1244,57 +1709,426 @@ mod tests {
         }
     }
 
+    fn test_manifest_parse<W: Seek + Write>(
+        conf: &HashMap<String, String>,
+        cpio_state: &mut cpio::ArchiveState,
+        mut cpio_out: W,
+        fest_rdr: io::BufReader<fs::File>,
+    ) -> io::Result<()> {
+        let mut libs_seen: HashSet<String> = HashSet::new();
+        let mut paths_seen: HashSet<PathBuf> = HashSet::new();
+        let mut gk: Option<GatherKmods> = None;
+        let mut fests = vec!(fest_rdr);
+        manifest_parse(
+            conf,
+            &mut gk,
+            &mut libs_seen,
+            &mut paths_seen,
+            cpio_state,
+            &mut cpio_out,
+            &mut fests,
+        )
+    }
+
     #[test]
-    fn test_gather_manifest() {
+    fn test_new_manifest_include() {
         let conf = rapido::conf_defaults();
         let td = TempDir::new();
-        let tfest = format!("{}/testmanifest.fest", td.dirname);
+        let ifest = format!("{}/readthis.fest", td.dirname);
+        fs::write(&ifest, "dir /frominclude\n").unwrap();
+
+        let basefest = format!("{}/base.fest", td.dirname);
         fs::write(
-            &tfest,
-            "install=\"bash\"\ninclude=\"${VM_NET_CONF} /net\"\n"
-        ).expect("failed to write manifest");
+            &basefest,
+            format!("dir /basefirst\ninclude {}\ndir /baseafter", ifest)
+        ).unwrap();
 
-        let mut state = CutState{
-            cpio_output_arg: None,
-            elfs: Gather {
-                names: vec!(GatherEnt::NameStatic("ls")),
-                off: 0,
-            },
-            kmods: vec!(),
-            data: GatherData {
-                items: vec!(),
-                off: 0,
-            },
-            autoruns: 0,
-            manifests: Gather {
-                names: vec!(GatherEnt::Manifest(tfest.clone())),
-                off: 0,
-            },
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
         };
-        gather_manifest_entries(&conf, &mut state)
-            .expect("failed to parse manifest");
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
 
-        assert_eq!(
-            state.elfs.names,
-            vec!(
-                GatherEnt::NameStatic("ls"),
-                GatherEnt::Name("bash".to_string()),
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&basefest).unwrap()
+        );
+
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+        let ae = aw.next().unwrap().unwrap();
+        // cpio::path_trim_prefixes() drops the '/' prefix
+        assert_eq!(ae.name_str(), "basefirst");
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "frominclude");
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "baseafter");
+    }
+
+    #[test]
+    fn test_new_manifest_symlink() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(&fest, "dir /a\nslink /b /a").unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+        let ae = aw.next().unwrap().unwrap();
+        // cpio::path_trim_prefixes() drops the '/' prefix
+        assert_eq!(ae.name_str(), "a");
+        assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFDIR);
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "b");
+        assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFLNK);
+        assert_eq!(ae.md.len, 2);
+    }
+
+    #[test]
+    fn test_new_manifest_vars() {
+        let conf = HashMap::from([
+            ("KEY1".to_string(), "VAL1".to_string()),
+            ("KEY2".to_string(), "VAL2".to_string()),
+        ]);
+        let td = TempDir::new();
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(&fest, "dir /a${KEY1}x\nslink /${KEY2} /a${KEY1}x").unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+        let ae = aw.next().unwrap().unwrap();
+        // cpio::path_trim_prefixes() drops the '/' prefix
+        assert_eq!(ae.name_str(), "aVAL1x");
+        assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFDIR);
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "VAL2");
+        assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFLNK);
+        assert_eq!(ae.md.len, 7);   // /aVAL1x
+    }
+
+    #[test]
+    fn test_new_manifest_file() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+        let data = b"this is some data";
+        let file = format!("{}/test.data", td.dirname);
+        fs::write(&file, &data).unwrap();
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(&fest, format!("file /a/b {}", file)).unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+        let ae = aw.next().unwrap().unwrap();
+        // parent dirs are automatically added
+        assert_eq!(ae.name_str(), "a");
+        assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFDIR);
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "a/b");
+        assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFREG);
+        assert_eq!(ae.md.len, data.len() as u32);
+    }
+
+    #[test]
+    fn test_new_manifest_bin() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+        let fest = format!("{}/test.fest", td.dirname);
+        // unlike "bin", "try-bin" ignores missing files
+        fs::write(&fest, "bin bash\ntry-bin th1s-doe5-not-ex1st").unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+
+        // archive should carry:
+        // + parent directories
+        // + bash (binary)
+        // + bash (symlink) *if* BIN_PATHS resolved a symlink before binary
+        // + any elf dependencies
+        let mut got_bash = false;
+        while let Some(ae) = aw.next() {
+            assert!(ae.is_ok());
+            let ae = ae.unwrap();
+            let an = ae.name_str();
+            if ae.md.mode & cpio::S_IFMT == cpio::S_IFREG && an.ends_with("/bash") {
+                got_bash = true;
+            }
+        }
+        assert!(got_bash);
+    }
+
+    // based on test_kmod_context_full_load()
+    fn test_kmods_populate(kmods_root: &str) {
+        fs::create_dir_all(&kmods_root).unwrap();
+
+        fs::create_dir(&format!("{kmods_root}/kernel")).unwrap();
+        fs::File::create(&format!("{kmods_root}/kernel/mod_a.ko")).unwrap();
+        fs::File::create(&format!("{kmods_root}/kernel/mod_b.ko.xz")).unwrap();
+        fs::File::create(&format!("{kmods_root}/kernel/mod_c.ko")).unwrap();
+
+        fs::write(
+            &format!("{kmods_root}/modules.dep"),
+            concat!(
+                "kernel/mod_a.ko: kernel/mod_b.ko.xz kernel/mod_c.ko\n",
+                "kernel/mod_b.ko.xz:\n"
             )
-        );
-        assert_eq!(
-            state.data.items,
-            vec!(GatherItem{
-                src: PathBuf::from(conf.get("VM_NET_CONF").unwrap()),
-                dst: PathBuf::from("/net"),
-                flags: 0,
-            })
-        );
+        ).unwrap();
+        fs::write(
+            &format!("{kmods_root}/modules.softdep"),
+            "softdep mod_a pre: mod_d post: mod_e mod_f\n"
+        ).unwrap();
+        fs::write(
+            &format!("{kmods_root}/modules.weakdep"),
+            concat!(
+                "weakdep mod_a mod_g\nweakdep mod_a mod_h\n",
+                "weakdep mod_b mod_i\nweakdep mod_b mod_j\n"
+            )
+        ).unwrap();
+        fs::write(
+            &format!("{kmods_root}/modules.builtin"),
+            "kernel/mod_builtin.ko\n"
+        ).unwrap();
+        fs::write(
+            &format!("{kmods_root}/modules.alias"),
+            "alias alias_for_b mod_b\nalias mod-b mod_b\nalias mod-intel-b mod_b\n"
+        ).unwrap();
+    }
 
-        // parse again, this time with one unsupported key
-        fs::write(&tfest, "unsupported=v\ninstall=mkdir")
-            .expect("failed to write manifest");
-        state.manifests.off = 0;
-        gather_manifest_entries(&conf, &mut state)
-            .expect_err("parse bad manifest");
+    #[test]
+    fn test_new_manifest_kmods() {
+        let td = TempDir::new();
+
+        let conf = HashMap::from([
+            ("KERNEL_INSTALL_MOD_PATH".to_string(), format!("{}/mods", td.dirname)),
+            ("KERNEL_RELEASE".to_string(), "6.66".to_string()),
+        ]);
+
+        let kmods_root_dir = format!("{}/mods/lib/modules/6.66", td.dirname);
+        test_kmods_populate(&kmods_root_dir);
+
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(&fest, "kmod mod_a\nkmod mod-builtin").unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+
+        // archive should carry:
+        // + parent directories
+        // + mod_a.ko
+        // + mod_a hard dependencies: mod_b and mod_c
+        // + Linux kmod dependencies: modules.dep, etc.
+        let mut got_mods: HashSet<OsString> = HashSet::new();
+
+        while let Some(ae) = aw.next() {
+            assert!(ae.is_ok());
+            let ae = ae.unwrap();
+            let an = ae.name_str();
+            if ae.md.mode & cpio::S_IFMT == cpio::S_IFREG {
+                let p = Path::new(an).file_name().unwrap().to_os_string();
+                assert!(got_mods.insert(p));
+            }
+        }
+        assert_eq!(
+            got_mods,
+            HashSet::from([
+                OsString::from("modules.dep"),
+                OsString::from("modules.softdep"),
+                OsString::from("modules.alias"),
+                OsString::from("modules.builtin"),
+                OsString::from("modules.weakdep"),
+                OsString::from("mod_a.ko"),
+                OsString::from("mod_b.ko.xz"),
+                OsString::from("mod_c.ko"),
+            ])
+        );
+    }
+
+    #[test]
+    fn test_new_manifest_autorun() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+
+        let inc_autorun = format!("{}/inc_autorun.sh", td.dirname);
+        fs::write(&inc_autorun, "echo second\n").unwrap();
+
+        let last_autorun = format!("{}/last_autorun.sh", td.dirname);
+        fs::write(&last_autorun, "echo third\n").unwrap();
+
+        // multiple autorun locations can be placed on one line
+        let inc_fest = format!("{}/included.fest", td.dirname);
+        fs::write(
+            &inc_fest,
+            format!("autorun {} {}\n", inc_autorun, last_autorun)
+        ).unwrap();
+
+        let autorun = format!("{}/autorun.sh", td.dirname);
+        fs::write(&autorun, "echo first\n").unwrap();
+
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(
+            &fest,
+            format!("autorun {}\ninclude {}\ndir /baseafter", autorun, inc_fest)
+        ).unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+
+        // archive should carry:
+        // + parent directories
+        // + autorun files, prefixed with an incrementing index
+        let mut got_files: HashSet<OsString> = HashSet::new();
+
+        while let Some(ae) = aw.next() {
+            assert!(ae.is_ok());
+            let ae = ae.unwrap();
+            let an = ae.name_str();
+            if ae.md.mode & cpio::S_IFMT == cpio::S_IFREG {
+                let p = Path::new(an).file_name().unwrap().to_os_string();
+                assert!(got_files.insert(p));
+            }
+        }
+        assert_eq!(
+            got_files,
+            HashSet::from([
+                OsString::from("000-autorun.sh"),
+                OsString::from("001-inc_autorun.sh"),
+                OsString::from("002-last_autorun.sh"),
+            ])
+        )
+    }
+
+    #[test]
+    fn test_new_manifest_tree() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+
+        fs::create_dir_all(&format!("{}/this/is/a/tree", td.dirname)).unwrap();
+        fs::File::create(&format!("{}/this/file", td.dirname)).unwrap();
+        fs::File::create(&format!("{}/this/is/file", td.dirname)).unwrap();
+        fs::create_dir_all(&format!("{}/this/is/dir/child", td.dirname)).unwrap();
+
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(&fest, format!("tree / {}", td.dirname)).unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+
+        let mut got_paths: HashSet<String> = HashSet::new();
+
+        while let Some(ae) = aw.next() {
+            assert!(ae.is_ok());
+            let ae = ae.unwrap();
+            let an = ae.name_str();
+            assert!(got_paths.insert(an.to_string()));
+        }
+        assert_eq!(
+            got_paths,
+            HashSet::from([
+                String::from("this/is/a/tree"),
+                String::from("this/is/a"),
+                String::from("this/is/dir/child"),
+                String::from("this/is/dir"),
+                String::from("this/is/file"),
+                String::from("this/is"),
+                String::from("this/file"),
+                String::from("this"),
+                String::from("test.fest"),
+                // TODO: we shouldn't need this entry for initramfs
+                String::from("/"),
+            ])
+        )
     }
 }

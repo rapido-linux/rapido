@@ -1,12 +1,18 @@
-install="udevadm systemd-udevd systemd-networkd systemd-networkd-wait-online ip
-	ping"
+# the /rapido-rsc/net destination path is special in that it tells rapido-vm
+# to also assign tap devices to the VM. It needs to be listed first to ensure
+# that it's adjacent to other rapido-rsc entries in the archive.
+tree /rapido-rsc/net ${VM_NET_CONF}
 
-# the /rapido-rsc/net destination path is special in that it tells
-# rapido-vm to also assign tap devices to the VM
-include="${VM_NET_CONF} /rapido-rsc/net"
+bin udevadm
+bin systemd-udevd
+bin systemd-networkd
+bin systemd-networkd-wait-online
+bin ip
+bin ping
 
 # rapido-init includes logic to bring up network.
 # we could split it out and do something like:
-#autorun="rapido-init-network"
+#autorun rapido-init-network
 
-kmods="virtio_net af_packet"
+kmod virtio_net
+kmod af_packet
