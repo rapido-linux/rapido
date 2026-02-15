@@ -27,8 +27,6 @@ const BIN_PATHS: [&str; 5] = ["/usr/bin", "/usr/sbin", "/usr/lib/systemd", "/bin
 const LIB_PATHS: [&str; 5] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib", "/usr/lib/x86_64-linux-gnu"];
 // FIXME: don't assume cwd parent location
 const MANIFEST_PATHS: [&str; 1] = ["manifest"];
-// keys which can be used in manifest files (matching cli parameters)
-const MANIFEST_KEYS: [&str; 5] = ["install", "try_install", "include", "kmods", "autorun"];
 // FIXME: we shouldn't assume rapido-init location
 const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
@@ -799,56 +797,6 @@ fn gather_archive_data<W: Seek + Write>(
     Ok(())
 }
 
-fn gather_manifest_entries(
-    conf: &HashMap<String, String>,
-    state: &mut CutState,
-) -> io::Result<()> {
-    while let Some(fest) = state.manifests.names.get(state.manifests.off) {
-        state.manifests.off += 1;
-
-        let got = path_stat(&fest)?;
-        let f = fs::OpenOptions::new().read(true).open(&got.path)?;
-        let mut fest_map = HashMap::new();
-        if let Err(e) = kv_conf::kv_conf_process_append_separate(
-            io::BufReader::new(f),
-            &conf,
-            &mut fest_map,
-        ) {
-            eprintln!("failed to process manifest {:?}: {:?}", got.path, e);
-            return Err(e);
-        }
-
-        // Only a few options are supported ATM. In future we may wish to
-        // support manifests with dependency manifests, but that might get
-        // a little ugly WRT ordering (e.g. autorun sequence in reverse).
-        for k in MANIFEST_KEYS {
-            match fest_map.remove(k) {
-                Some(v) => match args_process_one(k, Some(&v), state) {
-                    Err(e) => {
-                        eprintln!("manifest {:?} entry {}={}: {}", got.path, k, v, e);
-                        return Err(io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            e.to_string()
-                        ));
-                    }
-                    Ok(()) => {},
-                }
-                None => {},
-            }
-        }
-        if !fest_map.is_empty() {
-            eprintln!(
-                "Manifest {:?} unsupported: {:?}\nSupported keys: {:?}",
-                got.path,
-                fest_map,
-                MANIFEST_KEYS
-            );
-            return Err(io::Error::from(io::ErrorKind::InvalidInput));
-        }
-    }
-    Ok(())
-}
-
 fn populate_default_symlinks<W: Seek + Write>(
     paths_seen: &HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
@@ -936,105 +884,6 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
     // unwrap: callers ensure value is Some if arg requires one
     match name {
         "output" => state.cpio_output_arg = Some(PathBuf::from(value.unwrap())),
-        "install" => {
-            let mut files: Vec<GatherEnt> = value
-                .unwrap()
-                .split_whitespace()
-                .map(|f| GatherEnt::Name(f.to_string()))
-                .collect();
-            state.elfs.names.append(&mut files);
-        }
-        "try-install" | "try_install" => {
-            let mut files: Vec<GatherEnt> = value
-                .unwrap()
-                .split_whitespace()
-                .map(|f| GatherEnt::NameTry(f.to_string()))
-                .collect();
-            state.elfs.names.append(&mut files);
-        }
-        "kmods" => {
-            let kmod_parsed: argument::Result<Vec<String>> = value
-                .unwrap()
-                .split_whitespace()
-                .map(|f| {
-                    f.parse().map_err(|_| argument::Error::InvalidValue {
-                        value: f.to_owned(),
-                        expected: String::from("MODULES must be utf-8 strings"),
-                    })
-                })
-                .collect();
-            state.kmods.append(&mut kmod_parsed?);
-        }
-        "include" => {
-            let mut iter = value.unwrap().split_whitespace();
-            while let Some(src) = iter.next() {
-                match iter.next() {
-                    None => return Err(argument::Error::InvalidValue {
-                        value: src.to_string(),
-                        expected: String::from("SRC DEST pairs"),
-                    }),
-                    Some(d) => {
-                        let dst = PathBuf::from(d);
-                        if !dst.is_absolute() {
-                            return Err(argument::Error::InvalidValue {
-                                value: d.to_string(),
-                                expected: String::from(
-                                    "DEST paths must be absolute"
-                                ),
-                            });
-                        }
-                        let gi = GatherItem {
-                            src: PathBuf::from(src),
-                            dst,
-                            flags: 0,
-                        };
-                        // optimization: rsc paths first to speed up rapido-vm
-                        if gi.dst.starts_with("/rapido-rsc") {
-                            state.data.items.insert(0, gi);
-                        } else {
-                            state.data.items.push(gi);
-                        }
-                    },
-                };
-            }
-        }
-        "autorun" => {
-            for file in value.unwrap().split_whitespace() {
-                let src = PathBuf::from(file);
-                if !src.is_file() {
-                    return Err(argument::Error::InvalidValue {
-                        value: file.to_owned(),
-                        expected: String::from("file missing"),
-                    });
-                }
-                let dst = match src.file_name() {
-                    None => return Err(
-                        argument::Error::InvalidValue {
-                            value: file.to_owned(),
-                            expected: String::from("bad file"),
-                        }
-                    ),
-                    Some(n) if n.to_str().is_none() => return Err(
-                        argument::Error::InvalidValue {
-                            value: file.to_owned(),
-                            expected: String::from("bad file"),
-                        }
-                    ),
-                    Some(n) => PathBuf::from(&format!(
-                        "/rapido_autorun/{:03}-{}",
-                        state.autoruns,
-                        n.to_str().unwrap()
-                    )),
-                };
-                // TODO: it'd be better if we place these after the rapido-rsc
-                // entries, so that the boot time rsc check is faster.
-
-                state.data.items.push(
-                    GatherItem { src, dst, flags: 0 }
-                );
-                state.autoruns += 1;
-            }
-        }
         "manifest" => {
             // TODO: avoid to_string()
             match path_stat(&GatherEnt::Manifest(value.unwrap().to_string())) {
@@ -1066,31 +915,6 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
             "output",
             "INITRAMFS",
             "Write initramfs archive to this file path."
-        ),
-        Argument::value(
-            "install",
-            "FILES",
-            "Space separated list of files to archive. ELF dependencies are gathered too."
-        ),
-        Argument::value(
-            "try-install",
-            "FILES",
-            "List of files to archive, if present, along with ELF dependencies."
-        ),
-        Argument::value(
-            "kmods",
-            "MODULES",
-            "List of kernel modules to install with dependencies.",
-        ),
-        Argument::value(
-            "include",
-            "SRC_PATH DEST_PATH",
-            "List of path pairs to install recursively.",
-        ),
-        Argument::value(
-            "autorun",
-            "PROGRAM",
-            "List of files to execute on VM boot, in order.",
         ),
         Argument::value(
             "manifest",
