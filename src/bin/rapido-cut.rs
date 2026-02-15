@@ -847,10 +847,7 @@ fn populate_default_symlinks<W: Seek + Write>(
 struct CutState {
     cpio_output_arg: Option<PathBuf>,
     elfs: Gather,
-    kmods: Vec<String>,
     data: GatherData,
-    autoruns: u32,
-    manifests: Gather,
     // TODO: move elsewhere
     new_manifests: Vec<io::BufReader<fs::File>>,
 }
@@ -897,7 +894,14 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                 }
                 Ok(fs) => {
                     match fs::OpenOptions::new().read(true).open(&fs.path) {
-                        Err(e) => return Err(argument::Error::PrintHelp),
+                        Err(e) => {
+                            return Err(
+                                argument::Error::InvalidValue {
+                                    value: value.unwrap().to_string(),
+                                    expected: format!("failed to open: {:?}", e),
+                                }
+                            );
+                        }
                         Ok(f) => state.new_manifests.push(io::BufReader::new(f)),
                     };
                 }
@@ -951,9 +955,6 @@ fn main() -> io::Result<()> {
             ),
             off: 0,
         },
-        // kmods currently only tracks user-requested modules.
-        // Dependencies are omitted and missing mods aren't tracked.
-        kmods: vec!(),
         data: GatherData {
             items: vec!(
                 GatherItem {
@@ -962,11 +963,6 @@ fn main() -> io::Result<()> {
                     flags: GATHER_ITEM_IGNORE_PARENT,
                 },
             ),
-            off: 0,
-        },
-        autoruns: 0,
-        manifests: Gather {
-            names: vec!(),
             off: 0,
         },
         new_manifests: vec!(),
