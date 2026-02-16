@@ -69,12 +69,6 @@ struct GatherItem {
     flags: u32,
 }
 
-struct GatherData {
-    items: Vec<GatherItem>,
-    // offset that we are currently processing
-    off: usize,
-}
-
 #[derive(PartialEq, Debug)]
 enum GatherEnt {
     // Name String may be an absolute host-source-path or a relative path
@@ -683,15 +677,15 @@ fn gather_archive_kmods<W: Seek + Write>(
 }
 
 fn gather_archive_data<W: Seek + Write>(
-    data: &mut GatherData,
+    items: &mut Vec<GatherItem>,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
-
+    let mut off: usize = 0;
     // walk each src entry and append any newly found dirs for later traversal
-    while let Some(item) = data.items.get(data.off) {
-        data.off += 1;
+    while let Some(item) = items.get(off) {
+        off += 1;
 
         let src_md = match fs::symlink_metadata(&item.src) {
             Ok(md) => md,
@@ -740,7 +734,7 @@ fn gather_archive_data<W: Seek + Write>(
                 let cd = item.dst.clone();
                 for entry in entries {
                     // "." and ".." are filtered by fs::read_dir()
-                    data.items.push(GatherItem {
+                    items.push(GatherItem {
                         src: cs.join(&entry),
                         dst: cd.join(&entry),
                         // we don't need to check for parent dir existence, as
@@ -837,7 +831,6 @@ fn populate_default_symlinks<W: Seek + Write>(
 
 struct CutState {
     cpio_output_arg: Option<PathBuf>,
-    data: GatherData,
     // TODO: move elsewhere
     new_manifests: Vec<io::BufReader<fs::File>>,
 }
@@ -934,18 +927,9 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
 fn main() -> io::Result<()> {
     let mut state = CutState {
         cpio_output_arg: None,
-        data: GatherData {
-            items: vec!(
-                GatherItem {
-                    src: PathBuf::from(RAPIDO_BASH_RC_PATH),
-                    dst: PathBuf::from("/rapido.rc"),
-                    flags: GATHER_ITEM_IGNORE_PARENT,
-                },
-            ),
-            off: 0,
-        },
         new_manifests: vec!(),
     };
+    let mut data_items = vec!();
 
     let conf = match rapido::host_rapido_conf_open(rapido::RAPIDO_CONF_PATH) {
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
@@ -967,8 +951,8 @@ fn main() -> io::Result<()> {
                 return Err(e);
             }
 
-            // TODO: immediately archive rapido.conf while still open here?
-            state.data.items.push(
+            // FIXME: immediately archive rapido.conf while still open here
+            data_items.push(
                 GatherItem {
                     src: p,
                     dst: PathBuf::from("/rapido.conf"),
@@ -1024,16 +1008,29 @@ fn main() -> io::Result<()> {
         &mut state.new_manifests
     )?;
 
-    // TODO cleanup and remove abstractions:
+    match fs::OpenOptions::new().read(true).open(RAPIDO_BASH_RC_PATH) {
+        Err(e) => {
+            eprintln!("failed to open {}: {:?}", RAPIDO_BASH_RC_PATH, e);
+            return Err(e);
+        }
+        Ok(f) => cpio::archive_file(
+            &mut cpio_state,
+            &Path::new("/rapido.rc"),
+            &CPIO_AMD_DEFAULT,
+            &f,
+            &mut cpio_writer
+        )?,
+    };
     // FIXME: this is only a single file!
     gather_archive_data(
-        &mut state.data,
+        &mut data_items,
         &mut paths_seen,
         &mut cpio_state,
         &mut cpio_writer
     )?;
 
     let mut core_elfs = vec!(
+        // TODO only install if /rdinit isn't already provided
         GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
         // rapido-init core deps
         GatherEnt::NameStatic("mount"),
@@ -1267,14 +1264,8 @@ fn manifest_tree<W: Seek + Write>(
         return Err(io::Error::from(io::ErrorKind::InvalidInput));
     }
     let src = manifest_name_sub(conf, src)?;
-    let mut gather_data = GatherData {
-        items: vec!(
-            GatherItem { src: PathBuf::from(src), dst, flags: 0, },
-        ),
-        off: 0,
-    };
     gather_archive_data(
-        &mut gather_data,
+        &mut vec!(GatherItem { src: PathBuf::from(src), dst, flags: 0, }),
         paths_seen,
         cpio_state,
         &mut cpio_writer
