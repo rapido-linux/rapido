@@ -829,10 +829,9 @@ fn populate_default_symlinks<W: Seek + Write>(
     Ok(())
 }
 
-struct CutState {
+struct ArgsState {
     cpio_output_arg: Option<PathBuf>,
-    // TODO: move elsewhere
-    new_manifests: Vec<io::BufReader<fs::File>>,
+    manifests: Vec<io::BufReader<fs::File>>,
 }
 
 // loosely based on the Linux kernel's gen_init_cpio format
@@ -860,7 +859,7 @@ fn args_usage(params: &[Argument]) {
     print!("{}", MANIFEST_FORMAT);
 }
 
-fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> argument::Result<()> {
+fn args_process_one(name: &str, value: Option<&str>, state: &mut ArgsState) -> argument::Result<()> {
     // unwrap: callers ensure value is Some if arg requires one
     match name {
         "output" => state.cpio_output_arg = Some(PathBuf::from(value.unwrap())),
@@ -885,7 +884,7 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
                                 }
                             );
                         }
-                        Ok(f) => state.new_manifests.push(io::BufReader::new(f)),
+                        Ok(f) => state.manifests.push(io::BufReader::new(f)),
                     };
                 }
             }
@@ -896,7 +895,11 @@ fn args_process_one(name: &str, value: Option<&str>, state: &mut CutState) -> ar
     Ok(())
 }
 
-fn args_process(state: &mut CutState) -> argument::Result<()> {
+fn args_process() -> argument::Result<ArgsState> {
+    let mut state = ArgsState {
+        cpio_output_arg: None,
+        manifests: vec!(),
+    };
     let params = &[
         Argument::value(
             "output",
@@ -913,23 +916,29 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
 
     let args = env::args().skip(1); // skip binary name
     let match_res = argument::set_arguments(args, params, |name, value| {
-        args_process_one(name, value, state)
+        args_process_one(name, value, &mut state)
     });
 
     if let Err(e) = match_res {
         args_usage(params);
-        return Err(e);
+        Err(e)
+    } else {
+        Ok(state)
     }
-
-    Ok(())
 }
 
 fn main() -> io::Result<()> {
-    let mut state = CutState {
-        cpio_output_arg: None,
-        new_manifests: vec!(),
-    };
+    let mut cpio_state = cpio::ArchiveState::new(cpio::ArchiveProperties{
+        // Attempt 4K file data alignment within archive for Btrfs/XFS reflinks
+        data_align: 4096,
+        ..cpio::ArchiveProperties::default()
+    });
     let mut data_items = vec!();
+    let mut args_state = match args_process() {
+        Ok(state) => state,
+        Err(argument::Error::PrintHelp) => return Ok(()),
+        Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e.to_string())),
+    };
 
     let conf = match rapido::host_rapido_conf_open(rapido::RAPIDO_CONF_PATH) {
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
@@ -963,19 +972,7 @@ fn main() -> io::Result<()> {
         },
     };
 
-    match args_process(&mut state) {
-        Ok(p) => p,
-        Err(argument::Error::PrintHelp) => return Ok(()),
-        Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e.to_string())),
-    };
-
-    let cpio_props = cpio::ArchiveProperties{
-        // Attempt 4K file data alignment within archive for Btrfs/XFS reflinks
-        data_align: 4096,
-        ..cpio::ArchiveProperties::default()
-    };
-    let mut cpio_state = cpio::ArchiveState::new(cpio_props);
-    let cpio_out_path = match state.cpio_output_arg {
+    let cpio_out_path = match args_state.cpio_output_arg {
         Some(p) => p,
         // unwrap: DRACUT_OUT set in conf_defaults()
         None => PathBuf::from(&conf.get("DRACUT_OUT").unwrap()),
@@ -1005,7 +1002,7 @@ fn main() -> io::Result<()> {
         &mut paths_seen,
         &mut cpio_state,
         &mut cpio_writer,
-        &mut state.new_manifests
+        &mut args_state.manifests
     )?;
 
     match fs::OpenOptions::new().read(true).open(RAPIDO_BASH_RC_PATH) {
@@ -1519,7 +1516,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_include() {
+    fn test_manifest_include() {
         let conf = rapido::conf_defaults();
         let td = TempDir::new();
         let ifest = format!("{}/readthis.fest", td.dirname);
@@ -1557,7 +1554,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_symlink() {
+    fn test_manifest_symlink() {
         let conf = rapido::conf_defaults();
         let td = TempDir::new();
         let fest = format!("{}/test.fest", td.dirname);
@@ -1589,7 +1586,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_vars() {
+    fn test_manifest_vars() {
         let conf = HashMap::from([
             ("KEY1".to_string(), "VAL1".to_string()),
             ("KEY2".to_string(), "VAL2".to_string()),
@@ -1624,7 +1621,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_file() {
+    fn test_manifest_file() {
         let conf = rapido::conf_defaults();
         let td = TempDir::new();
         let data = b"this is some data";
@@ -1659,7 +1656,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_bin() {
+    fn test_manifest_bin() {
         let conf = rapido::conf_defaults();
         let td = TempDir::new();
         let fest = format!("{}/test.fest", td.dirname);
@@ -1737,7 +1734,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_kmods() {
+    fn test_manifest_kmods() {
         let td = TempDir::new();
 
         let conf = HashMap::from([
@@ -1799,7 +1796,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_autorun() {
+    fn test_manifest_autorun() {
         let conf = rapido::conf_defaults();
         let td = TempDir::new();
 
@@ -1866,7 +1863,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_manifest_tree() {
+    fn test_manifest_tree() {
         let conf = rapido::conf_defaults();
         let td = TempDir::new();
 
