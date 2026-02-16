@@ -964,7 +964,6 @@ fn main() -> io::Result<()> {
         data_align: 4096,
         ..cpio::ArchiveProperties::default()
     });
-    let mut data_items = vec!();
     let mut args_state = match args_process() {
         Ok(state) => state,
         Err(argument::Error::PrintHelp) => return Ok(()),
@@ -976,36 +975,43 @@ fn main() -> io::Result<()> {
     ) {
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             eprintln!("no rapido.conf, using defaults");
-            let conf = rapido::conf_defaults();
-            let w = cpio_out_open(&mut args_state.cpio_output_arg, &conf)?;
-            // TODO: archive empty rapido.conf?
-            (conf, w)
-        },
+            let c = rapido::conf_defaults();
+            let mut w = cpio_out_open(&mut args_state.cpio_output_arg, &c)?;
+            // archive empty rapido.conf
+            cpio::archive_path(
+                &mut cpio_state,
+                &Path::new("/rapido.conf"),
+                &CPIO_AMD_DEFAULT,
+                &mut w
+            )?;
+            (c, w)
+        }
         Err(e) => {
             eprintln!("failed to open rapido.conf: {:?}", e);
             return Err(e);
-        },
+        }
         Ok((f, p)) => {
-            let mut conf = rapido::conf_defaults();
-            if let Err(e) = kv_conf::kv_conf_process_append(
-                io::BufReader::new(f),
-                &mut conf
-            ) {
+            let mut c = rapido::conf_defaults();
+            let cf_md = f.metadata()?;
+            let cf_amd = cpio::ArchiveMd::from(&cpio_state, &cf_md)?;
+            let mut cf_rd = io::BufReader::new(f);
+            if let Err(e) = kv_conf::kv_conf_process_append(&mut cf_rd, &mut c) {
                 eprintln!("failed to process {:?}: {:?}", p, e);
                 return Err(e);
             }
 
-            let w = cpio_out_open(&mut args_state.cpio_output_arg, &conf)?;
-            // FIXME: immediately archive rapido.conf while still open here
-            data_items.push(
-                GatherItem {
-                    src: p,
-                    dst: PathBuf::from("/rapido.conf"),
-                    flags: GATHER_ITEM_IGNORE_PARENT,
-                }
-            );
-            (conf, w)
-        },
+            let mut w = cpio_out_open(&mut args_state.cpio_output_arg, &c)?;
+            // archive rapido.conf while still open here
+            cf_rd.seek(io::SeekFrom::Start(0))?;
+            cpio::archive_file(
+                &mut cpio_state,
+                &Path::new("/rapido.conf"),
+                &cf_amd,
+                &mut cf_rd,
+                &mut w
+            )?;
+            (c, w)
+        }
     };
 
     let mut libs_seen: HashSet<String> = HashSet::new();
@@ -1038,13 +1044,6 @@ fn main() -> io::Result<()> {
             )?;
         }
     };
-    // FIXME: this is only a single file!
-    gather_archive_data(
-        &mut data_items,
-        &mut paths_seen,
-        &mut cpio_state,
-        &mut cpio_writer
-    )?;
 
     let mut core_elfs = vec!(
         // TODO only install if /rdinit isn't already provided
