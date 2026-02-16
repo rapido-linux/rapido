@@ -332,16 +332,13 @@ fn gather_archive_dirs<W: Seek + Write>(
 }
 
 fn gather_archive_elfs<W: Seek + Write>(
-    elfs: &mut Vec<GatherEnt>,
+    mut elfs: Vec<GatherEnt>,
     libs_seen: &mut HashSet<String>,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
-    let mut off: usize = 0;
-    while let Some(ent) = elfs.get(off) {
-        off += 1;
-
+    while let Some(ent) = elfs.pop() {
         let got = match path_stat(&ent) {
             Err(e) => {
                 if let GatherEnt::NameTry(_) = ent {
@@ -1045,7 +1042,7 @@ fn main() -> io::Result<()> {
         }
     };
 
-    let mut core_elfs = vec!(
+    let core_elfs = vec!(
         // TODO only install if /rdinit isn't already provided
         GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
         // rapido-init core deps
@@ -1057,7 +1054,7 @@ fn main() -> io::Result<()> {
         GatherEnt::NameStatic("modprobe")
     );
     gather_archive_elfs(
-        &mut core_elfs,
+        core_elfs,
         &mut libs_seen,
         &mut paths_seen,
         &mut cpio_state,
@@ -1360,7 +1357,7 @@ fn manifest_parse_one<W: Seek + Write>(
         "bin" => {
             let src = manifest_name_sub(conf, iter.next())?;
             gather_archive_elfs(
-                &mut vec!(GatherEnt::Name(src)),
+                vec!(GatherEnt::Name(src)),
                 libs_seen,
                 paths_seen,
                 cpio_state,
@@ -1370,7 +1367,7 @@ fn manifest_parse_one<W: Seek + Write>(
         "try-bin" => {
             let src = manifest_name_sub(conf, iter.next())?;
             gather_archive_elfs(
-                &mut vec!(GatherEnt::NameTry(src)),
+                vec!(GatherEnt::NameTry(src)),
                 libs_seen,
                 paths_seen,
                 cpio_state,
