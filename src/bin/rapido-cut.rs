@@ -674,16 +674,13 @@ fn gather_archive_kmods<W: Seek + Write>(
 }
 
 fn gather_archive_data<W: Seek + Write>(
-    items: &mut Vec<GatherItem>,
+    mut items: Vec<GatherItem>,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
-    let mut off: usize = 0;
     // walk each src entry and append any newly found dirs for later traversal
-    while let Some(item) = items.get(off) {
-        off += 1;
-
+    while let Some(item) = items.pop() {
         let src_md = match fs::symlink_metadata(&item.src) {
             Ok(md) => md,
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
@@ -1283,7 +1280,7 @@ fn manifest_tree<W: Seek + Write>(
     }
     let src = manifest_name_sub(conf, src)?;
     gather_archive_data(
-        &mut vec!(GatherItem { src: PathBuf::from(src), dst, flags: 0, }),
+        vec!(GatherItem { src: PathBuf::from(src), dst, flags: 0, }),
         paths_seen,
         cpio_state,
         &mut cpio_writer
@@ -1912,29 +1909,29 @@ mod tests {
         cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
         let mut aw = cpio::archive_walk(cpio_out).unwrap();
 
-        let mut got_paths: HashSet<String> = HashSet::new();
+        let mut got_paths: Vec<String> = vec!();
 
         while let Some(ae) = aw.next() {
             assert!(ae.is_ok());
             let ae = ae.unwrap();
             let an = ae.name_str();
-            assert!(got_paths.insert(an.to_string()));
+            got_paths.push(an.to_string());
         }
         assert_eq!(
             got_paths,
-            HashSet::from([
-                String::from("this/is/a/tree"),
-                String::from("this/is/a"),
-                String::from("this/is/dir/child"),
-                String::from("this/is/dir"),
-                String::from("this/is/file"),
-                String::from("this/is"),
-                String::from("this/file"),
-                String::from("this"),
-                String::from("test.fest"),
-                // TODO: we shouldn't need this entry for initramfs
+            vec!(
+                // TODO: we don't need '/' archived in initramfs
                 String::from("/"),
-            ])
+                String::from("this"),
+                String::from("this/is"),
+                String::from("this/is/file"),
+                String::from("this/is/dir"),
+                String::from("this/is/dir/child"),
+                String::from("this/is/a"),
+                String::from("this/is/a/tree"),
+                String::from("this/file"),
+                String::from("test.fest"),
+            )
         )
     }
 }
