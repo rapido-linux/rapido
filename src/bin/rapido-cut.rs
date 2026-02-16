@@ -1026,13 +1026,17 @@ fn main() -> io::Result<()> {
             eprintln!("failed to open {}: {:?}", RAPIDO_BASH_RC_PATH, e);
             return Err(e);
         }
-        Ok(f) => cpio::archive_file(
-            &mut cpio_state,
-            &Path::new("/rapido.rc"),
-            &CPIO_AMD_DEFAULT,
-            &f,
-            &mut cpio_writer
-        )?,
+        Ok(f) => {
+            let f_md = f.metadata()?;
+            let f_amd = cpio::ArchiveMd::from(&cpio_state, &f_md)?;
+            cpio::archive_file(
+                &mut cpio_state,
+                &Path::new("/rapido.rc"),
+                &f_amd,
+                &f,
+                &mut cpio_writer
+            )?;
+        }
     };
     // FIXME: this is only a single file!
     gather_archive_data(
