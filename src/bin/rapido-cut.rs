@@ -927,6 +927,37 @@ fn args_process() -> argument::Result<ArgsState> {
     }
 }
 
+// open the arguments-specified output file, or fallback to conf(DRACUT_OUT).
+// If DRACUT_OUT is used then the path will be stashed in args_out. I.e.
+// args_out will always be Some(cpio_output_path) on success.
+fn cpio_out_open(
+    args_out: &mut Option<PathBuf>,
+    conf: &HashMap<String, String>
+) -> io::Result<io::BufWriter<fs::File>> {
+    let mut fops = fs::OpenOptions::new();
+    // for rapido we normally want to truncate any existing output file
+    fops.read(false).write(true).create(true).truncate(true);
+    let f = match args_out {
+        Some(p) => fops.open(p),
+        None => {
+            // unwrap: DRACUT_OUT set in conf_defaults()
+            let p = PathBuf::from(&conf.get("DRACUT_OUT").unwrap());
+            let f = fops.open(&p);
+            // stash path for info msg
+            *args_out = Some(p);
+            f
+        }
+    };
+
+    match f {
+        Err(e) => {
+            eprintln!("failed to open cpio output: {}", e);
+            Err(e)
+        }
+        Ok(f) => Ok(io::BufWriter::new(f)),
+    }
+}
+
 fn main() -> io::Result<()> {
     let mut cpio_state = cpio::ArchiveState::new(cpio::ArchiveProperties{
         // Attempt 4K file data alignment within archive for Btrfs/XFS reflinks
@@ -940,11 +971,15 @@ fn main() -> io::Result<()> {
         Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e.to_string())),
     };
 
-    let conf = match rapido::host_rapido_conf_open(rapido::RAPIDO_CONF_PATH) {
+    let (conf, mut cpio_writer) = match rapido::host_rapido_conf_open(
+        rapido::RAPIDO_CONF_PATH
+    ) {
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             eprintln!("no rapido.conf, using defaults");
-            rapido::conf_defaults()
+            let conf = rapido::conf_defaults();
+            let w = cpio_out_open(&mut args_state.cpio_output_arg, &conf)?;
             // TODO: archive empty rapido.conf?
+            (conf, w)
         },
         Err(e) => {
             eprintln!("failed to open rapido.conf: {:?}", e);
@@ -960,6 +995,7 @@ fn main() -> io::Result<()> {
                 return Err(e);
             }
 
+            let w = cpio_out_open(&mut args_state.cpio_output_arg, &conf)?;
             // FIXME: immediately archive rapido.conf while still open here
             data_items.push(
                 GatherItem {
@@ -968,28 +1004,8 @@ fn main() -> io::Result<()> {
                     flags: GATHER_ITEM_IGNORE_PARENT,
                 }
             );
-            conf
+            (conf, w)
         },
-    };
-
-    let cpio_out_path = match args_state.cpio_output_arg {
-        Some(p) => p,
-        // unwrap: DRACUT_OUT set in conf_defaults()
-        None => PathBuf::from(&conf.get("DRACUT_OUT").unwrap()),
-    };
-
-    let mut cpio_writer = match fs::OpenOptions::new()
-        .read(false)
-        .write(true)
-        .create(true)
-        // for rapido we normally want to truncate any existing output file
-        .truncate(true)
-        .open(&cpio_out_path) {
-        Err(e) => {
-            eprintln!("failed to open output at {:?}: {}", cpio_out_path, e);
-            return Err(e);
-        },
-        Ok(f) => io::BufWriter::new(f),
     };
 
     let mut libs_seen: HashSet<String> = HashSet::new();
@@ -1063,7 +1079,12 @@ fn main() -> io::Result<()> {
 
     let len = cpio::archive_trailer(&mut cpio_state, &mut cpio_writer)?;
     cpio_writer.flush()?;
-    println!("initramfs {} written ({} bytes)", cpio_out_path.display(), len);
+    println!(
+        "initramfs {} written ({} bytes)",
+        // unwrap: cpio_out_open() ensures Some(out_path)
+        args_state.cpio_output_arg.unwrap().display(),
+        len
+    );
 
     Ok(())
 }
