@@ -96,15 +96,6 @@ enum GatherEnt {
     Manifest(String),
 }
 
-// TODO: wrapper type not needed. loop always moves off to the last.
-struct Gather {
-    // Dependencies (elf, kmod, etc.) are added to the end of the gather
-    // list as they are found.
-    names: Vec<GatherEnt>,
-    // offset that we are currently processing
-    off: usize,
-}
-
 // We *should* be running as an unprivileged process, so don't filter or block
 // access to parent or special paths; this should all be handled by the OS.
 fn path_stat(ent: &GatherEnt) -> Result<Fsent, io::Error> {
@@ -347,15 +338,15 @@ fn gather_archive_dirs<W: Seek + Write>(
 }
 
 fn gather_archive_elfs<W: Seek + Write>(
-    elfs: &mut Gather,
+    elfs: &mut Vec<GatherEnt>,
     libs_seen: &mut HashSet<String>,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
-
-    while let Some(ent) = elfs.names.get(elfs.off) {
-        elfs.off += 1;
+    let mut off: usize = 0;
+    while let Some(ent) = elfs.get(off) {
+        off += 1;
 
         let got = match path_stat(&ent) {
             Err(e) => {
@@ -412,7 +403,7 @@ fn gather_archive_elfs<W: Seek + Write>(
                         true => GatherEnt::Lib(t),
                         false => GatherEnt::Name(t),
                     };
-                    elfs.names.push(tgtent);
+                    elfs.push(tgtent);
                 } else {
                     eprintln!("non utf-8 symlink target {:?}", &got.path);
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
@@ -424,7 +415,7 @@ fn gather_archive_elfs<W: Seek + Write>(
                 if amd.mode & 0o111 != 0 || lib_ent {
                     // ignore elf_deps errors: file is non-elf or malformed
                     if let Ok(mut d) = elf_deps(&f, &got.path, libs_seen) {
-                        elfs.names.append(&mut d);
+                        elfs.append(&mut d);
                     }
                     // don't check for '#!' interpreters like Dracut, it's messy
 
@@ -846,7 +837,6 @@ fn populate_default_symlinks<W: Seek + Write>(
 
 struct CutState {
     cpio_output_arg: Option<PathBuf>,
-    elfs: Gather,
     data: GatherData,
     // TODO: move elsewhere
     new_manifests: Vec<io::BufReader<fs::File>>,
@@ -944,17 +934,6 @@ fn args_process(state: &mut CutState) -> argument::Result<()> {
 fn main() -> io::Result<()> {
     let mut state = CutState {
         cpio_output_arg: None,
-        elfs: Gather {
-            names: vec!(
-                GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
-                // rapido-init core deps
-                GatherEnt::NameStatic("mount"),
-                GatherEnt::NameStatic("setsid"),
-                GatherEnt::NameStatic("bash"),
-                GatherEnt::NameStatic("stty"),
-            ),
-            off: 0,
-        },
         data: GatherData {
             items: vec!(
                 GatherItem {
@@ -1054,12 +1033,18 @@ fn main() -> io::Result<()> {
         &mut cpio_writer
     )?;
 
-    // TODO only install if we have non-builtin kmods!
-        state.elfs.names.push(GatherEnt::NameStatic("modprobe"));
-
-    // FIXME: this is only a single file!
+    let mut core_elfs = vec!(
+        GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
+        // rapido-init core deps
+        GatherEnt::NameStatic("mount"),
+        GatherEnt::NameStatic("setsid"),
+        GatherEnt::NameStatic("bash"),
+        GatherEnt::NameStatic("stty"),
+        // TODO only install if we have non-builtin kmods!
+        GatherEnt::NameStatic("modprobe")
+    );
     gather_archive_elfs(
-        &mut state.elfs,
+        &mut core_elfs,
         &mut libs_seen,
         &mut paths_seen,
         &mut cpio_state,
@@ -1362,12 +1347,8 @@ fn manifest_parse_one<W: Seek + Write>(
         // trigger BIN_PATHS search.
         "bin" => {
             let src = manifest_name_sub(conf, iter.next())?;
-            let mut elf_deps = Gather {
-                names: vec!(GatherEnt::Name(src)),
-                off: 0,
-            };
             gather_archive_elfs(
-                &mut elf_deps,
+                &mut vec!(GatherEnt::Name(src)),
                 libs_seen,
                 paths_seen,
                 cpio_state,
@@ -1376,12 +1357,8 @@ fn manifest_parse_one<W: Seek + Write>(
         }
         "try-bin" => {
             let src = manifest_name_sub(conf, iter.next())?;
-            let mut elf_deps = Gather {
-                names: vec!(GatherEnt::NameTry(src)),
-                off: 0,
-            };
             gather_archive_elfs(
-                &mut elf_deps,
+                &mut vec!(GatherEnt::NameTry(src)),
                 libs_seen,
                 paths_seen,
                 cpio_state,
