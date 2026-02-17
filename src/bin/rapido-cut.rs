@@ -78,7 +78,7 @@ enum GatherEnt {
     Name(String),
     NameStatic(&'static str),
     // Same as above, but destination is explicitly provided.
-    NameDst(&'static str, &'static str),
+    NameDst(&'static str, &'static Path),
     // Ignore if missing, instead of aborting.
     NameTry(String),
     // Same as Name, except search LIB_PATHS. Lib* types trigger ELF dependency
@@ -348,8 +348,12 @@ fn gather_archive_elfs<W: Seek + Write>(
             }
             Ok(g) => g,
         };
-        let (dst, lib_ent) = match ent {
-            GatherEnt::NameDst(_, d) => (&path::absolute(d)?, false),
+        let (dst, lib_ent): (&path::Path, bool) = match ent {
+            GatherEnt::NameDst(_, dst) => {
+                // we only have one internal NameDst user
+                assert!(dst.is_absolute());
+                (dst, false)
+            }
             GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) => (&got.path, true),
             _ => (&got.path, false),
         };
@@ -1041,7 +1045,7 @@ fn main() -> io::Result<()> {
 
     let core_elfs = vec!(
         // TODO only install if /rdinit isn't already provided
-        GatherEnt::NameDst(RAPIDO_INIT_PATH, "/rdinit"),
+        GatherEnt::NameDst(RAPIDO_INIT_PATH, Path::new("/rdinit")),
         // rapido-init core deps
         GatherEnt::NameStatic("mount"),
         GatherEnt::NameStatic("setsid"),
