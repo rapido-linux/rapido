@@ -1954,4 +1954,55 @@ mod tests {
             )
         )
     }
+
+    #[test]
+    fn test_paths_seen() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+        fs::create_dir_all(&format!("{}/this/is/dir", td.dirname)).unwrap();
+
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(&fest, format!("bin bash\ntree / {}", td.dirname)).unwrap();
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+        let mut libs_seen: HashSet<String> = HashSet::new();
+        let mut paths_seen: HashSet<PathBuf> = HashSet::new();
+        let mut gk: Option<GatherKmods> = None;
+        manifest_parse(
+            &conf,
+            &mut gk,
+            &mut libs_seen,
+            &mut paths_seen,
+            &mut cpio_state,
+            &mut cpio_out,
+            &mut vec!(rdr),
+        ).expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+
+        while let Some(ae) = aw.next() {
+            assert!(ae.is_ok());
+            let ae = ae.unwrap();
+            // we (currently) archive "/" when provided as tree dest, while
+            // cpio::archive_X strips a '/' prefix for non-root.
+            let p = match ae.name_str() {
+                "/" => PathBuf::from("/"),
+                nonroot => PathBuf::from(&format!("/{}", nonroot)),
+            };
+
+            assert_eq!(
+                paths_seen.contains(&p),
+                true,
+                "{:?} missing from paths_seen: {:?}", p, paths_seen);
+        }
+    }
 }
