@@ -348,15 +348,30 @@ fn gather_archive_elfs<W: Seek + Write>(
             }
             Ok(g) => g,
         };
-        let (dst, lib_ent): (&path::Path, bool) = match ent {
-            GatherEnt::NameDst(_, dst) => {
+
+        let dst: PathBuf;
+        let (src, lib_ent): (&Path, bool) = match ent {
+            GatherEnt::NameDst(_, d) => {
+                dst = PathBuf::from(d);
                 // we only have one internal NameDst user
                 assert!(dst.is_absolute());
-                (dst, false)
+                (&got.path, false)
             }
-            GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) => (&got.path, true),
-            _ => (&got.path, false),
+            GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) => {
+                dst = got.path;
+                (&dst, true)
+            }
+            _ => {
+                dst = got.path;
+                (&dst, false)
+            }
         };
+
+        // TODO: benchmark: insert(dst.clone()) vs contains(dst)+insert(dst)
+        if paths_seen.contains(&dst) {
+            dout!("ignoring seen elf: {:?}", &dst);
+            continue;
+        }
 
         let amd = cpio::ArchiveMd::from(&cpio_state, &got.md)?;
         gather_archive_dirs(
@@ -376,21 +391,21 @@ fn gather_archive_elfs<W: Seek + Write>(
                     eprintln!("symlink source and cpio dest paths must match");
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
                 }
-                let canon_tgt = match got.path.canonicalize() {
+                let canon_tgt = match src.canonicalize() {
                     Err(e) => {
-                        eprintln!("{:?} canonicalize failed: {:?}", got.path, e);
+                        eprintln!("{:?} canonicalize failed: {:?}", src, e);
                         continue;
                     },
                     Ok(t) => t,
                 };
                 cpio::archive_symlink(
                     cpio_state,
-                    &got.path,
+                    &dst,
                     &amd,
                     &canon_tgt,
                     &mut cpio_writer
                 )?;
-                dout!("archived symlink: {:?} ({:?})", got.path, canon_tgt);
+                dout!("archived symlink: {:?} ({:?})", &dst, canon_tgt);
 
                 // could add a Path ent type to avoid String conversion here...
                 if let Ok(t) = canon_tgt.into_os_string().into_string() {
@@ -400,30 +415,31 @@ fn gather_archive_elfs<W: Seek + Write>(
                     };
                     elfs.push(tgtent);
                 } else {
-                    eprintln!("non utf-8 symlink target {:?}", &got.path);
+                    eprintln!("non utf-8 symlink target {:?}", src);
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
                 }
             },
             cpio::S_IFREG if amd.len > 0 => {
-                let mut f = fs::OpenOptions::new().read(true).open(&got.path)?;
+                let mut f = fs::OpenOptions::new().read(true).open(src)?;
 
                 if amd.mode & 0o111 != 0 || lib_ent {
                     // ignore elf_deps errors: file is non-elf or malformed
-                    if let Ok(mut d) = elf_deps(&f, &got.path, libs_seen) {
+                    if let Ok(mut d) = elf_deps(&f, src, libs_seen) {
                         elfs.append(&mut d);
                     }
                     // don't check for '#!' interpreters like Dracut, it's messy
 
                     f.seek(io::SeekFrom::Start(0))?;
                 }
-                cpio::archive_file(cpio_state, dst, &amd, &f, &mut cpio_writer)?;
-                dout!("archived elf: {:?}→{:?}", got.path, dst);
+                cpio::archive_file(cpio_state, &dst, &amd, &f, &mut cpio_writer)?;
+                dout!("archived elf: {:?}→{:?}", src, &dst);
             },
             _ => {
                 cpio::archive_path(cpio_state, &dst, &amd, &mut cpio_writer)?;
-                dout!("archived other: {:?}→{:?}", got.path, dst);
+                dout!("archived other: {:?}→{:?}", src, &dst);
             },
         };
+        paths_seen.insert(dst);
     }
 
     Ok(())
