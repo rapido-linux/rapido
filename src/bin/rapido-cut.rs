@@ -744,13 +744,11 @@ fn gather_archive_data<W: Seek + Write>(
                 // sort for reproducibility
                 entries.sort();
 
-                let cs = item.src.clone();
-                let cd = item.dst.clone();
                 for entry in entries {
                     // "." and ".." are filtered by fs::read_dir()
                     items.push(GatherItem {
-                        src: cs.join(&entry),
-                        dst: cd.join(&entry),
+                        src: item.src.join(&entry),
+                        dst: item.dst.join(&entry),
                         // we don't need to check for parent dir existence, as
                         // we just archived it.
                         flags: GATHER_ITEM_IGNORE_PARENT,
