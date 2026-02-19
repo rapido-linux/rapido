@@ -410,7 +410,10 @@ fn main() -> io::Result<()> {
         },
     }
 
-    init_shutdown()
+    if let Err(e) = init_shutdown() {
+        eprintln!("Shutdown failed; missing CONFIG_MAGIC_SYSRQ? {:?}", e);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
