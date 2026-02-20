@@ -660,12 +660,15 @@ fn gather_archive_kmods<W: Seek + Write>(
     conf: &HashMap<String, String>,
     gk: &mut Option<GatherKmods>,
     kmods: &Vec<String>,
+    ignore_missing: bool,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
     if gk.is_none() {
-        *gk = Some(GatherKmods::init(conf, paths_seen, cpio_state, &mut cpio_writer)?);
+        *gk = Some(
+            GatherKmods::init(conf, paths_seen, cpio_state, &mut cpio_writer)?
+        );
     }
     let kmod_dst_root = &gk.as_ref().unwrap().kmod_dst_root;
     let kmod_ctx = &gk.as_ref().unwrap().kmod_ctx;
@@ -680,11 +683,15 @@ fn gather_archive_kmods<W: Seek + Write>(
             &mut cpio_writer
         ) {
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                if ignore_missing {
+                    dout!("ignoring missing kmod: {}", &name);
+                    continue;
+                }
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
                     format!("{} missing from: {:?}", name, kmod_ctx.module_root)
                 ));
-            },
+            }
             Err(e) => return Err(e),
             Ok(_) => {},
         };
@@ -852,6 +859,7 @@ const MANIFEST_FORMAT: &str = "\nManifest format:\n\
     bin ELF\n\
     try-bin ELF\n\
     kmod MODULE\n\
+    try-kmod MODULE\n\
     dir NAME\n\
     file NAME LOCATION\n\
     autorun LOCATION [LOCATION ...]\n\
@@ -1085,6 +1093,7 @@ fn main() -> io::Result<()> {
         &conf,
         &mut gk,
         &conf_kmods,
+        false,
         &mut paths_seen,
         &mut cpio_state,
         &mut cpio_writer
@@ -1397,6 +1406,24 @@ fn manifest_parse_one<W: Seek + Write>(
                         conf,
                         gk,
                         &mut vec!(kmod.to_string()),
+                        false,
+                        paths_seen,
+                        cpio_state,
+                        cpio_writer
+                    )
+                }
+            }
+        }
+        "try-kmod" => {
+            match iter.next() {
+                None => Err(io::Error::from(io::ErrorKind::InvalidData)),
+                Some(kmod) => {
+                    gather_archive_kmods(
+                        conf,
+                        gk,
+                        &mut vec!(kmod.to_string()),
+                        // ignore_missing:
+                        true,
                         paths_seen,
                         cpio_state,
                         cpio_writer
@@ -1782,7 +1809,7 @@ mod tests {
         test_kmods_populate(&kmods_root_dir);
 
         let fest = format!("{}/test.fest", td.dirname);
-        fs::write(&fest, "kmod mod_a\nkmod mod-builtin").unwrap();
+        fs::write(&fest, "kmod mod_a\nkmod mod-builtin\ntry-kmod mod-no").unwrap();
 
         let props = cpio::ArchiveProperties{
             data_align: 4096,
