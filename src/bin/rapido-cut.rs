@@ -1066,7 +1066,7 @@ fn main() -> io::Result<()> {
     };
 
     let core_elfs = vec!(
-        // TODO only install if /rdinit isn't already provided
+        // this will only install if /rdinit isn't already provided by manifest
         GatherEnt::NameDst(RAPIDO_INIT_PATH, Path::new("/rdinit")),
         // rapido-init core deps
         GatherEnt::NameStatic("mount"),
