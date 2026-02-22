@@ -1563,6 +1563,7 @@ mod tests {
     use super::*;
     use std::io::Read;
     use std::ffi::OsString;
+    use std::os::unix::fs::OpenOptionsExt;
 
     struct TempDir {
         pub dir: PathBuf,
@@ -1788,6 +1789,94 @@ mod tests {
             }
         }
         assert!(got_bash);
+    }
+
+    #[test]
+    fn test_manifest_elf_dir_traverse() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+
+        fs::create_dir_all(&format!("{}/this/is/a/tree", td.dirname)).unwrap();
+        fs::File::create(&format!("{}/this/file", td.dirname)).unwrap();
+        fs::create_dir_all(&format!("{}/this/is/dir/child", td.dirname)).unwrap();
+
+        // copy bash into our directory tree
+        let src = path_stat(&GatherEnt::NameStatic("bash")).unwrap();
+        let mut inf = fs::OpenOptions::new().read(true).open(&src.path)
+            .unwrap();
+        let mut outf_ops = fs::OpenOptions::new();
+        // need to set exec mode to trigger ELF parsing...
+        outf_ops.write(true).create(true).mode(0o777);
+        let mut outf = outf_ops.open(&format!("{}/this/is/bash", td.dirname))
+            .unwrap();
+        io::copy(&mut inf, &mut outf).expect("copy failed");
+
+        // get a list of bash ELF NEEDED dependencies
+        inf.seek(io::SeekFrom::Start(0)).unwrap();
+        let deps = elf_deps(&inf, &src.path, &mut HashSet::new()).unwrap();
+
+        let fest = format!("{}/test.fest", td.dirname);
+        // XXX needs a '/' separator, otherwise will trigger BIN_PATH lookup!
+        // TODO: fix this by using a bin-tree manifest directive instead?
+        fs::write(&fest, format!("bin ./{}", td.dirname)).unwrap();
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+        test_manifest_parse(&conf, &mut cpio_state, &mut cpio_out, rdr)
+            .expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+
+        // archive should carry
+        // + parent dirs
+        // + full directory tree
+        // + bash bin (copied into tree)
+        // + bash ELF dependencies
+        //
+        // check for files only
+        let mut got_files: Vec<OsString> = vec!();
+
+        while let Some(ae) = aw.next() {
+            assert!(ae.is_ok());
+            let ae = ae.unwrap();
+            let an = ae.name_str();
+            match ae.md.mode & cpio::S_IFMT {
+                cpio::S_IFREG | cpio::S_IFLNK => {
+                    let p = Path::new(an).file_name().unwrap().to_os_string();
+                    got_files.push(p);
+                },
+                _ => {},
+            };
+        }
+
+        [
+            OsString::from("file"),
+            OsString::from("bash"),
+            OsString::from("test.fest"),
+        ].iter().for_each(
+            |e| assert!(
+                got_files.contains(&e), "{:?} missing from {:?}", e, got_files
+            )
+        );
+        deps.iter().filter_map(|e| match e {
+            GatherEnt::LibRunPath(n, _) => Some(OsString::from(n)),
+            GatherEnt::Lib(n) => Some(OsString::from(n)),
+            _ => panic!("got non lib in ELF deps"),
+        })
+        .for_each(
+            |e| assert!(
+                got_files.contains(&e), "{:?} missing from {:?}", e, got_files
+            )
+        );
     }
 
     // based on test_kmod_context_full_load()
