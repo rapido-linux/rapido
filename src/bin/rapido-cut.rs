@@ -69,10 +69,11 @@ struct GatherItem {
     flags: u32,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Eq, PartialEq, Ord, PartialOrd, Debug)]
 enum GatherEnt {
     // Name String may be an absolute host-source-path or a relative path
-    // resolved via path_stat(). Destination matches source.
+    // resolved via path_stat(). BIN_PATHS are searched if @String lacks a
+    // '/' path separator. The cpio archived path matches the source path.
     // ELF dependencies are gathered for all Name* types if an execute mode
     // flag is present on the source file.
     Name(String),
@@ -81,6 +82,8 @@ enum GatherEnt {
     NameDst(&'static str, &'static Path),
     // Ignore if missing, instead of aborting.
     NameTry(String),
+    // Same as Name, but always treated as a local path (no BIN_PATHS lookup).
+    Path(PathBuf),
     // Same as Name, except search LIB_PATHS. Lib* types trigger ELF dependency
     // gathering regardles of mode flags.
     Lib(String),
@@ -94,6 +97,10 @@ enum GatherEnt {
 // access to parent or special paths; this should all be handled by the OS.
 fn path_stat(ent: &GatherEnt) -> Result<Fsent, io::Error> {
     let name: &str = match ent {
+        GatherEnt::Path(p) => match fs::symlink_metadata(&p) {
+            Ok(md) => return Ok(Fsent {path: p.clone(), md: md}),
+            Err(e) => return Err(e),
+        }
         GatherEnt::Name(n) => &n,
         GatherEnt::NameDst(n, _) => n,
         GatherEnt::NameStatic(n) => n,
@@ -418,7 +425,7 @@ fn gather_archive_elfs<W: Seek + Write>(
                     eprintln!("non utf-8 symlink target {:?}", src);
                     return Err(io::Error::from(io::ErrorKind::InvalidInput));
                 }
-            },
+            }
             cpio::S_IFREG if amd.len > 0 => {
                 let mut f = fs::OpenOptions::new().read(true).open(src)?;
 
@@ -433,11 +440,34 @@ fn gather_archive_elfs<W: Seek + Write>(
                 }
                 cpio::archive_file(cpio_state, &dst, &amd, &f, &mut cpio_writer)?;
                 dout!("archived elf: {:?}→{:?}", src, &dst);
-            },
+            }
+            cpio::S_IFDIR => {
+                cpio::archive_path(
+                    cpio_state,
+                    &dst,
+                    &amd,
+                    &mut cpio_writer
+                )?;
+                dout!("archived elf dir: {:?}→{:?}", src, &dst);
+
+                let mut entries = fs::read_dir(src)?
+                    .map(|res| res.map(
+                            |e| GatherEnt::Path(src.join(e.file_name()))
+                        ))
+                    .collect::<Result<Vec<_>, io::Error>>()?;
+                // sort for reproducibility
+                entries.sort();
+
+                for entry in entries {
+                    // "." and ".." are filtered by fs::read_dir()
+                    // TODO: GATHER_ITEM_IGNORE_PARENT? paths_seen works for now
+                    elfs.push(entry);
+                }
+            }
             _ => {
                 cpio::archive_path(cpio_state, &dst, &amd, &mut cpio_writer)?;
                 dout!("archived other: {:?}→{:?}", src, &dst);
-            },
+            }
         };
         paths_seen.insert(dst);
     }
@@ -867,9 +897,10 @@ const MANIFEST_FORMAT: &str = "\nManifest format:\n\
     slink NAME TARGET\n\
     include MANIFEST\n\
     \n\
-    ELF:      path to an ELF formatted file, achived with all needed dependencies\n\
+    ELF:      ELF executable, archived with all needed dependencies.\n\
+              Directory paths are traversed, with child paths handled as ELFs.\n\
     MODULE:   kernel module, archived with dependencies\n\
-    NAME:     name of the file or dir in the archive\n\
+    NAME:     name of the file or directory in the archive\n\
     LOCATION: local path to obtain data, user, group, mode etc. for this item\n\
     MANIFEST: file containing entries described above\n";
 
