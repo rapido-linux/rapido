@@ -82,7 +82,7 @@ jobs:
             ${HOME}/fstests_scratch_zstd.qcow2 8G
           printf "FSTESTS_SRC=${HOME}/xfstests\nFSTESTS_ZRAM_SIZE=0\n" \
             >> rapido.conf
-          printf "QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file=${HOME}/fstests_test_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file=${HOME}/fstests_scratch_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV" \
+          printf 'QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file='"${HOME}"'/fstests_test_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file='"${HOME}"'/fstests_scratch_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"' \
             >> rapido.conf
           #sudo bash -c "echo 200 > /proc/sys/vm/overcommit_ratio"
           ./rapido cut -x "./check -g quick; exit" fstests-btrfs
