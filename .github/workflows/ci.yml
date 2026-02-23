@@ -29,7 +29,6 @@ jobs:
         run: |
           cargo-1.85 build --offline --release
           cp -r net-conf.example/ net-conf
-          touch rapido.conf
           sudo EDITOR=cat ./rapido setup-network -o $USER -b rapido-br -a "192.168.155.10/24"
           sudo chmod 0644 /boot/vmlinuz-*
           sudo chmod 0666 /dev/kvm
