@@ -64,6 +64,8 @@ jobs:
             libtool-bin liburing-dev libuuid1 lvm2 make psmisc python3 quota sed \
             uuid-dev uuid-runtime xfsprogs linux-headers-$(uname -r) sqlite3 libgdbm-compat-dev \
             xfsdump xfslibs-dev btrfs-progs pkg-config
+          # set /dev/kvm mode again, as installation may have triggered udev rules
+          sudo chmod 0666 /dev/kvm
       - name: clone and build xfstests
         run: |
           git clone --depth 1 -b master \
@@ -85,9 +87,4 @@ jobs:
           printf 'QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file='"${HOME}"'/fstests_test_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file='"${HOME}"'/fstests_scratch_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"' \
             >> rapido.conf
           #sudo bash -c "echo 200 > /proc/sys/vm/overcommit_ratio"
-          # not sure why we need to set /dev/kvm mode *again*.
-          # If we don't we hit:
-          #   Could not access KVM kernel module: Permission denied
-          #   qemu-system-x86_64: failed to initialize kvm: Permission denied
-          sudo chmod 0666 /dev/kvm
           ./rapido cut -x "./check -g quick; exit" fstests-btrfs
