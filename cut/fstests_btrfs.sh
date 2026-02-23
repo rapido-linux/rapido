@@ -6,9 +6,7 @@ RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_fstests
-# rapido-cut doesn't support globbing, so do it here.
-req_inst=(${FSTESTS_SRC}/ltp/* ${FSTESTS_SRC}/src/* \
-	${FSTESTS_SRC}/src/log-writes/* ${FSTESTS_SRC}/src/aio-dio-regress/*)
+req_inst=()
 _rt_require_btrfs_progs req_inst
 _rt_require_pam_mods req_inst "pam_rootok.so" "pam_limits.so"
 _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
@@ -62,7 +60,8 @@ bin bc
 bin touch
 bin cut
 bin chmod
-bin true
+# xfstests hardcoded
+bin /bin/true
 bin false
 bin unlink
 bin mktemp
@@ -134,6 +133,9 @@ bin swapon
 bin swapoff
 bin xfs_freeze
 bin fsck
+# rapido-cut adds bash by default, but xfstests hardcodes /bin/bash so make
+# sure we have it there (as a symlink)
+bin /bin/bash
 
 try-bin dbench
 try-bin /usr/share/dbench/client.txt
@@ -145,21 +147,23 @@ try-bin /etc/ssl/openssl.cnf
 try-bin nano
 try-bin fio
 
-tree $FSTESTS_SRC $FSTESTS_SRC
+bin $FSTESTS_SRC
 
+kmod btrfs
 kmod zram
 kmod lzo
 kmod lzo_rle
-kmod dm_snapshot
-kmod dm_flakey
-kmod btrfs
 kmod raid6_pq
-kmod loop
-kmod scsi_debug
-kmod dm_log_writes
 kmod xxhash_generic
-kmod ext4
-kmod virtio_blk
+
+try-kmod loop
+try-kmod dm_snapshot
+try-kmod dm_flakey
+try-kmod scsi_debug
+try-kmod dm_log_writes
+try-kmod ext4
+# only needed if passing through devs instead of zram...
+try-kmod virtio_blk
 EOF
 printf 'bin %s\n' "${req_inst[@]}" >> "$fest"
 
