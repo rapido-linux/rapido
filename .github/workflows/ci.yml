@@ -7,15 +7,18 @@ on:
 # "cargo test uses lib and bins only, as doc test breaks for some reason
 # chmod vmlinuz-`uname -r` as it's 0600 by default
 # chmod /dev/kvm to allow non-root QEMU to use it
+# if building distro config install: libdw-dev libssl-dev
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: install rust
+      - name: install rust and kernel build tools
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y --no-install-recommends --no-install-suggests cargo-1.85 rustc qemu-system-x86
+          sudo apt-get install -y --no-install-recommends --no-install-suggests \
+            cargo-1.85 rustc qemu-system-x86 qemu-utils \
+            make flex bison libelf-dev
       - name: cargo test
         run: |
           cargo-1.85 test --offline --lib --bins
@@ -32,8 +35,54 @@ jobs:
           sudo EDITOR=cat ./rapido setup-network -o $USER -b rapido-br -a "192.168.155.10/24"
           sudo chmod 0644 /boot/vmlinuz-*
           sudo chmod 0666 /dev/kvm
-      - name: boot VM test
+      - name: boot guest kernel VM
         run: |
          ./rapido cut -B -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
          ./target/release/lscpio initrds/myinitrd
          ./rapido boot
+      - name: clone and build mainline kernel
+        run: |
+          git clone --depth 1 -b master https://github.com/torvalds/linux ${HOME}/linux
+          cp kernel/fstests_btrfs_zram.defconfig ${HOME}/linux/.config
+          pushd ${HOME}/linux
+          make olddefconfig
+          make -j2
+          make modules_install INSTALL_MOD_PATH=./mods
+          # this gives us modules.dep, etc. which rapido needs.
+          # XXX should come with modules_install but doesn't... perhaps due to no modules?
+          objtree=./ INSTALL_MOD_PATH=./mods ./scripts/depmod.sh "$(cat include/config/kernel.release)"
+          popd
+      - name: boot mainline kernel VM
+        run: |
+          printf "KERNEL_SRC=${HOME}/linux\nKERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods\n" > rapido.conf
+          ./rapido cut -x "cat /proc/filesystems; exit" simple-network
+      - name: install xfstests build dependencies
+        run: |
+          # TODO use headers from kernel source
+          sudo apt-get install acl attr automake bc dbench dump e2fsprogs fio gawk \
+            gcc git indent libacl1-dev libaio-dev libcap-dev libgdbm-dev libtool \
+            libtool-bin liburing-dev libuuid1 lvm2 make psmisc python3 quota sed \
+            uuid-dev uuid-runtime xfsprogs linux-headers-$(uname -r) sqlite3 libgdbm-compat-dev \
+            xfsdump xfslibs-dev btrfs-progs pkg-config
+      - name: clone and build xfstests
+        run: |
+          git clone --depth 1 -b master \
+            https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git \
+            ${HOME}/xfstests
+          pushd ${HOME}/xfstests
+          make
+          popd
+      - name: boot mainline kernel with xfstests
+        run: |
+          # rapido fstests-btrfs uses 5x guest-zram-dev by default (for raid),
+          # but we probably don't have enough memory. Use compressed qcow2:
+          qemu-img create -f qcow2 -o compression_type=zstd \
+            ${HOME}/fstests_test_zstd.qcow2 8G
+          qemu-img create -f qcow2 -o compression_type=zstd \
+            ${HOME}/fstests_scratch_zstd.qcow2 8G
+          printf "FSTESTS_SRC=${HOME}/xfstests\nFSTESTS_ZRAM_SIZE=0\n" \
+            >> rapido.conf
+          printf "QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file=${HOME}/fstests_test_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file=${HOME}/fstests_scratch_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV" \
+            >> rapido.conf
+          #sudo bash -c "echo 200 > /proc/sys/vm/overcommit_ratio"
+          ./rapido cut -x "./check -g quick; exit" fstests-btrfs
