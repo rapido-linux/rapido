@@ -644,7 +644,7 @@ mod tests {
         };
         let p = Path::new("hello");
 
-        let mut state = ArchiveState::new(&props);
+        let mut state = ArchiveState::new(props);
         archive_path(&mut state, &p, &amd, &mut c).unwrap();
         archive_trailer(&mut state, &mut c).unwrap();
         c.seek(io::SeekFrom::Start(0)).unwrap();
@@ -815,7 +815,7 @@ mod tests {
         let p1 = Path::new("hello");
         let p2 = Path::new("bye");
         let props = ArchiveProperties::default();
-        let mut state = ArchiveState::new(&props);
+        let mut state = ArchiveState::new(props);
         archive_path(&mut state, &p1, &amd1, &mut c).unwrap();
         archive_file(&mut state, &p2, &amd2, io::Cursor::new(data), &mut c).unwrap();
         // archive path should fail for len > 0 files
@@ -882,7 +882,7 @@ mod tests {
             data_align: 16,
             ..ArchiveProperties::default()
         };
-        let mut state = ArchiveState::new(&props);
+        let mut state = ArchiveState::new(props);
         archive_path(&mut state, &p1, &amd1, &mut c).unwrap();
         archive_file(&mut state, &p2, &amd2, io::Cursor::new(data), &mut c).unwrap();
         // archive path should fail for len > 0 files
