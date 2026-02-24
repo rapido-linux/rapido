@@ -10,14 +10,28 @@ on:
 # if building distro config install: libdw-dev libssl-dev
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: {{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: install rust and kernel build tools
         run: |
+          case "$(uname -m)" do
+          x86_64)
+            export QEMU_SYSTEM=qemu-system-x86
+            ;;
+          aarch64)
+            export QEMU_SYSTEM=qemu-system-aarch64
+            ;;
+          *)
+            exit 1
+            ;;
+          esac
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends --no-install-suggests \
-            cargo-1.85 rustc qemu-system-x86 qemu-utils \
+            cargo-1.85 rustc "$QEMU_SYSTEM" qemu-utils \
             make flex bison libelf-dev
       - name: cargo test
         run: |
@@ -93,9 +107,10 @@ jobs:
       - name: dump results
         run: |
           cat "${HOME}/9p/result.xml"
+          gzip "${HOME}/9p/result.xml"
       - name: Archive xunit test results
         uses: actions/upload-artifact@v4
         with:
           name: xunit-results
-          path: ~/9p/result.xml
+          path: ~/9p/result.xml.gz
           retention-days: 5
