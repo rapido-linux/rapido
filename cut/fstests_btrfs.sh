@@ -59,6 +59,7 @@ bin awk
 bin bc
 bin touch
 bin cut
+bin chown
 bin chmod
 # xfstests hardcoded
 bin /bin/true
