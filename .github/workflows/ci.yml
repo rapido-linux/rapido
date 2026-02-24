@@ -46,7 +46,7 @@ jobs:
           cp kernel/fstests_btrfs_zram.defconfig ${HOME}/linux/.config
           pushd ${HOME}/linux
           make olddefconfig
-          make -j2
+          make -j$(nproc)
           make modules_install INSTALL_MOD_PATH=./mods
           # this gives us modules.dep, etc. which rapido needs.
           # XXX should come with modules_install but doesn't... perhaps due to no modules?
@@ -72,7 +72,7 @@ jobs:
             https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git \
             ${HOME}/xfstests
           pushd ${HOME}/xfstests
-          make
+          make -j$(nproc)
           popd
       - name: boot mainline kernel with xfstests
         run: |
@@ -93,7 +93,7 @@ jobs:
       - name: dump results
         run: |
           cat "${HOME}/9p/result.xml"
-      - name: Archive code coverage results
+      - name: Archive xunit test results
         uses: actions/upload-artifact@v4
         with:
           name: xunit-results
