@@ -55,6 +55,11 @@ fn init_mount(do_debugfs: bool, do_virtfs: bool) -> io::Result<()> {
         }
     }
 
+    // bash "<(sub-process)" syntax uses /dev/fd paths; ensure a symlink exists
+    if let Err(e) = unix::fs::symlink("/proc/self/fd", "/dev/fd") {
+        eprintln!("failed to create /dev/fd symlink: {:?}", e);
+    }
+
     Ok(())
 }
 
@@ -322,6 +327,7 @@ fn init_shell(hostname: String) -> io::Result<()> {
         .envs([
             // RAPIDO_INIT indicates this (non-Dracut) init to vm_autorun, etc.
             ("RAPIDO_INIT", "0.1"),
+            // TODO: should match rapido-cut BIN_PATHS
             ("PATH", "/usr/sbin:/usr/bin:/sbin:/bin:."),
             ("TERM", "linux"),
             ("HOSTNAME", &hostname),
