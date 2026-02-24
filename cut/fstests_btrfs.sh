@@ -136,6 +136,8 @@ bin fsck
 # rapido-cut adds bash by default, but xfstests hardcodes /bin/bash so make
 # sure we have it there (as a symlink)
 bin /bin/bash
+# /bin/sh is also used
+slink /bin/sh /bin/bash
 
 try-bin dbench
 try-bin /usr/share/dbench/client.txt
