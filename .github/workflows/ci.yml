@@ -78,14 +78,24 @@ jobs:
         run: |
           # rapido fstests-btrfs uses 5x guest-zram-dev by default (for raid),
           # but we probably don't have enough memory. Use compressed qcow2:
-          qemu-img create -f qcow2 -o compression_type=zstd \
-            ${HOME}/fstests_test_zstd.qcow2 8G
-          qemu-img create -f qcow2 -o compression_type=zstd \
-            ${HOME}/fstests_scratch_zstd.qcow2 8G
-          printf "FSTESTS_SRC=${HOME}/xfstests\nFSTESTS_ZRAM_SIZE=0\n" \
+          test_img="${HOME}/fstests_test_zstd.qcow2"
+          scratch_img="${HOME}/fstests_scratch_zstd.qcow2"
+          qemu-img create -f qcow2 -o compression_type=zstd "$test_img" 8G
+          qemu-img create -f qcow2 -o compression_type=zstd "$scratch_img" 8G
+          mkdir "${HOME}/9p"
+          printf "FSTESTS_SRC=${HOME}/xfstests\nFSTESTS_ZRAM_SIZE=0\nVIRTFS_SHARE_PATH=${HOME}/9p\n" \
             >> rapido.conf
-          printf 'QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file='"${HOME}"'/fstests_test_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file='"${HOME}"'/fstests_scratch_zstd.qcow2,if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"' \
+          printf 'QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file='"$test_img"',if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file='"$scratch_img"',if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"' \
             >> rapido.conf
           ./rapido cut \
-            -x "./check -R xunit -g quick; cat results/result.xml; exit" \
+            -x "./check -R xunit -g quick; cp results/result.xml /host/; exit" \
             fstests-btrfs
+      - name: dump results
+        run: |
+          cat "${HOME}/9p/result.xml"
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: xunit-results
+          path: ~/9p/result.xml
+          retention-days: 5
