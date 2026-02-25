@@ -19,12 +19,17 @@ mod kmod;
 use kmod::kmod_context::{KmodContext, ModuleStatus, MODULE_DB_FILES};
 extern crate kv_conf;
 
-// We should probably allow default search paths to be set at build time.
+// FIXME: We should allow default search paths to be set at build time.
 // On usr-merge systems, /X may be a symlink to /usr/X .
 const BIN_PATHS: [&str; 5] = ["/usr/bin", "/usr/sbin", "/usr/lib/systemd", "/bin", "/sbin"];
 // Extra search paths may be added at runtime via ELF RUNPATH/LibRunPath.
-// x86_64-linux-gnu is for Debian/Ubuntu.
+// $ARCH-linux-gnu is for Debian/Ubuntu.
+#[cfg(target_arch = "x86_64")]
 const LIB_PATHS: [&str; 5] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib", "/usr/lib/x86_64-linux-gnu"];
+#[cfg(target_arch = "aarch64")]
+const LIB_PATHS: [&str; 5] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib", "/usr/lib/aarch64-linux-gnu"];
+#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+const LIB_PATHS: [&str; 4] = ["/usr/lib64", "/usr/lib", "/lib64", "/lib"];
 // FIXME: don't assume cwd parent location
 const MANIFEST_PATHS: [&str; 1] = ["manifest"];
 // FIXME: we shouldn't assume rapido-init location
