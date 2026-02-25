@@ -10,10 +10,8 @@ on:
 # if building distro config install: libdw-dev libssl-dev
 jobs:
   test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm]
-    runs-on: ${{ matrix.os }}
+    # aarch64 github runners don't provide kvm
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: install rust and kernel build tools
@@ -73,7 +71,8 @@ jobs:
       - name: install xfstests build dependencies
         run: |
           # TODO use headers from kernel source
-          sudo apt-get install acl attr automake bc dbench dump e2fsprogs fio gawk \
+          sudo apt-get install -y --no-install-recommends --no-install-suggests \
+            acl attr automake bc dbench dump e2fsprogs fio gawk \
             gcc git indent libacl1-dev libaio-dev libcap-dev libgdbm-dev libtool \
             libtool-bin liburing-dev libuuid1 lvm2 make psmisc python3 quota sed \
             uuid-dev uuid-runtime xfsprogs linux-headers-$(uname -r) sqlite3 libgdbm-compat-dev \
