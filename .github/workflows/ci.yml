@@ -107,10 +107,9 @@ jobs:
       - name: dump results
         run: |
           cat "${HOME}/9p/result.xml"
-          gzip "${HOME}/9p/result.xml"
       - name: Archive xunit test results
         uses: actions/upload-artifact@v4
         with:
           name: xunit-results
-          path: ~/9p/result.xml.gz
-          retention-days: 5
+          path: ~/9p/result.xml
+          retention-days: 2
