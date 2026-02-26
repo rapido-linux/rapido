@@ -11,17 +11,9 @@ _vm_ar_env_check || exit 1
 # echo shell commands as they are executed
 set -x
 
-# load the zram kernel module, which was installed via the --add-drivers "zram"
-# parameter in the cut script. Provision a single zram device
-modprobe zram num_devices="1" || _fatal "failed to load zram module"
-# failures resulting in a call to _fatal() will shutdown the VM
-
 # enable dynamic debug for any DYN_DEBUG_MODULES or DYN_DEBUG_FILES specified in
 # rapido.conf. All kernel modules *should* be loaded before calling
 _vm_ar_dyn_debug_enable
-
-# set the size of the zram device.
-echo "100M" > /sys/block/zram0/disksize || _fatal "failed to set zram disksize"
 
 set +x
 

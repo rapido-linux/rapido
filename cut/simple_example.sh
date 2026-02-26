@@ -40,13 +40,10 @@ bin ls
 bin cat
 bin sleep
 bin ps
+bin mkdir
 bin rmdir
 bin dd
-bin mkfs.xfs
-
-kmod zram
-kmod lzo
-kmod lzo_rle
+try-bin nano
 EOF
 
 PATH="target/release:${PATH}"
