@@ -88,10 +88,16 @@ _fstests_devs_pool_provision() {
 _fstests_users_groups_provision() {
 	local ug xid="2000"
 
-	echo "daemon:x:2:2:Daemon:/:/sbin/nologin" \
-	     >> /etc/passwd
-	echo "root:x:0:" >> /etc/group
-	echo "daemon:x:2:" >> /etc/group
+	cat > /etc/passwd <<EOF
+root:x:0:0:root:/root:/bin/bash
+daemon:x:2:2:daemon:/:/enoent
+nobody:x:65534:65534:nobody:/:/enoent
+EOF
+	cat > /etc/group << EOF
+root:x:0:
+daemon:x:2:
+nobody:x:65534:
+EOF
 	for ug in fsgqa fsgqa2 123456-fsgqa; do
 		echo "${ug}:x:${xid}:${xid}:${ug} user:/:/bin/bash" \
 			>> /etc/passwd
