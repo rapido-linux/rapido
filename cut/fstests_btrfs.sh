@@ -133,6 +133,9 @@ bin swapon
 bin swapoff
 bin xfs_freeze
 bin fsck
+bin ipcmk
+bin ipcs
+bin ipcrm
 
 # udev needed for dm devices
 bin dmsetup
