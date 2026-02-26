@@ -93,7 +93,6 @@ bin realpath
 bin blkdiscard
 bin fstrim
 bin logger
-bin dmsetup
 bin chattr
 bin lsattr
 bin cmp
@@ -134,6 +133,14 @@ bin swapon
 bin swapoff
 bin xfs_freeze
 bin fsck
+
+# udev needed for dm devices
+bin dmsetup
+bin udevadm
+bin systemd-udevd
+# TODO: we should only need dm rules - generate on boot?
+tree /usr/lib/udev/rules.d /usr/lib/udev/rules.d
+
 # rapido-cut adds bash by default, but xfstests hardcodes /bin/bash so make
 # sure we have it there (as a symlink)
 bin /bin/bash

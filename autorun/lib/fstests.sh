@@ -38,6 +38,9 @@ _fstests_devs_provision() {
 		echo "${i}=\"${_CFG[$i]}\"" >> $cfg_path
 	done
 	unset _CFG
+
+	# for xfstests _udev_wait(), etc.
+	/usr/lib/systemd/systemd-udevd --daemon
 }
 
 # same as _fstests_devs_provision() except a SCRATCH_DEV* wildcard is used to
@@ -77,6 +80,9 @@ _fstests_devs_pool_provision() {
 		echo "${i}=\"${_CFG[$i]}\"" >> $cfg_path
 	done
 	unset _CFG _POOL
+
+	# for xfstests _udev_wait(), etc.
+	/usr/lib/systemd/systemd-udevd --daemon
 }
 
 _fstests_users_groups_provision() {
