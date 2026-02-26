@@ -150,7 +150,7 @@ impl ArchiveMd {
                     // inode number and carry a corresponding data segment (if
                     // present). Use symlinks, or if you really need hardlinks
                     // then create them during init.
-                    eprintln!(
+                    dout!(
                         "(nlink={}) hardlink file data may be duplicated",
                         md.nlink()
                     );
