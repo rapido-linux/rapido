@@ -98,9 +98,8 @@ impl KmodContext {
         ctx.load_soft_dependencies()
             .map_err(|e| format!("Failed to load modules.softdep: {}", e))?;
 
-        if let Err(e) = ctx.load_weak_dependencies() {
-            eprintln!("Old kernel? modules.weakdep load failure ignored: {}", e);
-        }
+        // modules.weakdep may be missing
+        let _ = ctx.load_weak_dependencies();
 
         ctx.load_builtin_modules()
             .map_err(|e| format!("Failed to load modules.builtin: {}", e))?;
