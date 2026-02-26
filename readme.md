@@ -3,8 +3,8 @@ Rapido helps you quickly test Linux kernel changes.
 ## Quick Start
 
 ```shell
-# install dracut and qemu, then...
 git clone https://github.com/rapido-linux/rapido.git && cd rapido
+cargo build --offline --release
 ./rapido cut simple-example # boot a throwaway VM using the host kernel
 ```
 
@@ -16,11 +16,8 @@ A demonstration screencast can be found
 
 Clone this repository and install the following dependencies:
 
-* [Dracut](https://dracut.wiki.kernel.org):
-  * Generates a VM image, with kernel-modules and minimal user-space
 * [QEMU](http://qemu.org):
-  * Boots a given Dracut VM image and compiled Linux kernel on the local
-    system
+  * Boots a given VM image and compiled Linux kernel on the local system
 * [systemd-networkd](https://www.freedesktop.org/wiki/Software/systemd/):
   * Configures networking within Rapido VMs (optional)
 * [iproute2](https://wiki.linuxfoundation.org/networking/iproute2):
@@ -100,13 +97,13 @@ Please raise any questions or issues upstream via
 | • xfstests, blktests   |         |           |            <----+     |
 | • Ceph conf + binaries |         | +---------v----------+ |    |     |
 | • Samba                |         | |                    | |    |     |
-| • etc.                 +--->--+---->  Dracut initramfs  | |    |  r  |
-|                        |      |  | |  generator         | |    |  a  |
+| • etc.                 +--->--+----> "rapido-cut.rs"    | |    |  r  |
+|                        |      |  | | initramfs creator  | |    |  a  |
 +------------------------+      ^  | |                    | |    |  p  |
                                 |  | +---------+----------+ |    |  i  |
 +-------------------------+     |  |           |            |    |  d  |
 |                         |     |  +------------------------+    |  o  |
-| Rapido 'autorun' script +-->--+              |                 |  .  |
+| Rapido 'autorun' files  +-->--+              |                 |  .  |
 |                         |     |    +---------v----------+      |  c  |
 +-------------------------+     |    |                    |      |  o  |
                                 |    | Initramfs          |      |  n  |
@@ -118,7 +115,7 @@ Please raise any questions or issues upstream via
 | | Modules +---------------->--+              |                 |  e  |
 | +---------+            |         +------------------------+    |  t  |
 |                        |         |           |            |    |     |
-| +---------+            |         |  Rapido 'vm' script    |    |  c  |
+| +---------+            |         |    "rapido-vm.rs"      |    |  c  |
 | | bzImage +---------------->--+  |           |            |    |  o  |
 | +---------+            |      |  |  +--------v----+       |    |  n  |
 |                        |      |  |  |             |       <----+  f  |
@@ -133,8 +130,8 @@ Please raise any questions or issues upstream via
             |                 |   !| Virtual Machine           |    |
             |                 |   !| • Console redirected via  |    |
             |                 +---oO   stdin and stdout        <----+
-+-----------+------------+        !| • 'autorun' script        |    |
-|                        |        !|   executed on boot        |    |
++-----------+------------+        !| • "rapido-init.rs" and    |    |
+|                        |        !|   'autorun' executed      |    |
 | Rapido "setup-network" |        !|                           |    v
 |                        |        !+--------------------------++    |
 +-----------^------------+        +~~~~~~~~~~~~~~~~~~~~~~~~~~~+     |
