@@ -18,7 +18,7 @@ printf -v req_inst_bins 'bin %s\n' "${req_inst[@]}"
 
 PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
-file /rapido-rsc/mem/${mem_rsc} dracut.conf.d/.empty
+file /rapido-rsc/mem/${mem_rsc}
 
 autorun autorun/lib/fstests.sh autorun/fstests_btrfs.sh $*
 

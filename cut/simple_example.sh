@@ -50,8 +50,8 @@ EOF
 
 # rapido-vm boots images with 2 vCPUs and 512M RAM by default. These
 # defaults can be changed, e.g. 1 vCPU + 1G RAM could be specified via:
-#file /rapido-rsc/cpu/1 dracut.conf.d/.empty
-#file /rapido-rsc/mem/1G dracut.conf.d/.empty
+#file /rapido-rsc/cpu/1
+#file /rapido-rsc/mem/1G
 
 # rapido VMs are not networked by default. To add networking configuration
 # (see rapido.conf NET_CONF) and systemd-network dependencies to the image,

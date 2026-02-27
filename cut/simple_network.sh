@@ -4,8 +4,8 @@
 PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 # order is currently important: all rsc paths need to be adjacently archived
-file /rapido-rsc/cpu/1 dracut.conf.d/.empty
-file /rapido-rsc/mem/512M dracut.conf.d/.empty
+file /rapido-rsc/cpu/1
+file /rapido-rsc/mem/512M
 # net.fest provides rapido-rsc/net path first...
 include net.fest
 
