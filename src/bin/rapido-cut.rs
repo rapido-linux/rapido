@@ -37,8 +37,7 @@ const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
 const RAPIDO_BASH_RC_PATH: &str = "vm_autorun.env";
 
-// XXX use next: 1<<0;
-const GATHER_ITEM_IGNORE_PARENT: u32 =  1<<1;
+const GATHER_ITEM_IGNORE_PARENT: u32 =  1<<0;
 
 // Don't print debug messages on release builds...
 #[cfg(debug_assertions)]
