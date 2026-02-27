@@ -141,6 +141,7 @@ bin ipcrm
 bin blkid
 bin mkfifo
 bin mknod
+bin flock
 
 # udev needed for dm devices
 bin dmsetup
@@ -164,6 +165,9 @@ try-bin openssl
 try-bin /etc/ssl/openssl.cnf
 try-bin nano
 try-bin fio
+try-bin setcap
+try-bin getcap
+try-bin capsh
 
 filter ${FSTESTS_SRC}/.git
 bin $FSTESTS_SRC
