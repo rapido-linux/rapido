@@ -1291,22 +1291,32 @@ fn manifest_file<W: Seek + Write>(
         dout!("ignoring seen file: {:?}", &p);
         return Ok(());
     }
-    // FIXME: we could prob make the src file optional (for empty files)
-    let src = manifest_name_sub(conf, src)?;
+    if src.is_some() {
+        let src = manifest_name_sub(conf, src)?;
+        let f = fs::File::open(src)?;
+        let src_md = f.metadata()?;
+        // XXX unlike others, amd is based on the src file.
+        let amd = cpio::ArchiveMd::from(cpio_state, &src_md)?;
+        gather_archive_dirs(
+            p.parent(),
+            &amd,
+            paths_seen,
+            cpio_state,
+            &mut cpio_writer
+        )?;
+        cpio::archive_file(cpio_state, &p, &amd, &f, &mut cpio_writer)?;
+    } else {
+        let amd = CPIO_AMD_DEFAULT;
+        gather_archive_dirs(
+            p.parent(),
+            &amd,
+            paths_seen,
+            cpio_state,
+            &mut cpio_writer
+        )?;
+        cpio::archive_path(cpio_state, &p, &amd, &mut cpio_writer)?;
+    }
 
-    let f = fs::File::open(src)?;
-    let src_md = f.metadata()?;
-    // XXX unlike others, amd is based on the src file.
-    let src_amd = cpio::ArchiveMd::from(cpio_state, &src_md)?;
-
-    gather_archive_dirs(
-        p.parent(),
-        &src_amd,
-        paths_seen,
-        cpio_state,
-        &mut cpio_writer
-    )?;
-    cpio::archive_file(cpio_state, &p, &src_amd, &f, &mut cpio_writer)?;
     paths_seen.insert(p);
     Ok(())
 }
@@ -1753,7 +1763,7 @@ mod tests {
         let file = format!("{}/test.data", td.dirname);
         fs::write(&file, &data).unwrap();
         let fest = format!("{}/test.fest", td.dirname);
-        fs::write(&fest, format!("file /a/b {}", file)).unwrap();
+        fs::write(&fest, format!("file /a/b {}\nfile /c", file)).unwrap();
 
         let props = cpio::ArchiveProperties{
             data_align: 4096,
@@ -1778,6 +1788,11 @@ mod tests {
         assert_eq!(ae.name_str(), "a/b");
         assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFREG);
         assert_eq!(ae.md.len, data.len() as u32);
+
+        let ae = aw.next().unwrap().unwrap();
+        assert_eq!(ae.name_str(), "c");
+        assert_eq!(ae.md.mode & cpio::S_IFMT, cpio::S_IFREG);
+        assert_eq!(ae.md.len, 0);
     }
 
     #[test]
