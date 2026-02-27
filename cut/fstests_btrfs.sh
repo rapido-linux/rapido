@@ -14,13 +14,15 @@ _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 # need enough memory for five zram devices
 mem_rsc="$((3072 + (zram_bytes * 5 / 1048576)))M"
 
-fest=$(mktemp --tmpdir simple-example-fest.XXXXX)
-trap "rm \"$fest\"" 0
-cat > "$fest" <<EOF
+printf -v req_inst_bins 'bin %s\n' "${req_inst[@]}"
+
+PATH="target/release:${PATH}"
+rapido-cut --manifest /dev/stdin <<EOF
 file /rapido-rsc/mem/${mem_rsc} dracut.conf.d/.empty
 
 autorun autorun/lib/fstests.sh autorun/fstests_btrfs.sh $*
 
+$req_inst_bins
 bin ls
 bin cat
 bin mkdir
@@ -181,7 +183,3 @@ try-kmod ext4
 # only needed if passing through devs instead of zram...
 try-kmod virtio_blk
 EOF
-printf 'bin %s\n' "${req_inst[@]}" >> "$fest"
-
-PATH="target/release:${PATH}"
-rapido-cut --manifest "$fest"

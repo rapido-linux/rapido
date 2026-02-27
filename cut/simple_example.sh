@@ -31,9 +31,8 @@
 # "include MANIFEST" can be used to process an external manifest file. External
 # manifests are processed in-place with regard to ordering.
 
-fest=$(mktemp --tmpdir simple-example-fest.XXXXX)
-trap "rm \"$fest\"" 0
-cat > "$fest" <<EOF
+PATH="target/release:${PATH}"
+rapido-cut --manifest /dev/stdin <<EOF
 autorun autorun/simple_example.sh $*
 
 bin ls
@@ -45,9 +44,6 @@ bin rmdir
 bin dd
 try-bin nano
 EOF
-
-PATH="target/release:${PATH}"
-rapido-cut --manifest "$fest"
 
 # rapido-cut writes the initramfs image to the rapido.conf DRACUT_OUT specified
 # path, or an explicit path provided via --output parameter.
