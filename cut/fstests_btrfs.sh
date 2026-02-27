@@ -165,6 +165,7 @@ try-bin /etc/ssl/openssl.cnf
 try-bin nano
 try-bin fio
 
+filter ${FSTESTS_SRC}/.git
 bin $FSTESTS_SRC
 
 kmod btrfs
