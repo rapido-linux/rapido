@@ -1230,16 +1230,22 @@ fn manifest_dir<W: Seek + Write>(
     mut cpio_writer: W,
     name: Option<&str>
 ) -> io::Result<()> {
-    let dir = manifest_name_sub_abs_path(conf, name)?;
+    let p = manifest_name_sub_abs_path(conf, name)?;
+    if paths_seen.contains(&p) {
+        dout!("ignoring seen dir: {:?}", &p);
+        return Ok(());
+    }
     let amd = cpio::ArchiveMd { mode: cpio::S_IFDIR | 0o777, ..CPIO_AMD_DEFAULT };
     gather_archive_dirs(
-        dir.parent(),
+        p.parent(),
         &amd,
         paths_seen,
         cpio_state,
         &mut cpio_writer
     )?;
-    cpio::archive_path(cpio_state, &dir, &amd, &mut cpio_writer)
+    cpio::archive_path(cpio_state, &p, &amd, &mut cpio_writer)?;
+    paths_seen.insert(p);
+    Ok(())
 }
 
 fn manifest_slink<W: Seek + Write>(
@@ -1251,6 +1257,10 @@ fn manifest_slink<W: Seek + Write>(
     slink_tgt: Option<&str>
 ) -> io::Result<()> {
     let p = manifest_name_sub_abs_path(conf, name)?;
+    if paths_seen.contains(&p) {
+        dout!("ignoring seen symlink: {:?}", &p);
+        return Ok(());
+    }
     let tgt = manifest_name_sub_abs_path(conf, slink_tgt)?;
     let amd = cpio::ArchiveMd { mode: cpio::S_IFLNK | 0o777, ..CPIO_AMD_DEFAULT };
     gather_archive_dirs(
@@ -1260,7 +1270,9 @@ fn manifest_slink<W: Seek + Write>(
         cpio_state,
         &mut cpio_writer
     )?;
-    cpio::archive_symlink(cpio_state, &p, &amd, &tgt, &mut cpio_writer)
+    cpio::archive_symlink(cpio_state, &p, &amd, &tgt, &mut cpio_writer)?;
+    paths_seen.insert(p);
+    Ok(())
 }
 
 fn manifest_file<W: Seek + Write>(
@@ -1272,7 +1284,11 @@ fn manifest_file<W: Seek + Write>(
     src: Option<&str>
 ) -> io::Result<()> {
     let p = manifest_name_sub_abs_path(conf, name)?;
-    // TODO: we could prob make the src file optional (for empty files)
+    if paths_seen.contains(&p) {
+        dout!("ignoring seen file: {:?}", &p);
+        return Ok(());
+    }
+    // FIXME: we could prob make the src file optional (for empty files)
     let src = manifest_name_sub(conf, src)?;
 
     let f = fs::File::open(src)?;
@@ -1287,7 +1303,9 @@ fn manifest_file<W: Seek + Write>(
         cpio_state,
         &mut cpio_writer
     )?;
-    cpio::archive_file(cpio_state, &p, &src_amd, &f, &mut cpio_writer)
+    cpio::archive_file(cpio_state, &p, &src_amd, &f, &mut cpio_writer)?;
+    paths_seen.insert(p);
+    Ok(())
 }
 
 fn manifest_autorun<W: Seek + Write>(
