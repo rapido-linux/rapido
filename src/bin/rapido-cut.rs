@@ -899,6 +899,7 @@ const MANIFEST_FORMAT: &str = "\nManifest format:\n\
     autorun LOCATION [LOCATION ...]\n\
     tree NAME LOCATION\n\
     slink NAME TARGET\n\
+    filter FILTER\n\
     include MANIFEST\n\
     \n\
     ELF:      ELF executable, archived with all needed dependencies.\n\
@@ -906,6 +907,8 @@ const MANIFEST_FORMAT: &str = "\nManifest format:\n\
     MODULE:   kernel module, archived with dependencies\n\
     NAME:     name of the file or directory in the archive\n\
     LOCATION: local path to obtain data, user, group, mode etc. for this item\n\
+    FILTER:   Archive path to treat as already processed. Directory traversals\n\
+              will not go beneath this path.\n\
     MANIFEST: file containing entries described above\n";
 
 
@@ -1511,6 +1514,11 @@ fn manifest_parse_one<W: Seek + Write>(
                 iter.next(),
                 iter.next()
             )
+        }
+        "filter" => {
+            let p = manifest_name_sub_abs_path(conf, iter.next())?;
+            paths_seen.insert(p);
+            Ok(())
         }
 
         // from kernel gen_init_cpio. not needed (yet)...
@@ -2171,5 +2179,62 @@ mod tests {
                 true,
                 "{:?} missing from paths_seen: {:?}", p, paths_seen);
         }
+    }
+
+    #[test]
+    fn test_manifest_filter() {
+        let conf = rapido::conf_defaults();
+        let td = TempDir::new();
+        fs::create_dir_all(&format!("{}/this/is/a/filtered/tree", td.dirname)).unwrap();
+        fs::File::create(&format!("{}/this/filter", td.dirname)).unwrap();
+        fs::create_dir_all(&format!("{}/this/isnt/filtered", td.dirname)).unwrap();
+
+        let fest = format!("{}/test.fest", td.dirname);
+        fs::write(&fest,
+            format!("filter /this/is\nfilter /this/filter\ntree / {}", td.dirname)
+        ).unwrap();
+        let rdr = io::BufReader::new(
+            fs::OpenOptions::new().read(true).open(&fest).unwrap()
+        );
+
+        let props = cpio::ArchiveProperties{
+            data_align: 4096,
+            ..cpio::ArchiveProperties::default()
+        };
+        let mut cpio_state = cpio::ArchiveState::new(props);
+        let mut cpio_out = io::Cursor::new(Vec::new());
+        let mut libs_seen: HashSet<String> = HashSet::new();
+        let mut paths_seen: HashSet<PathBuf> = HashSet::new();
+        let mut gk: Option<GatherKmods> = None;
+        manifest_parse(
+            &conf,
+            &mut gk,
+            &mut libs_seen,
+            &mut paths_seen,
+            &mut cpio_state,
+            &mut cpio_out,
+            &mut vec!(rdr),
+        ).expect("bad manifest");
+
+        cpio_out.seek(io::SeekFrom::Start(0)).unwrap();
+        let mut aw = cpio::archive_walk(cpio_out).unwrap();
+
+        let mut got_paths: Vec<String> = vec!();
+        while let Some(ae) = aw.next() {
+            assert!(ae.is_ok());
+            let ae = ae.unwrap();
+            let an = ae.name_str();
+            got_paths.push(an.to_string());
+        }
+        assert_eq!(
+            got_paths,
+            vec!(
+                String::from("/"),
+                String::from("this"),
+                String::from("this/isnt"),
+                String::from("this/isnt/filtered"),
+                String::from("test.fest"),
+            )
+        )
     }
 }
