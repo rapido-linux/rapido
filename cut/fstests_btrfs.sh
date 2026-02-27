@@ -138,6 +138,7 @@ bin ipcs
 bin ipcrm
 bin blkid
 bin mkfifo
+bin mknod
 
 # udev needed for dm devices
 bin dmsetup
