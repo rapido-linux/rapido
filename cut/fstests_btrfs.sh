@@ -155,6 +155,8 @@ tree /usr/lib/udev/rules.d /usr/lib/udev/rules.d
 bin /bin/bash
 # /bin/sh is also used
 slink /bin/sh /bin/bash
+# btrfs/058 calls xfs_io interactively; silence "Cannot read termcap database"
+try-bin /usr/share/terminfo/l/linux
 
 try-bin dbench
 try-bin /usr/share/dbench/client.txt
