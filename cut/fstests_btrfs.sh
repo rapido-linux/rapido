@@ -142,6 +142,7 @@ bin blkid
 bin mkfifo
 bin mknod
 bin flock
+bin unshare
 
 # udev needed for dm devices
 bin dmsetup
@@ -182,10 +183,13 @@ kmod raid6_pq
 kmod xxhash_generic
 
 try-kmod loop
-try-kmod dm_snapshot
-try-kmod dm_flakey
+try-kmod dm-snapshot
+try-kmod dm-thin-pool
+try-kmod dm-zero
+try-kmod dm-delay
+try-kmod dm-flakey
+try-kmod dm-log-writes
 try-kmod scsi_debug
-try-kmod dm_log_writes
 try-kmod ext4
 # only needed if passing through devs instead of zram...
 try-kmod virtio_blk
