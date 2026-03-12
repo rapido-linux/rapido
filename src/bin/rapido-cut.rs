@@ -51,7 +51,7 @@ macro_rules! dout {
 
 pub const CPIO_AMD_DEFAULT: cpio::ArchiveMd = cpio::ArchiveMd {
     nlink: 1,
-    mode: cpio::S_IFREG | 0o777,
+    mode: cpio::S_IFREG | 0o755,
     uid: 0,
     gid: 0,
     mtime: 0,
@@ -1238,7 +1238,7 @@ fn manifest_dir<W: Seek + Write>(
         dout!("ignoring seen dir: {:?}", &p);
         return Ok(());
     }
-    let amd = cpio::ArchiveMd { mode: cpio::S_IFDIR | 0o777, ..CPIO_AMD_DEFAULT };
+    let amd = cpio::ArchiveMd { mode: cpio::S_IFDIR | 0o755, ..CPIO_AMD_DEFAULT };
     gather_archive_dirs(
         p.parent(),
         &amd,
