@@ -1264,7 +1264,7 @@ fn manifest_slink<W: Seek + Write>(
         dout!("ignoring seen symlink: {:?}", &p);
         return Ok(());
     }
-    let tgt = manifest_name_sub_abs_path(conf, slink_tgt)?;
+    let tgt = manifest_name_sub(conf, slink_tgt)?;
     let amd = cpio::ArchiveMd { mode: cpio::S_IFLNK | 0o777, ..CPIO_AMD_DEFAULT };
     gather_archive_dirs(
         p.parent(),
@@ -1273,7 +1273,7 @@ fn manifest_slink<W: Seek + Write>(
         cpio_state,
         &mut cpio_writer
     )?;
-    cpio::archive_symlink(cpio_state, &p, &amd, &tgt, &mut cpio_writer)?;
+    cpio::archive_symlink(cpio_state, &p, &amd, Path::new(&tgt), &mut cpio_writer)?;
     paths_seen.insert(p);
     Ok(())
 }
