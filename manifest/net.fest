@@ -10,6 +10,10 @@ bin systemd-networkd-wait-online
 bin ip
 bin ping
 
+# init_network() symlinks the vm#-specific config at /etc/systemd/network
+dir /etc/systemd
+dir /run/systemd
+
 # rapido-init includes logic to bring up network.
 # we could split it out and do something like:
 #autorun rapido-init-network

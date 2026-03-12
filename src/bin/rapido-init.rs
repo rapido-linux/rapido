@@ -222,10 +222,6 @@ fn init_hostname(kcli_args: &KcliArgs) -> io::Result<String> {
 }
 
 fn init_network(kcli_args: &KcliArgs) -> io::Result<()> {
-    // TODO: add dirs to cpio
-    fs::create_dir_all("/run/systemd/")?;
-    fs::create_dir_all("/etc/systemd/")?;
-
     let mut vm_netdir = String::from("/rapido-rsc/net/vm");
     vm_netdir.push_str(kcli_args.rapido_vm_num.unwrap());
     unix::fs::symlink(&vm_netdir, "/etc/systemd/network")?;
