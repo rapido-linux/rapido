@@ -17,8 +17,6 @@ fn init_mount(do_debugfs: bool, do_virtfs: bool) -> io::Result<()> {
         ["-t", "sysfs", "-o", "nosuid,noexec,nodev", "sysfs", "/sys"],
         ["-t", "devtmpfs", "-o", "nosuid,noexec", "devtmpfs", "/dev"],
         ["-t", "devpts", "-o", "nosuid,noexec", "devpts", "/dev/pts"], // needed?
-        ["-t", "tmpfs", "-o", "mode=1777,noexec,nosuid,nodev", "tmpfs", "/dev/shm"], // needed?
-        ["-t", "tmpfs", "-o", "mode=755,noexec,nosuid,nodev", "tmpfs", "/run"],
         ["-t", "tmpfs", "-o", "noexec,nosuid,nodev", "tmpfs", "/tmp"],
     ];
     // sys_fsmount in the future, when we can do it without dependency bloat?
