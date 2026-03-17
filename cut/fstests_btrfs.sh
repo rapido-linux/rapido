@@ -148,6 +148,8 @@ bin unshare
 bin dmsetup
 bin udevadm
 bin systemd-udevd
+# systemd-udevd needs /run to exist for /run/udev creation
+dir /run
 # TODO: we should only need dm rules - generate on boot?
 tree /usr/lib/udev/rules.d /usr/lib/udev/rules.d
 
