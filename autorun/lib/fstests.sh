@@ -40,7 +40,7 @@ _fstests_devs_provision() {
 	unset _CFG
 
 	# for xfstests _udev_wait(), etc.
-	/usr/lib/systemd/systemd-udevd --daemon
+	/usr/lib/systemd/systemd-udevd --daemon || _fatal
 }
 
 # same as _fstests_devs_provision() except a SCRATCH_DEV* wildcard is used to
@@ -82,7 +82,7 @@ _fstests_devs_pool_provision() {
 	unset _CFG _POOL
 
 	# for xfstests _udev_wait(), etc.
-	/usr/lib/systemd/systemd-udevd --daemon
+	/usr/lib/systemd/systemd-udevd --daemon || _fatal
 }
 
 _fstests_users_groups_provision() {
