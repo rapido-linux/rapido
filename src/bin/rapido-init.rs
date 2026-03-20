@@ -222,9 +222,13 @@ fn init_hostname(kcli_args: &KcliArgs) -> io::Result<String> {
 }
 
 fn init_network(kcli_args: &KcliArgs) -> io::Result<()> {
+    let net_cfg = "/etc/systemd/network";
     let mut vm_netdir = String::from("/rapido-rsc/net/vm");
     vm_netdir.push_str(kcli_args.rapido_vm_num.unwrap());
-    unix::fs::symlink(&vm_netdir, "/etc/systemd/network")?;
+    if let Err(e) = unix::fs::symlink(&vm_netdir, net_cfg) {
+        eprintln!("symlink {} -> {} failed: {}", net_cfg, vm_netdir, e);
+        return Err(e);
+    }
 
     match &kcli_args.rapido_tap_mac {
         Some(map) => for (tap, mac) in map {

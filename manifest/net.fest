@@ -12,6 +12,7 @@ bin ping
 
 # init_network() symlinks the vm#-specific config at /etc/systemd/network
 dir /etc/systemd
+# network state is written under /run/systemd/netif
 dir /run/systemd
 
 # rapido-init includes logic to bring up network.
