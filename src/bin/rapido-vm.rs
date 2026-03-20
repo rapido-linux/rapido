@@ -287,9 +287,13 @@ fn host_stty_size(kcmdline: &mut String, kparam: &'static str) -> Option<()> {
 
 fn vm_start(vm_num: u64, vm_pid_file: &str, initramfs_img: &str, conf: &HashMap<String,String>) -> io::Result<()> {
     let mut qemu_args = vm_qemu_args_get(conf)?;
+    // systemd (incl. networkd) needs a hex unique ID for dhcp leases, etc.
+    // Not sure about length, but vm.sh used md5sum of vm_num, so prepend
+    // some garbage :shrug:
     let mut kcmdline = format!(
-        "rdinit=/rdinit console={} rapido.vm_num={}",
+        "rdinit=/rdinit console={} rapido.vm_num={} systemd.machine_id=2af1d0cafe2afid0{:016x}",
         qemu_args.console,
+        vm_num,
         vm_num
     );
     host_stty_size(&mut kcmdline, " rapido.stty=");
@@ -331,12 +335,7 @@ fn vm_start(vm_num: u64, vm_pid_file: &str, initramfs_img: &str, conf: &HashMap<
     if !rscs.net {
         qemu_args.params.extend(["-net", "none"]);
     } else {
-        // networkd needs a hex unique ID (for dhcp leases, etc.)
-        // TODO not sure about length, but vm.sh uses md5sum of vm_num, so
-        // prepend some garbage :shrug:
-        kcmdline.push_str(
-            &format!(" net.ifnames=0 systemd.machine_id=2af1d0cafe2afid0{:016x}", vm_num)
-        );
+        kcmdline.push_str(" net.ifnames=0");
 
         let mut i = 0;
 	for entry in fs::read_dir(&net_conf_dir)? {
