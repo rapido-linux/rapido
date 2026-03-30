@@ -1,20 +1,57 @@
 #!/bin/bash
 # SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
-# Copyright (C) SUSE LLC 2019-2023, all rights reserved
+# Copyright (C) SUSE S.A. 2019-2026, all rights reserved.
+PATH="target/release:${PATH}"
+rapido-cut --manifest /dev/stdin <<EOF
+include net.fest
 
-RAPIDO_DIR="$(realpath -e ${0%/*})/.."
-. "${RAPIDO_DIR}/runtime.vars"
+autorun autorun/cifs.sh $*
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/cifs.sh" "$@"
-_rt_require_networking
-_rt_require_conf_setting CIFS_SERVER CIFS_SHARE
+bin mount.cifs
+bin cifs.upcall
+bin attr
+bin basename
+bin cat
+bin chacl
+bin chattr
+bin chmod
+bin cut
+bin dd
+bin df
+bin dirname
+bin dmesg
+bin du
+bin false
+bin find
+bin fstrim
+bin getfacl
+bin getfattr
+bin grep
+bin killall
+bin ls
+bin lsattr
+bin mkdir
+bin ps
+bin rm
+bin rmdir
+bin seq
+bin setfacl
+bin setfattr
+bin sleep
+bin stat
+bin sync
+bin tail
+bin touch
+bin true
+bin truncate
+bin umount
+bin unlink
+bin which
+try-bin nano
 
-"$DRACUT" --install "tail ps rmdir resize dd vim grep find df \
-		   mount.cifs cifs.upcall getfacl setfacl truncate du \
-		   which touch cut chmod true false unlink \
-		   getfattr setfattr chacl attr killall sync \
-		   dirname seq basename fstrim chattr lsattr stat" \
-	--add-drivers "cifs ccm gcm ctr cmac" \
-	--modules "base" \
-	"${DRACUT_RAPIDO_ARGS[@]}" \
-	"$DRACUT_OUT" || _fail "dracut failed"
+kmod ccm
+kmod cifs
+kmod cmac
+kmod ctr
+kmod gcm
+EOF

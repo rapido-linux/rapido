@@ -1,28 +1,21 @@
 #!/bin/bash
-#
-# Copyright (C) SUSE LINUX GmbH 2019, all rights reserved.
-#
-# This library is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation; either version 2.1 of the License, or
-# (at your option) version 3.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-# License for more details.
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE S.A. 2019-2026, all rights reserved.
 
 _vm_ar_env_check || exit 1
 
 _vm_ar_dyn_debug_enable
 
 creds_path="/tmp/cifs_creds"
-[ -n "$CIFS_DOMAIN" ] && echo "domain=${CIFS_DOMAIN}" >> $creds_path
-[ -n "$CIFS_USER" ] && echo "username=${CIFS_USER}" >> $creds_path
-[ -n "$CIFS_PW" ] && echo "password=${CIFS_PW}" >> $creds_path
+[[ -n "$CIFS_DOMAIN" ]] && echo "domain=${CIFS_DOMAIN}" >> $creds_path
+[[ -n "$CIFS_USER" ]] && echo "username=${CIFS_USER}" >> $creds_path
+[[ -n "$CIFS_PW" ]] && echo "password=${CIFS_PW}" >> $creds_path
 mount_args="-ocredentials=${creds_path}"
-[ -n "$CIFS_MOUNT_OPTS" ] && mount_args="${mount_args},${CIFS_MOUNT_OPTS}"
+[[ -n "$CIFS_MOUNT_OPTS" ]] && mount_args="${mount_args},${CIFS_MOUNT_OPTS}"
 set -x
+
+[[ -n "$CIFS_SERVER" ]] || _fatal "CIFS_SERVER configuration missing"
+[[ -n "$CIFS_SHARE" ]] || _fatal "CIFS_SHARE configuration missing"
 
 mkdir -p /mnt/cifs
 mount -t cifs //${CIFS_SERVER}/${CIFS_SHARE} /mnt/cifs \
