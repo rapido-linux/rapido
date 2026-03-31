@@ -18,5 +18,5 @@ set timeout 60
 spawn ./rapido cut simple-example
 expect {
 	timeout {exit 1}; eof {exit 2}
-	"Rapido scratch VM running. Have a lot of fun..."
+	"Rapido scratch VM running"
 }

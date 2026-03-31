@@ -33,7 +33,7 @@ spawn ./rapido cut -x "$ar_str_sh" -f $ar_file_sh simple-example
 lappend ::cleanup_pids [exp_pid -i $spawn_id]
 expect {
 	timeout {exit 1}; eof {exit 2}
-	"Rapido scratch VM running. Have a lot of fun..."
+	"Rapido scratch VM running"
 }
 expect {
 	timeout {exit 1}; eof {exit 2}
@@ -56,7 +56,7 @@ spawn ./rapido cut -f $ar_file_sh -x "$ar_str_sh" -f $ar_file_sh simple-example
 lappend ::cleanup_pids [exp_pid -i $spawn_id]
 expect {
 	timeout {exit 1}; eof {exit 2}
-	"Rapido scratch VM running. Have a lot of fun..."
+	"Rapido scratch VM running"
 }
 expect {
 	timeout {exit 1}; eof {exit 2}

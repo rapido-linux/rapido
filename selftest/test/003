@@ -28,7 +28,7 @@ set r1_sid $spawn_id
 expect {
 	-i $r1_sid
 	timeout {exit 1}; eof {exit 2}
-	"Rapido scratch VM running. Have a lot of fun..."
+	"Rapido scratch VM running"
 }
 
 # check that first vm has been assigned vm_num=1
@@ -46,7 +46,7 @@ set r2_sid $spawn_id
 expect {
 	-i $r2_sid
 	timeout {exit 1}; eof {exit 2}
-	"Rapido scratch VM running. Have a lot of fun..."
+	"Rapido scratch VM running"
 }
 
 # check that second vm has been assigned vm_num=2

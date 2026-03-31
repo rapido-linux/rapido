@@ -21,7 +21,7 @@ rm -rf \"$::env(RAPIDO_SELFTEST_TMPDIR)\"/005-*
 spawn bash -c $script
 expect {
 	timeout {exit 1}; eof {exit 2}
-	"Rapido scratch VM running. Have a lot of fun..."
+	"Rapido scratch VM running"
 }
 
 send "cat /proc/sys/kernel/hostname\r"
