@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
-# Copyright (C) SUSE LLC 2018-2021, all rights reserved.
+# Copyright (C) SUSE S.A. 2018-2026, all rights reserved.
 
 # autorun scripts are run once the Rapido scratch VM has booted. The scripts
 # are sourced by vm_autorun.env and have access to rapido.conf variables.
@@ -17,8 +17,8 @@ _vm_ar_dyn_debug_enable
 
 set +x
 
-echo "Rapido scratch VM running. Have a lot of fun..."
-# end of *test* script.
+mapfile -n 3 -d ' ' kver < /proc/version
+echo "Rapido scratch VM running ${kver[2]/ }. Have a lot of fun..."
 
-# returning here will drop into the Dracut shell prompt.
-# "shutdown" can be called to shutdown the VM (see vm_autorun.env alias).
+# returning will run any subsequent autorun script, or drop into an interactive
+# shell. "shutdown" or "exit" can be invoked to shutdown the VM.
