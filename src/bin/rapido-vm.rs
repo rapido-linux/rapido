@@ -287,11 +287,9 @@ fn host_stty_size(kcmdline: &mut String, kparam: &'static str) -> Option<()> {
 
 fn vm_start(vm_num: u64, vm_pid_file: &str, initramfs_img: &str, conf: &HashMap<String,String>) -> io::Result<()> {
     let mut qemu_args = vm_qemu_args_get(conf)?;
-    // systemd (incl. networkd) needs a hex unique ID for dhcp leases, etc.
-    // Not sure about length, but vm.sh used md5sum of vm_num, so prepend
-    // some garbage :shrug:
+    // systemd (incl. networkd) needs a 32-char hex ID for dhcp leases, etc.
     let mut kcmdline = format!(
-        "rdinit=/rdinit console={} rapido.vm_num={} systemd.machine_id=2af1d0cafe2afid0{:016x}",
+        "rdinit=/rdinit console={} rapido.vm_num={} systemd.machine_id={:032x}",
         qemu_args.console,
         vm_num,
         vm_num
