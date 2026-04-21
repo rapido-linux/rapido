@@ -29,7 +29,7 @@ jobs:
           esac
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends --no-install-suggests \
-            cargo-1.85 rustc "$QEMU_SYSTEM" qemu-utils \
+            cargo-1.85 rustc "$QEMU_SYSTEM" qemu-utils expect \
             make flex bison libelf-dev
       - name: cargo test
         run: |
@@ -52,6 +52,9 @@ jobs:
          ./rapido cut -B -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
          ./target/release/lscpio initrds/myinitrd
          ./rapido boot
+      - name: run rapido selftests
+        run: |
+          ./selftest/selftest.sh
       - name: clone and build mainline kernel
         run: |
           git clone --depth 1 -b master https://github.com/torvalds/linux ${HOME}/linux
