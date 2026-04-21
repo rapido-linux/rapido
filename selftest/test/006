@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE S.A. 2026, all rights reserved.
+
+# cut+boot the simple-systemd runner and check for greeting and flag file
+
+set timeout 60
+spawn ./rapido cut simple-systemd
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"Rapido scratch VM running"
+}
+send "ls *.flag\r"
+expect {
+	timeout {exit 1}; eof {exit 2}
+	"simple-example-service.flag"
+}
+send "shutdown\r"
+expect eof {exit 0}
+exit 5

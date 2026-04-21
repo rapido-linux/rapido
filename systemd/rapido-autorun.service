@@ -1,0 +1,19 @@
+[Unit]
+Description=Rapido Autorun and Bash Shell
+DefaultDependencies=no
+OnFailure=poweroff.target
+
+[Service]
+WorkingDirectory=/
+Type=idle
+Environment=RAPIDO_INIT=0.1-systemd
+# use systemd specific shutdown / reboot aliases
+Environment=DRACUT_SYSTEMD=1
+Environment=PATH=/usr/bin:/usr/sbin:/bin:/sbin
+Environment=PS1="%H:$PWD# "
+ExecStart=bash --rcfile /rapido.rc -i
+# Signal that systemd should shutdown on bash exit
+ExecStop=kill -SIGRTMIN+4 1
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty

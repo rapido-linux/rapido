@@ -1,0 +1,10 @@
+[Unit]
+Description=Rapido Systemd Flag File
+DefaultDependencies=no
+Before=rapido-autorun.service
+
+[Service]
+Type=oneshot
+ExecStart=touch /simple-example-service.flag
+StandardOutput=tty
+StandardError=tty

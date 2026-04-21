@@ -6,10 +6,13 @@ use std::fs;
 use std::collections::HashMap;
 use std::os::unix;
 use std::process::Command;
+use std::os::unix::process::CommandExt;
 use std::str;
 
 // we expect it in root on VMs
 const RAPIDO_CONF: &str = "/rapido.conf";
+// TODO: set systemd path at build-time?
+const SYSTEMD_BIN_PATH: &str = "/usr/lib/systemd/systemd";
 
 fn init_mount(do_debugfs: bool, do_virtfs: bool) -> io::Result<()> {
     let mounts = [
@@ -221,7 +224,7 @@ fn init_hostname(kcli_args: &KcliArgs) -> io::Result<String> {
     Ok(hostname)
 }
 
-fn init_network(kcli_args: &KcliArgs) -> io::Result<()> {
+fn init_net_conf(kcli_args: &KcliArgs) -> io::Result<()> {
     let net_cfg = "/etc/systemd/network";
     let mut vm_netdir = String::from("/rapido-rsc/net/vm");
     vm_netdir.push_str(kcli_args.rapido_vm_num.unwrap());
@@ -253,7 +256,22 @@ fn init_network(kcli_args: &KcliArgs) -> io::Result<()> {
         .open("/etc/systemd/network/lo.network")?;
     write!(f, "[Match]\nName=lo")?;
 
-    match kcli_args.systemd_machine_id {
+    let mut f = fs::OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open("/etc/passwd")?;
+    write!(
+        f,
+        "systemd-network:x:482:482:systemd Network Management:/:/sbin/nologin\n"
+    )?;
+
+    Ok(())
+}
+
+fn init_net_service(systemd_machine_id: Option<&str>) -> io::Result<()> {
+    // we run networkd without systemd, so need to manually write a machine-id
+    match systemd_machine_id {
         None => {
             eprintln!("systemd.machine_id missing from kcli");
             Err(io::Error::from(io::ErrorKind::InvalidInput))
@@ -285,16 +303,6 @@ fn init_network(kcli_args: &KcliArgs) -> io::Result<()> {
         return Err(io::Error::from(io::ErrorKind::BrokenPipe));
     }
 
-    let mut f = fs::OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open("/etc/passwd")?;
-    write!(
-        f,
-        "systemd-network:x:482:482:systemd Network Management:/:/sbin/nologin\n"
-    )?;
-
     let status = Command::new("setsid")
         .args(&["--fork", "/usr/lib/systemd/systemd-networkd"])
         .status()
@@ -315,6 +323,16 @@ fn init_network(kcli_args: &KcliArgs) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+fn init_exec_systemd(hostname: String) {
+    let e = Command::new(SYSTEMD_BIN_PATH)
+        .envs([
+            ("RAPIDO_INIT", "0.1"),
+            ("HOSTNAME", &hostname),
+        ])
+        .exec();
+    panic!("systemd failed to start: {}", e);
 }
 
 fn init_shell(hostname: String) -> io::Result<()> {
@@ -376,6 +394,10 @@ fn init_main() -> io::Result<()> {
     };
     let has_dyn_debug = conf.contains_key("DYN_DEBUG_MODULES") || conf.contains_key("DYN_DEBUG_FILES");
     let has_virtfs = conf.contains_key("VIRTFS_SHARE_PATH");
+    let has_systemd = match fs::symlink_metadata(SYSTEMD_BIN_PATH) {
+        Err(_) => false,
+        Ok(md) => !md.is_dir(),
+    };
 
     let mut kmods = rapido::conf_kmod_deps(&conf);
     if has_net {
@@ -396,10 +418,19 @@ fn init_main() -> io::Result<()> {
     let hostname = init_hostname(&kcli_args)?;
 
     if has_net {
-        init_network(&kcli_args)?;
+        init_net_conf(&kcli_args)?;
     }
 
-    init_shell(hostname)?;
+    if has_systemd {
+        // systemd rapido-init.target starts autorun scripts and bash prompt.
+        // Net services may be started via systemd wants, set in initramfs.
+        init_exec_systemd(hostname);
+    } else {
+        if has_net {
+            init_net_service(kcli_args.systemd_machine_id)?;
+        }
+        init_shell(hostname)?;
+    }
 
     Ok(())
 }

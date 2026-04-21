@@ -1,0 +1,31 @@
+bin systemctl
+bin systemd
+bin systemd-cgroups-agent
+bin systemd-fsck
+bin systemd-journald
+bin systemd-reply-password
+bin systemd-shutdown
+# for shutdown/reboot via signal
+bin kill
+# for shutdown umount target
+bin umount
+
+dir /etc/systemd
+dir /run/systemd
+# avoid var-run-bad taint
+slink /var/run /run
+
+# systemd target and service files from host system
+file /usr/lib/systemd/system/final.target /usr/lib/systemd/system/final.target
+file /usr/lib/systemd/system/poweroff.target /usr/lib/systemd/system/poweroff.target
+file /usr/lib/systemd/system/reboot.target /usr/lib/systemd/system/reboot.target
+file /usr/lib/systemd/system/shutdown.target /usr/lib/systemd/system/shutdown.target
+file /usr/lib/systemd/system/systemd-poweroff.service /usr/lib/systemd/system/systemd-poweroff.service
+file /usr/lib/systemd/system/systemd-reboot.service /usr/lib/systemd/system/systemd-reboot.service
+file /usr/lib/systemd/system/umount.target /usr/lib/systemd/system/umount.target
+
+# rapido systemd units
+file /usr/lib/systemd/system/rapido-autorun.service systemd/rapido-autorun.service
+file /usr/lib/systemd/system/rapido-init.target systemd/rapido-init.target
+slink /usr/lib/systemd/system/default.target rapido-init.target
+slink /usr/lib/systemd/system/rapido-init.target.wants/rapido-autorun.service ../rapido-autorun.service
