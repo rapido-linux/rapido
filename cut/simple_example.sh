@@ -35,13 +35,16 @@ PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 autorun autorun/simple_example.sh $*
 
-bin ls
 bin cat
-bin sleep
-bin ps
-bin mkdir
-bin rmdir
+bin chmod
 bin dd
+bin ls
+bin mkdir
+bin ps
+bin rm
+bin rmdir
+bin sleep
+bin touch
 try-bin nano
 EOF
 
