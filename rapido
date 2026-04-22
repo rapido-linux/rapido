@@ -97,8 +97,14 @@ rapido_cut()
 
 	"$cut_script" "${post_autorun_files[@]}"
 	local cut_status=$?
-	[ $cut_status -ne 0 ] && exit $cut_status
-	[ -n "$boot_img" ] || exit 0
+	if [[ $cut_status -ne 0 ]]; then
+		# 127 -> ENOENT, which is likely due to no local build.
+		# we should drop/hide this warning for distro packages.
+		[[ $cut_status -eq 127 ]] \
+			&& echo "Build needed? cargo build --offline --release"
+		exit $cut_status
+	fi
+	[[ -n $boot_img ]] || exit 0
 	rapido_boot
 }
 
