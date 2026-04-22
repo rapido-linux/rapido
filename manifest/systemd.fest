@@ -2,6 +2,8 @@ bin systemctl
 bin systemd
 bin systemd-journald
 bin systemd-shutdown
+# systemd-executor is required since at least v258
+try-bin systemd-executor
 # for shutdown/reboot via signal
 bin kill
 # for shutdown umount target
