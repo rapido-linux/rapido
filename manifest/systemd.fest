@@ -1,9 +1,6 @@
 bin systemctl
 bin systemd
-bin systemd-cgroups-agent
-bin systemd-fsck
 bin systemd-journald
-bin systemd-reply-password
 bin systemd-shutdown
 # for shutdown/reboot via signal
 bin kill
