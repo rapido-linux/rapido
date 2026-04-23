@@ -8,9 +8,6 @@ cargo build --offline --release
 ./rapido cut simple-example # boot a throwaway VM using the host kernel
 ```
 
-A demonstration screencast can be found
-[here](https://github.com/rapido-linux/rapido/raw/master/docs/demo.svg).
-
 
 ## Setup
 
@@ -23,9 +20,9 @@ Clone this repository and install the following dependencies:
 * [iproute2](https://wiki.linuxfoundation.org/networking/iproute2):
   * Configures Bridge and TAP devices on the host (optional)
 
-Rapido obtains all dependencies from the local system; no magic images
+Rapido obtains **all** dependencies from the local system; no magic images
 or internet downloads are necessary. Individual cut scripts (e.g.
-`cut/fstests_btrfs.sh`) may require extra dependencies.
+`cut/fstests_btrfs.sh`) may require extra local dependencies.
 
 Rapido is primarily configured via `rapido.conf`. To boot a custom Linux
 kernel, copy [rapido.conf.example](rapido.conf.example) and set the
@@ -54,6 +51,12 @@ choose a `cut` script to generate a VM image. E.g.
 
 The cut script collects all required kernel modules and user-space dependencies
 from the local system and writes a VM initramfs image to `initrds/myinitrd`.
+
+Rapido attempts to use the `copy_file_range()` syscall when copying file data
+to 4K-aligned initramfs destination offsets. This allows the host filesystem
+to avoid file data duplication by using reflinks where supported, e.g. on XFS
+and Btrfs.
+
 Once generated, a VM using the image and kernel will boot immediately.
 Subsequent VMs can be booted manually via:
 ```shell
