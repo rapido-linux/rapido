@@ -888,29 +888,32 @@ struct ArgsState {
 }
 
 // loosely based on the Linux kernel's gen_init_cpio format
-const MANIFEST_FORMAT: &str = "\nManifest format:\n\
-    # a comment\n\
-    bin ELF\n\
-    try-bin ELF\n\
-    kmod MODULE\n\
-    try-kmod MODULE\n\
-    dir NAME\n\
-    file NAME LOCATION\n\
-    autorun LOCATION [LOCATION ...]\n\
-    tree NAME LOCATION\n\
-    slink NAME TARGET\n\
-    filter FILTER\n\
-    include MANIFEST\n\
-    \n\
-    ELF:      ELF executable, archived with all needed dependencies.\n\
-              Directory paths are traversed, with child paths handled as ELFs.\n\
-    MODULE:   kernel module, archived with dependencies\n\
-    NAME:     name of the file or directory in the archive\n\
-    LOCATION: local path to obtain data, user, group, mode etc. for this item\n\
-    FILTER:   Archive path to treat as already processed. Directory traversals\n\
-              will not go beneath this path.\n\
-    MANIFEST: file containing entries described above\n";
+const MANIFEST_FORMAT: &str = r#"
+Manifest format:
 
+# a comment
+bin ELF
+try-bin ELF
+kmod MODULE
+try-kmod MODULE
+dir NAME
+file NAME [LOCATION]
+autorun LOCATION [LOCATION ...]
+tree NAME LOCATION
+slink NAME TARGET
+filter FILTER
+include MANIFEST
+
+ELF:      ELF executable, archived with all needed dependencies.
+          Directory paths are traversed, with child paths handled as ELFs.
+MODULE:   Kernel module, archived with dependencies
+NAME:     Name of the file or directory in the archive
+LOCATION: Local path to obtain data, user, group, mode etc. for this item
+FILTER:   Archive path to treat as already processed. Directory traversals
+          will not go beneath this path.
+MANIFEST: File containing entries described above. Entries are processed in
+          order.
+"#;
 
 fn args_usage(params: &[Argument]) {
     argument::print_help("rapido-cut", "", params);
