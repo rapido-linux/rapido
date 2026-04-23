@@ -1,7 +1,9 @@
+bin journalctl
 bin systemctl
 bin systemd
 bin systemd-journald
 bin systemd-shutdown
+bin systemd-tty-ask-password-agent
 # systemd-executor is required since at least v258
 try-bin systemd-executor
 # for shutdown/reboot via signal
@@ -19,6 +21,8 @@ file /usr/lib/systemd/system/final.target /usr/lib/systemd/system/final.target
 file /usr/lib/systemd/system/poweroff.target /usr/lib/systemd/system/poweroff.target
 file /usr/lib/systemd/system/reboot.target /usr/lib/systemd/system/reboot.target
 file /usr/lib/systemd/system/shutdown.target /usr/lib/systemd/system/shutdown.target
+file /usr/lib/systemd/system/systemd-journald.service /usr/lib/systemd/system/systemd-journald.service
+file /usr/lib/systemd/system/systemd-journald.socket /usr/lib/systemd/system/systemd-journald.socket
 file /usr/lib/systemd/system/systemd-poweroff.service /usr/lib/systemd/system/systemd-poweroff.service
 file /usr/lib/systemd/system/systemd-reboot.service /usr/lib/systemd/system/systemd-reboot.service
 file /usr/lib/systemd/system/umount.target /usr/lib/systemd/system/umount.target
@@ -28,3 +32,5 @@ file /usr/lib/systemd/system/rapido-autorun.service systemd/rapido-autorun.servi
 file /usr/lib/systemd/system/rapido-init.target systemd/rapido-init.target
 slink /usr/lib/systemd/system/default.target rapido-init.target
 slink /usr/lib/systemd/system/rapido-init.target.wants/rapido-autorun.service ../rapido-autorun.service
+# no ordering requirement for journald for now; may start during/after autorun.
+slink /usr/lib/systemd/system/rapido-init.target.wants/systemd-journald.service ../systemd-journald.service
