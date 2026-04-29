@@ -5,12 +5,11 @@
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-req_inst=()
-_rt_require_ksmbd_tools req_inst
+ksmbd_tools_bin=()
+_rt_require_ksmbd_tools ksmbd_tools_bin
 _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 	|| _fail "failed to calculate memory resources"
 _rt_require_conf_setting CIFS_USER CIFS_PW CIFS_SHARE
-printf -v req_inst_bins 'bin %s\n' "${req_inst[@]}"
 
 PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
@@ -19,7 +18,6 @@ include net.fest
 
 autorun autorun/ksmbd_btrfs.sh $*
 
-$req_inst_bins
 bin awk
 bin cat
 bin chmod
@@ -62,6 +60,17 @@ bin touch
 bin true
 bin uniq
 bin which
+# ksmbd utilities are currently all symlinks to ksmbd.tools
+bin ${ksmbd_tools_bin[0]}
+slink /usr/bin/ksmbd.addshare ${ksmbd_tools_bin[0]}
+slink /usr/bin/ksmbd.adduser ${ksmbd_tools_bin[0]}
+slink /usr/bin/ksmbd.control ${ksmbd_tools_bin[0]}
+slink /usr/bin/ksmbd.mountd ${ksmbd_tools_bin[0]}
+
+dir /etc/ksmbd
+dir /mnt
+dir /usr/local/etc/ksmbd
+dir /usr/local/var/run
 
 kmod aes
 kmod btrfs

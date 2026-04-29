@@ -9,15 +9,6 @@ modprobe zram num_devices="1" || _fatal "failed to load zram module"
 modprobe ksmbd
 _vm_ar_dyn_debug_enable
 
-# ksmbd utilities are currently all symlinks to ksmbd.tools
-for i in ksmbd.addshare ksmbd.adduser ksmbd.control ksmbd.mountd; do
-	p="${PATH}:/usr/libexec:/sbin:/usr/sbin"
-        if [ -n "$KSMBD_TOOLS_SRC" ]; then
-		p="${KSMBD_TOOLS_SRC}/tools"
-        fi
-	ln -s $(PATH=$p type -P ksmbd.tools) /sbin/${i}
-done
-
 # use a non-configurable UID/GID for now
 cifs_xid="579120"
 echo "${CIFS_USER}:x:${cifs_xid}:${cifs_xid}:Samba user:/:/sbin/nologin" \
@@ -29,7 +20,6 @@ echo "${FSTESTS_ZRAM_SIZE:-1G}" > /sys/block/zram0/disksize \
 mkfs.btrfs /dev/zram0 || _fatal "mkfs failed"
 # ksmbd-tools may be built with a default prefix "/usr/local" or "/". There's
 # no easy way to find out, so account for both paths.
-mkdir -p /mnt /etc/ksmbd /usr/local/etc/ksmbd /usr/local/var/run
 mount -t btrfs /dev/zram0 /mnt || _fatal
 chmod 777 /mnt || _fatal
 
