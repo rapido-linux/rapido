@@ -47,12 +47,12 @@ jobs:
           sudo EDITOR=cat ./rapido setup-network -o $USER -b rapido-br -a "192.168.155.10/24"
           sudo chmod 0644 /boot/vmlinuz-*
           sudo chmod 0666 /dev/kvm
-      - name: boot guest kernel VM
+      - name: boot host kernel VM
         run: |
          ./rapido cut -B -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
          ./target/release/lscpio initrds/myinitrd
          ./rapido boot
-      - name: run rapido selftests
+      - name: run rapido selftests with host kernel
         run: |
           ./selftest/selftest.sh
       - name: clone and build mainline kernel
@@ -71,47 +71,8 @@ jobs:
         run: |
           printf "KERNEL_SRC=${HOME}/linux\nKERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods\n" > rapido.conf
           ./rapido cut -x "cat /proc/filesystems; exit" simple-network
-      - name: install xfstests build dependencies
+      - name: run rapido selftests with mainline kernel
         run: |
-          # TODO use headers from kernel source
-          sudo apt-get install -y --no-install-recommends --no-install-suggests \
-            acl attr automake bc dbench dump e2fsprogs fio gawk \
-            gcc git indent libacl1-dev libaio-dev libcap-dev libgdbm-dev libtool \
-            libtool-bin liburing-dev libuuid1 lvm2 make psmisc python3 quota sed \
-            uuid-dev uuid-runtime xfsprogs linux-headers-$(uname -r) sqlite3 libgdbm-compat-dev \
-            xfsdump xfslibs-dev btrfs-progs pkg-config
-          # set /dev/kvm mode again, as installation may have triggered udev rules
-          sudo chmod 0666 /dev/kvm
-      - name: clone and build xfstests
-        run: |
-          git clone --depth 1 -b master \
-            https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git \
-            ${HOME}/xfstests
-          pushd ${HOME}/xfstests
-          make -j$(nproc)
-          popd
-      - name: boot mainline kernel with xfstests
-        run: |
-          # rapido fstests-btrfs uses 5x guest-zram-dev by default (for raid),
-          # but we probably don't have enough memory. Use compressed qcow2:
-          test_img="${HOME}/fstests_test_zstd.qcow2"
-          scratch_img="${HOME}/fstests_scratch_zstd.qcow2"
-          qemu-img create -f qcow2 -o compression_type=zstd "$test_img" 8G
-          qemu-img create -f qcow2 -o compression_type=zstd "$scratch_img" 8G
-          mkdir "${HOME}/9p"
-          printf "FSTESTS_SRC=${HOME}/xfstests\nFSTESTS_ZRAM_SIZE=0\nVIRTFS_SHARE_PATH=${HOME}/9p\n" \
-            >> rapido.conf
-          printf 'QEMU_EXTRA_ARGS="-nographic -device virtio-rng-pci -drive id=test,file='"$test_img"',if=none,cache=none -device virtio-blk-pci,drive=test,bus=pci.0,serial=TEST_DEV -drive id=scratch,file='"$scratch_img"',if=none,cache=none -device virtio-blk-pci,drive=scratch,bus=pci.0,serial=SCRATCH_DEV"' \
-            >> rapido.conf
-          ./rapido cut \
-            -x "./check -R xunit -g quick; cp results/result.xml /host/; exit" \
-            fstests-btrfs
-      - name: dump results
-        run: |
-          cat "${HOME}/9p/result.xml"
-      - name: Archive xunit test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: xunit-results
-          path: ~/9p/result.xml
-          retention-days: 2
+          # selftests creates its own rapido.conf, considering KERNEL_X envs
+          export KERNEL_SRC=${HOME}/linux KERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods
+          ./selftest/selftest.sh
