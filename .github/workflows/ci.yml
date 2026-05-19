@@ -12,8 +12,9 @@ on:
 # if building distro config install: libdw-dev libssl-dev
 jobs:
   test:
-    # aarch64 github runners don't provide kvm
-    runs-on: ubuntu-latest
+    # aarch64 github runners don't provide kvm. ubuntu-latest can be used if
+    # more memory + CPU resources are needed.
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v4
       - name: install rust and kernel build tools
