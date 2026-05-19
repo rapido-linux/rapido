@@ -22,7 +22,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends --no-install-suggests \
             cargo-1.85 rustc qemu-system-x86 qemu-utils expect \
-            make flex bison libelf-dev
+            make flex bison libelf-dev cpio
           sudo lsblk
           df
       - name: cargo test
