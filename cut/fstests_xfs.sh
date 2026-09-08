@@ -14,7 +14,7 @@ mem_rsc="$((2048 + (zram_bytes * 2 / 1048576)))M"
 
 man_deps=(man /etc/manpath.config \
 	  $(man --path xfs_io xfs_spaceman xfs_db xfs_quota))
-[[ "${man_deps[*]}" == "${man_deps[*]%.gz}" ]] || man_deps+=(zcat gzip)
+[[ "${man_deps[*]}" == "${man_deps[*]%.gz}" ]] || man_deps+=(zcat)
 [[ "${man_deps[*]}" == "${man_deps[*]%.bz2}" ]] || man_deps+=(bzcat)
 [[ "${man_deps[*]}" == "${man_deps[*]%.xz}" ]] || man_deps+=(xzcat)
 
@@ -35,7 +35,6 @@ autorun autorun/lib/fstests.sh autorun/fstests_xfs.sh $*
 
 $req_inst_bins
 bin comm
-bin indent
 bin mkfs.xfs
 bin xfs_bmap
 bin xfs_db
@@ -52,6 +51,7 @@ bin xfs_quota
 bin xfs_repair
 bin xfs_spaceman
 
+try-bin indent
 try-bin xfsdump
 try-bin xfsinvutil
 try-bin xfsrestore

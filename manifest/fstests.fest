@@ -39,7 +39,9 @@ bin fstrim
 bin getconf
 bin getfacl
 bin getfattr
+bin getopt
 bin grep
+bin gzip
 bin head
 bin hexdump
 bin hostname
