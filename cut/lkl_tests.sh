@@ -1,24 +1,23 @@
 #!/bin/bash
 # SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
-# Copyright (C) SUSE LLC 2025, all rights reserved.
+# Copyright (C) SUSE S.A. 2025-2026, all rights reserved.
 #
 # Environment to run LKL unit tests.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})/.."
 . "${RAPIDO_DIR}/runtime.vars"
 
-_rt_require_dracut_args "$RAPIDO_DIR/autorun/lkl_tests.sh" "$@"
-_rt_require_conf_dir LKL_SRC
 req_inst=()
 _rt_require_pam_mods req_inst "pam_rootok.so" "pam_limits.so" "pam_deny.so"
-_rt_mem_resources_set "2048M"
 
 tmpd="$(mktemp -d --tmpdir lklfuse_tmp.XXXXX)"
 pam_su="${tmpd}/su"
 pam_other="${tmpd}/other"
 etc_nsswitch="${tmpd}/nsswitch.conf"
+etc_passwd="${tmpd}/passwd"
+etc_group="${tmpd}/group"
 sudo_fake="${tmpd}/sudo.fake"
-trap "rm $pam_su $pam_other $etc_nsswitch $sudo_fake ; rmdir $tmpd" 0
+trap "rm $pam_su $pam_other $etc_nsswitch $etc_passwd $etc_group $sudo_fake ; rmdir $tmpd" 0
 
 cat > $pam_su <<EOF
 auth	sufficient	pam_rootok.so
@@ -35,6 +34,23 @@ passwd: files
 group: files
 EOF
 
+cat > $etc_passwd <<EOF
+root:x:0:0:root:/:/bin/bash
+daemon:x:2:2:Daemon:/:/dev/null
+lklfuse:x:2000:2000:lklfuse user:/:/bin/bash
+person:x:2001:2001:user:/:/bin/bash
+lklfusemember:x:2002:2002:lklfusemember user:/:/bin/bash
+EOF
+
+cat > $etc_group <<EOF
+root:x:0:
+disk:x:489:
+lklfuse:x:2000:lklfusemember
+person:x:2001:lklfusemember
+lklfusemember:x:2002:
+EOF
+
+
 cat > "$sudo_fake" <<EOF
 #!/bin/bash -x
 if (( \$UID != 0 )); then
@@ -47,37 +63,105 @@ fi
 EOF
 chmod 755 "$sudo_fake"
 
-# 'file' uses external magic metadata, install it if present.
-"$DRACUT" --install "tail blockdev ps rmdir stty dd vim grep dirname df id \
-		   mktemp date file strings find xfs_io mkfifo ping ping6 ip \
-		   strace shuf free su uuidgen losetup ipcmk \
-		   which awk touch cut chmod true false unlink lsusb tee gzip \
-		   yes wc tc mkfs mkfs.ext4 mkfs.xfs mkfs.btrfs mkfs.vfat \
-		   ${LKL_SRC}/tools/lkl/lklfuse \
-		   ${LKL_SRC}/tools/lkl/tests/* \
-		   ${LKL_SRC}/tools/lkl/bin/lkl-hijack.sh \
-		   ${LKL_SRC}/tools/lkl/lib/hijack/liblkl-hijack.so \
-		   ${req_inst[*]}" \
-	--install-optional /usr/share/file/magic.mgc \
-	--install-optional /usr/share/misc/magic.mgc \
-	--install-optional /usr/share/misc/magic \
-	--install-optional netperf \
-	--include ${LKL_SRC}/tools/lkl/lib/liblkl.so /lib/liblkl.so \
-	--include "$pam_su" /etc/pam.d/su \
-	--include "$pam_su" /etc/pam.d/su-l \
-	--include "$pam_other" /etc/pam.d/other \
-	--include "$etc_nsswitch" /etc/nsswitch.conf \
-	--include "$sudo_fake" /bin/sudo \
-	--include "${RAPIDO_DIR}/dracut.conf.d/.empty" \
-		  /etc/security/limits.conf \
-	--include "${RAPIDO_DIR}/dracut.conf.d/.empty" /etc/login.defs \
-	--add-drivers "fuse" \
-	--modules "base" \
-	"${DRACUT_RAPIDO_ARGS[@]}" \
-	"$DRACUT_OUT" || _fail "dracut failed"
+printf -v req_inst_bins 'bin %s\n' "${req_inst[@]}"
 
-# XXX: dracut strips setuid mode flags, so we append fusermount3 manually.
-# An alternative would be to configure systemd with ProtectSystem=false and
-# manually chmod.
-fum3=$(type -P fusermount3) || _fail
-echo "$fum3" | cpio --create -H newc >> "$DRACUT_OUT" || _fail
+PATH="target/release:${PATH}"
+rapido-cut --manifest /dev/stdin <<EOF
+# Static linking means LKL bins are heavy. Images are also thick provisioned
+# with dd.
+file /rapido-rsc/mem/6G
+
+autorun autorun/lkl_tests.sh $*
+
+$req_inst_bins
+bin \${LKL_SRC}/tools/lkl/bin/lkl-hijack.sh
+bin \${LKL_SRC}/tools/lkl/cptofs
+bin \${LKL_SRC}/tools/lkl/lib/hijack/liblkl-hijack.so
+bin \${LKL_SRC}/tools/lkl/lib/liblkl.so
+bin \${LKL_SRC}/tools/lkl/lklfuse
+bin \${LKL_SRC}/tools/lkl/tests
+bin awk
+bin blockdev
+bin cat
+bin chmod
+bin cp
+bin cut
+bin date
+bin dd
+bin df
+bin diff
+bin dirname
+bin false
+bin file
+bin find
+bin free
+bin fusermount3
+bin grep
+bin gzip
+bin id
+bin ip
+bin ipcmk
+bin ln
+bin losetup
+bin ls
+bin lsusb
+bin mkdir
+bin mkfifo
+bin mkfs
+bin mkfs.btrfs
+bin mkfs.ext4
+bin mkfs.vfat
+bin mkfs.xfs
+bin mktemp
+bin ping
+bin ping6
+bin ps
+bin rm
+bin rmdir
+bin sed
+bin sh
+bin shuf
+bin sleep
+bin strace
+bin strings
+bin stty
+bin su
+bin tail
+bin tc
+bin tee
+bin touch
+bin true
+bin unlink
+bin uuidgen
+bin wc
+bin which
+bin xfs_io
+bin yes
+
+# rapido-cut adds bash by default, but some lkl tests hardcode a /bin/bash path
+bin /bin/bash
+# some use "#!/usr/bin/env bash"
+bin /usr/bin/env
+
+slink /lib/liblkl.so \${LKL_SRC}/tools/lkl/lib/liblkl.so
+
+# 'file' uses external magic metadata, install it if present.
+try-bin /usr/share/file/magic.mgc
+try-bin /usr/share/misc/magic.mgc
+try-bin /usr/share/misc/magic
+
+try-bin nano
+
+file /etc/pam.d/su $pam_su
+file /etc/pam.d/su-l $pam_su
+file /etc/pam.d/other $pam_other
+file /etc/nsswitch.conf $etc_nsswitch
+file /bin/sudo $sudo_fake
+
+# su needs this
+file /etc/security/limits.conf
+#file /etc/login.defs
+
+kmod fuse
+kmod tun
+EOF
