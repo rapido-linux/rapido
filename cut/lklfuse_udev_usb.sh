@@ -99,6 +99,7 @@ bin ipcmk
 bin losetup
 bin ls
 bin lsusb
+bin mkdir
 bin mkfs
 bin mkfs.xfs
 bin mktemp
