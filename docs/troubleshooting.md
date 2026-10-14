@@ -27,6 +27,9 @@ failed to process "rapido.conf": Custom { kind: InvalidInput, error: "line 2: va
 ```
 The correct syntax is `BR_DEV="rapido-${BRIDGE_SUFFIX}"`.
 
+Configuration parsing does not currently resolve environment variables, e.g.
+`KERNEL_BUILD_SRC="${HOME}/linux"` will fail unless `HOME` is also set in rapido.conf.
+
 ## Compile fixes
 * [GCC >= 15] typedef \_Bool bool (true/false related errors)
 ```
