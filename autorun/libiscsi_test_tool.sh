@@ -12,6 +12,10 @@ set +x
 
 chaps=""
 [[ -n "${ISCSI_USER}${ISCSI_PASS}" ]] && chaps="${ISCSI_USER}%${ISCSI_PASS}@"
+[[ -n "$ISCSI_MUTUAL_USER" ]] \
+	&& export LIBISCSI_CHAP_TARGET_USERNAME="$ISCSI_MUTUAL_USER"
+[[ -n "$ISCSI_MUTUAL_PASS" ]] \
+	&& export LIBISCSI_CHAP_TARGET_PASSWORD="$ISCSI_MUTUAL_PASS"
 
 cat <<EOF
 Ready for iSCSI testing. E.g.
