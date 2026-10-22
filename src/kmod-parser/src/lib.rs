@@ -131,7 +131,7 @@ impl KmodContext {
                     weak_deps: Vec::new(),
                 },
             ) {
-                // modules.dep and modules.builtin entries should be unique
+                // modules.dep entries should be unique
                 Some(_) => {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -216,26 +216,21 @@ impl KmodContext {
             }
 
             let module_name = extract_module_name(path_str);
-            match self.modules_hash.insert(
-                module_name,
-                KmodModule {
+            // Allow duplicates, e.g. 6.12.113+deb13-cloud-arm64/modules.builtin
+            // contains:
+            //   kernel/drivers/bus/arm-cci.ko
+            //   kernel/drivers/perf/arm-cci.ko
+            // Retain first entry, i.e. modules.dep takes precedence.
+            self.modules_hash
+                .entry(module_name)
+                .or_insert_with(|| KmodModule {
                     status: ModuleStatus::Builtin,
                     rel_path: String::new(),
                     hard_deps_paths: Vec::new(),
                     soft_deps_pre: Vec::new(),
                     soft_deps_post: Vec::new(),
                     weak_deps: Vec::new(),
-                },
-            ) {
-                // modules.dep and modules.builtin entries should be unique
-                Some(_) => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("duplicate entry: {:?}", path_str),
-                    ))
-                }
-                None => {}
-            };
+                });
         }
         Ok(())
     }
@@ -581,22 +576,39 @@ mod tests {
     #[test]
     fn test_load_harddeps_builtin_dup() {
         let root_path = setup_test_dir("harddeps_builtin_dup");
-        let mut ctx = set_context(&root_path);
+        let mut dup_ctx = set_context(&root_path);
 
+        let modules_dep_dup_content = concat!(
+            "kernel/mod_a.ko: kernel/dep1.ko kernel/dep2.ko.xz\n",
+            "kernel/drivers/mod_a.ko: kernel/dep1.ko\n"
+        );
+        write_test_file(&root_path, "modules.dep", modules_dep_dup_content);
+        // duplicate name in modules.dep should error out
+        assert_eq!(
+            dup_ctx.load_hard_dependencies().unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
+
+        let mut ctx = set_context(&root_path);
         let modules_dep_content = concat!(
             "kernel/mod_a.ko: kernel/dep1.ko kernel/dep2.ko.xz\n",
             "kernel/mod_b.ko: kernel/dep1.ko\n"
         );
         write_test_file(&root_path, "modules.dep", modules_dep_content);
 
-        // builtin mod_b collides with modules.dep entry
+        // builtin mod_b collides with modules.dep entry, permitted...
         let modules_builtin_content = concat!("kernel/builtin_mod1.ko\n", "kernel/mod_b.ko\n");
         write_test_file(&root_path, "modules.builtin", modules_builtin_content);
 
         ctx.load_hard_dependencies().unwrap();
+        ctx.load_builtin_modules().unwrap();
+
+        // expect lookup to return first seen (modules.dep entry)
+        let modb = ctx.modules_hash.get("mod_b").expect("mod_b not found");
         assert_eq!(
-            ctx.load_builtin_modules().unwrap_err().kind(),
-            io::ErrorKind::InvalidData
+            modb.status,
+            ModuleStatus::LoadableModule,
+            "mod_b status incorrect"
         );
     }
 
