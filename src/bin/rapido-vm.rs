@@ -192,7 +192,6 @@ fn ks_kernel_img(
 }
 
 fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> {
-    let mut params = vec![];
     let mut qemu_args: Option<QemuArgs> = None;
     let mut oo = fs::OpenOptions::new();
     let host_kver;
@@ -224,9 +223,9 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
         }
     };
 
-    match fs::symlink_metadata("/dev/kvm") {
-        Ok(md) if md.file_type().is_char_device() => params.extend(["-machine", "accel=kvm"]),
-        Err(_) | Ok(_) => {}
+    let mut params = match fs::symlink_metadata("/dev/kvm") {
+        Ok(md) if md.file_type().is_char_device() => vec!["-machine", "accel=kvm"],
+        Err(_) | Ok(_) => vec![],
     };
 
     for line in io::BufReader::new(kconfig_f).lines().map_while(Result::ok) {
@@ -239,6 +238,7 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
             });
             break;
         } else if line == "CONFIG_ARM64=y" {
+            // FIXME: gic-version and cpu=host require KVM
             params.extend(["-machine", "virt,gic-version=host", "-cpu", "host"]);
             qemu_args = Some(QemuArgs {
                 kernel_img: ks_kernel_img(ksrc, "arch/arm64/boot/Image", "Image", krel)?,
