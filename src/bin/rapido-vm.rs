@@ -541,4 +541,13 @@ mod tests {
         let line = b"rapido-rsc/mem/5mG";
         assert!(vm_resource_line_process(line, &mut rscs).is_err());
     }
+
+    // can we locate this host's distro kconfig and kernel files?
+    #[test]
+    fn test_vm_distro_kconfig_kernel() {
+        // empty conf: no KERNEL_SRC or KERNEL_RELEASE settings
+        let conf: HashMap<String, String> = HashMap::new();
+        let qemu_args = vm_qemu_args_get(&conf).unwrap();
+        assert_eq!(path::Path::new(&qemu_args.kernel_img).is_file(), true);
+    }
 }
