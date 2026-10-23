@@ -196,8 +196,9 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
     let mut qemu_args: Option<QemuArgs> = None;
     let mut oo = fs::OpenOptions::new();
     let host_kver;
+    let ksrc = conf.get("KERNEL_SRC");
 
-    let (kconfig_f, krel) = match conf.get("KERNEL_SRC") {
+    let (kconfig_f, krel) = match ksrc {
         Some(ks) if !ks.is_empty() => (oo.read(true).open(format!("{ks}/.config"))?, None),
         None | Some(_) => {
             let krel = match conf.get("KERNEL_RELEASE") {
@@ -227,8 +228,6 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
         Ok(md) if md.file_type().is_char_device() => params.extend(["-machine", "accel=kvm"]),
         Err(_) | Ok(_) => {}
     };
-
-    let ksrc = conf.get("KERNEL_SRC");
 
     for line in io::BufReader::new(kconfig_f).lines().map_while(Result::ok) {
         if line == "CONFIG_X86_64=y" {
