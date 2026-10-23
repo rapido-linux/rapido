@@ -14,7 +14,7 @@ const RAPIDO_CONF: &str = "/rapido.conf";
 // TODO: set systemd path at build-time?
 const SYSTEMD_BIN_PATH: &str = "/usr/lib/systemd/systemd";
 
-fn init_mount(do_debugfs: bool, do_virtfs: bool) -> io::Result<()> {
+fn init_mount(do_debugfs: bool) -> io::Result<()> {
     let mounts = [
         ["-t", "proc", "-o", "nosuid,noexec,nodev", "proc", "/proc"],
         ["-t", "sysfs", "-o", "nosuid,noexec,nodev", "sysfs", "/sys"],
@@ -42,17 +42,6 @@ fn init_mount(do_debugfs: bool, do_virtfs: bool) -> io::Result<()> {
             .expect("failed to execute mount command");
         if !status.success() {
             println!("debugfs mount failed - ignoring");
-        }
-    }
-
-    if do_virtfs {
-        fs::create_dir_all("/host")?;
-        let status = Command::new("mount")
-            .args(&["-t", "9p", "host0", "/host"])
-            .status()
-            .expect("failed to execute mount command");
-        if !status.success() {
-            println!("9p mount failed - ignoring");
         }
     }
 
@@ -391,13 +380,24 @@ fn init_main() -> io::Result<()> {
         Ok(md) => !md.is_dir(),
     };
 
+    // mount before modprobe, as it reads /sys/module/compression
+    init_mount(has_dyn_debug)?;
     let mut kmods = rapido::conf_kmod_deps(&conf);
     if has_net {
         kmods.extend(&["virtio_net", "af_packet"]);
     }
     kmods_load(&kmods)?;
 
-    init_mount(has_dyn_debug, has_virtfs)?;
+    if has_virtfs {
+        fs::create_dir_all("/host")?;
+        let status = Command::new("mount")
+            .args(&["-t", "9p", "host0", "/host"])
+            .status()
+            .expect("failed to execute mount command");
+        if !status.success() {
+            println!("9p mount failed - ignoring");
+        }
+    }
 
     let kcmdline = fs::read("/proc/cmdline")?;
     let kcli_args = kcli_parse(&kcmdline)?;
