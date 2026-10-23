@@ -178,6 +178,7 @@ fn ks_kernel_img(
             for p in [
                 format!("/boot/{host_prefix}-{krel}"),
                 format!("/usr/lib/modules/{krel}/{host_prefix}"),
+                format!("/boot/vmlinuz-{krel}"), // deb aarch64. Fix host_prefix?
             ] {
                 if !path::Path::new(&p).is_file() {
                     missing.push(p);
