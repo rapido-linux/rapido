@@ -178,6 +178,7 @@ fn ks_kernel_img(
             for p in [
                 format!("/boot/{host_prefix}-{krel}"),
                 format!("/usr/lib/modules/{krel}/{host_prefix}"),
+                format!("/boot/vmlinuz-{krel}"), // deb aarch64. Fix host_prefix?
             ] {
                 if !path::Path::new(&p).is_file() {
                     missing.push(p);
@@ -238,8 +239,8 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
             });
             break;
         } else if line == "CONFIG_ARM64=y" {
-            // FIXME: gic-version and cpu=host require KVM
-            params.extend(["-machine", "virt,gic-version=host", "-cpu", "host"]);
+            // "max" gic-version and cpu settings use "host" when KVM is enabled
+            params.extend(["-machine", "virt,gic-version=max", "-cpu", "max"]);
             qemu_args = Some(QemuArgs {
                 kernel_img: ks_kernel_img(ksrc, "arch/arm64/boot/Image", "Image", krel)?,
                 qemu_bin: "qemu-system-aarch64",
