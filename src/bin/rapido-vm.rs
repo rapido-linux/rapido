@@ -160,28 +160,35 @@ fn ks_kernel_img(
     // krel must be set if ksrc is None
     krel: Option<&String>,
 ) -> io::Result<String> {
-    let p = match ksrc {
-        Some(ks) if !ks.is_empty() => format!("{ks}/{ks_relpath}"),
-        None | Some(_) => {
-            // Look first under /boot, return if exists or try /usr/lib/modules
-            let p = format!("/boot/{}-{}", host_prefix, krel.unwrap());
-            if path::Path::new(&p).is_file() {
-                return Ok(p);
+    match ksrc {
+        Some(ks) if !ks.is_empty() => {
+            let p = format!("{ks}/{ks_relpath}");
+            if !path::Path::new(&p).is_file() {
+                eprintln!("no kernel image present at {}, build needed?", p);
+                return Err(io::Error::from(io::ErrorKind::NotFound));
             }
-            format!("/usr/lib/modules/{}/{}", krel.unwrap(), host_prefix)
+            Ok(p)
+        }
+        None | Some(_) => {
+            let krel = krel.unwrap();
             // Check /lib/modules too? Old Leap systems, which use the /lib
             // path should always carry a kernel under /boot, so I think we can
             // skip it for now.
+            let mut missing = vec![];
+            for p in [
+                format!("/boot/{host_prefix}-{krel}"),
+                format!("/usr/lib/modules/{krel}/{host_prefix}"),
+            ] {
+                if !path::Path::new(&p).is_file() {
+                    missing.push(p);
+                    continue;
+                }
+                return Ok(p);
+            }
+            eprintln!("no distro kernel found under {:?}", missing);
+            Err(io::Error::from(io::ErrorKind::NotFound))
         }
-    };
-    if !path::Path::new(&p).is_file() {
-        eprintln!(
-            "no kernel image present at {}, wrong detection or build needed",
-            p
-        );
-        return Err(io::Error::from(io::ErrorKind::NotFound));
     }
-    Ok(p)
 }
 
 fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> {
