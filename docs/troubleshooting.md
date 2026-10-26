@@ -66,8 +66,24 @@ Work around this issue by creating a `${INSTALL_MOD_PATH}/usr/lib` -> `${INSTALL
 symlink.
 
 ## Runtime fixes
-* [binutils >= 2.31] QEMU loops in SeaBIOS during boot
 
+### [binutils >= 2.31] QEMU loops in SeaBIOS during boot
 [`e3d03598e8ae7 ("x86/build/64: Force the linker to use 2MB page size") # v4.16-rc7`](
 https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e3d03598e8ae7d195af5d3d049596dec336f569f)
 (backported: 4.4.125, 4.14.31, 4.15.14, 4.9.91)
+
+### modprobe fails
+New versions of modprobe `dlopen()` compression libraries on-demand. This may fail if the compression
+library isn't carried in the test image. E.g.
+```
+Starting rapido-init...
+modprobe: ERROR: xz: can't load and resolve symbols (No such file or directory)
+```
+
+This error can be resolved in a few ways:
+* Ensure your kernel is compiled with module decompression support
+  * modprobe will offload decompression to the kernel if `/sys/module/compression` indicates support.
+* Disable kernel module compression.
+* Explicitly add the library to your test image.
+* Add `.note.dlopen` ELF parsing support to `rapido-cut`, so that dlopen dependencies are gathered.
+  * See https://github.com/rapido-linux/rapido/issues/280
