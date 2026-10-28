@@ -81,21 +81,25 @@ impl KmodContext {
             alias_map: HashMap::new(),
             module_root: PathBuf::from(dirname),
         };
+        fn squash_notfound(e: io::Error, fext: &str) -> Result<(), String> {
+            if e.kind() == io::ErrorKind::NotFound {
+                return Ok(());
+            }
+            Err(format!("Failed to load modules.{}: {}", fext, e))
+        }
 
         ctx.load_hard_dependencies()
-            .map_err(|e| format!("Failed to load modules.dep: {}", e))?;
+            .or_else(|e| squash_notfound(e, "dep"))?;
 
         ctx.load_builtin_modules()
             .map_err(|e| format!("Failed to load modules.builtin: {}", e))?;
 
         ctx.load_soft_dependencies()
-            .map_err(|e| format!("Failed to load modules.softdep: {}", e))?;
-
-        // modules.weakdep may be missing
-        let _ = ctx.load_weak_dependencies();
-
+            .or_else(|e| squash_notfound(e, "softdep"))?;
+        ctx.load_weak_dependencies()
+            .or_else(|e| squash_notfound(e, "weakdep"))?;
         ctx.load_aliases()
-            .map_err(|e| format!("Failed to load modules.alias: {}", e))?;
+            .or_else(|e| squash_notfound(e, "alias"))?;
 
         Ok(ctx)
     }
@@ -336,11 +340,13 @@ mod tests {
     #[test]
     fn test_kmod_context_new_error() {
         let root_path = setup_test_dir("missing_dep_dir");
-        // modules.*dep is missing (first hit load_hard_dependencies)
+        // modules.* missing: only modules.builtin is required
         match KmodContext::new(&root_path) {
-            Ok(_) => panic!("Context should fail because modules.dep is missing"),
-            Err(e) => assert!(e.contains("Failed to load modules.dep")),
+            Ok(_) => panic!("Context should fail because modules.builtin is missing"),
+            Err(e) => assert!(e.contains("Failed to load modules.builtin")),
         }
+        write_test_file(&root_path, "modules.builtin", "");
+        KmodContext::new(&root_path).expect("failure with modules.builtin present");
         cleanup_test_dir(&root_path);
     }
 
