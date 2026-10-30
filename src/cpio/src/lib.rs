@@ -81,8 +81,8 @@ impl ArchiveProperties {
 pub struct ArchiveState {
     // static properties, provided during initialization
     props: ArchiveProperties,
-    // offset from the start of this archive
-    off: u64,
+    // offset from the start of this archive, public to allow for tracking I/O
+    pub off: u64,
     // next mapped inode number, used instead of source file inode numbers to
     // ensure reproducibility. Inode numbers all share the same dev (major=0
     // minor=0) namespace.
@@ -808,10 +808,16 @@ mod tests {
         let p2 = Path::new("bye");
         let props = ArchiveProperties::default();
         let mut state = ArchiveState::new(props);
+        let off_before = state.off;
         archive_path(&mut state, &p1, &amd1, &mut c).unwrap();
+        assert!(off_before < state.off);
+        let off_before = state.off;
         archive_file(&mut state, &p2, &amd2, io::Cursor::new(data), &mut c).unwrap();
+        assert!(off_before < state.off);
         // archive path should fail for len > 0 files
+        let off_before = state.off;
         assert!(archive_path(&mut state, &p2, &amd2, &mut c).is_err());
+        assert_eq!(off_before, state.off);
 
         c.seek(io::SeekFrom::Start(0)).unwrap();
         let mut aw = archive_walk(c).unwrap();
