@@ -501,15 +501,38 @@ fn archive_kmod_path<W: Seek + Write>(
     Ok(())
 }
 
-// XXX: Tumbleweed kmod is patched to use "/usr/lib/modules", while
-// mainline kernel and Leap 15 use "/lib/modules". Worse still, there's no
-// easy way to specify the directory for modprobe, so we use symlinks. Booo.
-// See https://src.opensuse.org/pool/kmod/src/branch/factory/README.usrmerge
-fn archive_kmods_symlink<W: Seek + Write>(
-    paths_seen: &HashSet<PathBuf>,
+fn archive_kmods_md<W: Seek + Write>(
+    gk: GatherKmods,
+    paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
+    // add module_data_paths inside initrd
+    for file_name in MODULE_DB_FILES.iter() {
+        let data_dst_path = gk.kmod_dst_root.join(file_name);
+        if paths_seen.insert(data_dst_path.clone()) {
+            let data_src_path = gk.kmod_ctx.module_root.join(file_name);
+            match archive_kmod_path(
+                &data_src_path,
+                &data_dst_path,
+                paths_seen,
+                cpio_state,
+                &mut cpio_writer,
+            ) {
+                Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                    dout!("Module data path {:?} missing", data_src_path);
+                    // TODO: only install required, and return error if missing
+                }
+                Err(e) => return Err(e),
+                Ok(_) => {}
+            }
+        }
+    }
+
+    // XXX: Tumbleweed kmod is patched to use "/usr/lib/modules", while
+    // mainline kernel and Leap 15 use "/lib/modules". Worse still, there's no
+    // easy way to specify the directory for modprobe, so we use symlinks. Booo.
+    // See https://src.opensuse.org/pool/kmod/src/branch/factory/README.usrmerge
     let libp = Path::new("/lib");
     let (p, tgt) = match paths_seen.contains(libp) {
         false => (libp, Path::new("/usr/lib")),
@@ -626,12 +649,7 @@ struct GatherKmods {
 }
 
 impl GatherKmods {
-    pub fn init<W: Seek + Write>(
-        conf: &HashMap<String, String>,
-        paths_seen: &mut HashSet<PathBuf>,
-        cpio_state: &mut cpio::ArchiveState,
-        mut cpio_writer: W,
-    ) -> io::Result<Self> {
+    pub fn init(conf: &HashMap<String, String>) -> io::Result<Self> {
         let krel = rapido::conf_src_or_host_kernel_vers(&conf)?;
         let kmod_dst_root = PathBuf::from("/usr/lib/modules/").join(&krel);
         let kmod_ctx = match conf.get("KERNEL_INSTALL_MOD_PATH") {
@@ -646,38 +664,13 @@ impl GatherKmods {
             }
         };
 
-        let kmod_ctx = match kmod_ctx {
-            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidInput, e)),
-            Ok(ctx) => ctx,
-        };
-
-        // XXX this should probably only be done *after* kmod gathering...
-        // add module_data_paths inside initrd
-        for file_name in MODULE_DB_FILES.iter() {
-            let data_dst_path = kmod_dst_root.join(file_name);
-            if paths_seen.insert(data_dst_path.clone()) {
-                let data_src_path = kmod_ctx.module_root.join(file_name);
-                match archive_kmod_path(
-                    &data_src_path,
-                    &data_dst_path,
-                    paths_seen,
-                    cpio_state,
-                    &mut cpio_writer,
-                ) {
-                    Err(e) if e.kind() == io::ErrorKind::NotFound => {
-                        dout!("Module data path {:?} missing", data_src_path);
-                        // TODO: only install required, and return error if missing
-                    }
-                    Err(e) => return Err(e),
-                    Ok(_) => {}
-                }
-            }
+        match kmod_ctx {
+            Err(e) => Err(io::Error::new(io::ErrorKind::InvalidInput, e)),
+            Ok(ctx) => Ok(GatherKmods {
+                kmod_dst_root,
+                kmod_ctx: ctx,
+            }),
         }
-
-        Ok(GatherKmods {
-            kmod_dst_root,
-            kmod_ctx,
-        })
     }
 }
 
@@ -691,15 +684,10 @@ fn gather_archive_kmods<W: Seek + Write>(
     mut cpio_writer: W,
 ) -> io::Result<()> {
     if gk.is_none() {
-        *gk = Some(GatherKmods::init(
-            conf,
-            paths_seen,
-            cpio_state,
-            &mut cpio_writer,
-        )?);
+        *gk = Some(GatherKmods::init(conf)?);
     }
 
-    let gk = gk.as_ref().unwrap();
+    let gk = gk.as_mut().unwrap();
     for name in kmods.iter() {
         match gather_archive_kmod_and_deps(name, gk, paths_seen, cpio_state, &mut cpio_writer) {
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
@@ -841,8 +829,6 @@ fn populate_default_symlinks<W: Seek + Write>(
         }
     }
 
-    // TODO: should only need this if we actually installed kmods
-    archive_kmods_symlink(paths_seen, cpio_state, &mut cpio_writer)?;
     Ok(())
 }
 
@@ -1068,7 +1054,7 @@ fn main() -> io::Result<()> {
         }
     };
 
-    let core_elfs = vec![
+    let mut core_elfs = vec![
         // this will only install if /rdinit isn't already provided by manifest
         GatherEnt::NameDst(RAPIDO_INIT_PATH, Path::new("/rdinit")),
         // rapido-init core deps
@@ -1076,23 +1062,38 @@ fn main() -> io::Result<()> {
         GatherEnt::NameStatic("setsid"),
         GatherEnt::NameStatic("bash"),
         GatherEnt::NameStatic("stty"),
-        // TODO only install if we have non-builtin kmods!
-        GatherEnt::NameStatic("modprobe"),
     ];
+
+    let conf_kmods = rapido::conf_kmod_deps(&conf);
+    if conf_kmods.len() > 0 {
+        gather_archive_kmods(
+            &conf,
+            &mut gk,
+            &conf_kmods,
+            false,
+            &mut paths_seen,
+            &mut cpio_state,
+            &mut cpio_writer,
+        )?;
+    }
+
+    // Install modprobe and deps if we have resolved *any* kmods. We could omit
+    // modprobe if all kmods are built-in, which can be detected via changed
+    // cpio_state.off across gather_archive_kmods() calls. However, that gets
+    // ugly when e.g. individual autorun scripts call modprobe (for built-ins).
+    if gk.is_some() {
+        core_elfs.push(GatherEnt::NameStatic("modprobe"));
+        archive_kmods_md(
+            gk.unwrap(),
+            &mut paths_seen,
+            &mut cpio_state,
+            &mut cpio_writer,
+        )?;
+    }
+
     gather_archive_elfs(
         core_elfs,
         &mut libs_seen,
-        &mut paths_seen,
-        &mut cpio_state,
-        &mut cpio_writer,
-    )?;
-
-    let conf_kmods = rapido::conf_kmod_deps(&conf);
-    gather_archive_kmods(
-        &conf,
-        &mut gk,
-        &conf_kmods,
-        false,
         &mut paths_seen,
         &mut cpio_state,
         &mut cpio_writer,
@@ -1945,16 +1946,12 @@ mod tests {
         assert_eq!(
             got_mods,
             HashSet::from([
-                OsString::from("modules.dep"),
-                OsString::from("modules.softdep"),
-                OsString::from("modules.alias"),
-                OsString::from("modules.builtin"),
-                OsString::from("modules.weakdep"),
                 OsString::from("mod_a.ko"),
                 OsString::from("mod_b.ko.xz"),
                 OsString::from("mod_c.ko"),
             ])
         );
+        // TODO: test archive_kmods_md etc.
     }
 
     #[test]
