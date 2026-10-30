@@ -532,13 +532,12 @@ fn archive_kmods_symlink<W: Seek + Write>(
 
 fn gather_archive_kmod_and_deps<W: Seek + Write>(
     name: &str,
-    kmod_dst_root: &Path,
-    context: &KmodContext,
+    gk: &GatherKmods,
     paths_seen: &mut HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
 ) -> io::Result<()> {
-    let root_mod = match context.find(name) {
+    let root_mod = match gk.kmod_ctx.find(name) {
         None => return Err(io::Error::from(io::ErrorKind::NotFound)),
         Some(m) if m.status == ModuleStatus::Builtin => {
             dout!("{} builtin", name);
@@ -550,9 +549,9 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
     // Fail if root mod or hard deps are missing.
     // No recursive checking here; modules.dep entry is complete
     // and doesn't contain Builtins.
-    let kmod_dst = kmod_dst_root.join(&root_mod.rel_path);
+    let kmod_dst = gk.kmod_dst_root.join(&root_mod.rel_path);
     if paths_seen.insert(kmod_dst.clone()) {
-        let kmod_src = context.module_root.join(&root_mod.rel_path);
+        let kmod_src = gk.kmod_ctx.module_root.join(&root_mod.rel_path);
         archive_kmod_path(
             &kmod_src,
             &kmod_dst,
@@ -566,9 +565,9 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
     }
 
     for dep_path in root_mod.hard_deps_paths.iter() {
-        let kmod_dst = kmod_dst_root.join(&dep_path);
+        let kmod_dst = gk.kmod_dst_root.join(&dep_path);
         if paths_seen.insert(kmod_dst.clone()) {
-            let kmod_src = context.module_root.join(&dep_path);
+            let kmod_src = gk.kmod_ctx.module_root.join(&dep_path);
             archive_kmod_path(
                 &kmod_src,
                 &kmod_dst,
@@ -589,7 +588,7 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
         .chain(root_mod.soft_deps_post.iter())
         .chain(root_mod.weak_deps.iter())
     {
-        let m = match context.find(soft_mod) {
+        let m = match gk.kmod_ctx.find(soft_mod) {
             None => {
                 dout!("{:?} soft / weak kernel dep not found", soft_mod);
                 continue;
@@ -597,9 +596,9 @@ fn gather_archive_kmod_and_deps<W: Seek + Write>(
             Some(m) if m.status == ModuleStatus::Builtin => continue,
             Some(m) => m,
         };
-        let kmod_dst = kmod_dst_root.join(&m.rel_path);
+        let kmod_dst = gk.kmod_dst_root.join(&m.rel_path);
         if paths_seen.insert(kmod_dst.clone()) {
-            let kmod_src = context.module_root.join(&m.rel_path);
+            let kmod_src = gk.kmod_ctx.module_root.join(&m.rel_path);
             match archive_kmod_path(
                 &kmod_src,
                 &kmod_dst,
@@ -699,18 +698,10 @@ fn gather_archive_kmods<W: Seek + Write>(
             &mut cpio_writer,
         )?);
     }
-    let kmod_dst_root = &gk.as_ref().unwrap().kmod_dst_root;
-    let kmod_ctx = &gk.as_ref().unwrap().kmod_ctx;
 
+    let gk = gk.as_ref().unwrap();
     for name in kmods.iter() {
-        match gather_archive_kmod_and_deps(
-            name,
-            &kmod_dst_root,
-            &kmod_ctx,
-            paths_seen,
-            cpio_state,
-            &mut cpio_writer,
-        ) {
+        match gather_archive_kmod_and_deps(name, gk, paths_seen, cpio_state, &mut cpio_writer) {
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
                 if ignore_missing {
                     dout!("ignoring missing kmod: {}", name);
@@ -718,7 +709,7 @@ fn gather_archive_kmods<W: Seek + Write>(
                 }
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
-                    format!("{} missing from: {:?}", name, kmod_ctx.module_root),
+                    format!("{} missing from: {:?}", name, gk.kmod_ctx.module_root),
                 ));
             }
             Err(e) => return Err(e),
