@@ -423,7 +423,7 @@ fn vm_start(
 
             net_params_stash.extend([
                 "-device".to_string(),
-                format!("virtio-net,netdev=if{i},mac={tap_mac}"),
+                format!("virtio-net,netdev=if{i},mac={tap_mac},romfile="),
                 "-netdev".to_string(),
                 format!("tap,id=if{i},script=no,downscript=no,ifname={vm_tap}"),
             ]);
