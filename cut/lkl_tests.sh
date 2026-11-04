@@ -65,7 +65,6 @@ chmod 755 "$sudo_fake"
 
 printf -v req_inst_bins 'bin %s\n' "${req_inst[@]}"
 
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 # Static linking means LKL bins are heavy. Images are also thick provisioned
 # with dd.

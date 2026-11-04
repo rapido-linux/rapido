@@ -1,7 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
 # Copyright (C) SUSE S.A. 2026, all rights reserved.
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 file /rapido-rsc/mem/512M
 include net.fest

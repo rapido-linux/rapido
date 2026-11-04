@@ -31,7 +31,6 @@
 # "include MANIFEST" can be used to process an external manifest file. External
 # manifests are processed in-place with regard to ordering.
 
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 autorun autorun/simple_example.sh $*
 

@@ -14,7 +14,6 @@ mem_rsc="$((2048 + (zram_bytes * 2 / 1048576)))M"
 
 printf -v req_inst_bins 'bin %s\n' "${pam_paths[@]}"
 
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 file /rapido-rsc/mem/${mem_rsc}
 include manifest/fstests.fest

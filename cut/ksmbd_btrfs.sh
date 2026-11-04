@@ -11,7 +11,6 @@ _rt_human_size_in_b "${FSTESTS_ZRAM_SIZE:-1G}" zram_bytes \
 	|| _fail "failed to calculate memory resources"
 _rt_require_conf_setting CIFS_USER CIFS_PW CIFS_SHARE
 
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 file /rapido-rsc/mem/$((1024 + (zram_bytes / 1048576)))M
 include net.fest

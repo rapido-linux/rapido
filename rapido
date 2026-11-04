@@ -3,6 +3,8 @@
 # Copyright (C) SUSE LINUX GmbH 2018, all rights reserved.
 
 RAPIDO_DIR="$(realpath -e ${0%/*})"
+# Compiled rapido rs bins are run from this path. E.g. override to run debug.
+RAPIDO_BIN_PATH="${RAPIDO_BIN_PATH:-target/release}"
 
 declare -A short_help
 
@@ -27,7 +29,6 @@ rapido_vm()
 short_help["boot"]="Boot previously prepared test"
 rapido_boot()
 {
-	PATH="target/release:${PATH}"
 	rapido-vm
 }
 
@@ -155,4 +156,6 @@ if ! declare -f $subcmd_func > /dev/null; then
 	exit 1
 fi
 
+# need to export as cut scripts to invoke rapido-cut
+export PATH="${RAPIDO_BIN_PATH}:${PATH}"
 $subcmd_func "$@"

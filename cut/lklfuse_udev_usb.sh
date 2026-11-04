@@ -63,7 +63,6 @@ cat > $system_init_tgt <<EOF
 Description=System Initialization
 EOF
 
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 file /rapido-rsc/mem/2048M
 

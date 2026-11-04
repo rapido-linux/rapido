@@ -5,7 +5,6 @@
 # This matches simple-example, except that it includes the systemd manifest and
 # example service.
 
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 autorun autorun/simple_example.sh $*
 

@@ -26,7 +26,6 @@ req_inst+=(/usr/include/xfs/*.h)
 
 printf -v req_inst_bins 'bin %s\n' "${man_deps[@]}" "${req_inst[@]}"
 
-PATH="target/release:${PATH}"
 rapido-cut --manifest /dev/stdin <<EOF
 file /rapido-rsc/mem/${mem_rsc}
 include manifest/fstests.fest
