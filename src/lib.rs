@@ -106,43 +106,8 @@ pub fn conf_defaults() -> HashMap<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Read;
 
-    struct TempDir {
-        pub dir: PathBuf,
-        pub dirname: String,
-    }
-    impl TempDir {
-        // create a random temporary directory under CWD.
-        // The directory will be cleaned up when TempDir goes out of scope.
-        pub fn new() -> TempDir {
-            let mut b = [0u8; 16];
-            let mut dirname = String::from("test-rapido-lib-");
-            fs::File::open("/dev/urandom")
-                .unwrap()
-                .read_exact(&mut b)
-                .unwrap();
-            for i in &b {
-                dirname.push_str(&format!("{:02x}", i));
-            }
-
-            fs::create_dir(&dirname).unwrap();
-            eprintln!("created tmp dir: {}", dirname);
-            TempDir {
-                dir: PathBuf::from(&dirname),
-                dirname,
-            }
-        }
-    }
-
-    impl Drop for TempDir {
-        fn drop(&mut self) {
-            assert!(self.dir.is_dir());
-            // scary but does not follow symlinks so should be okay
-            fs::remove_dir_all(&self.dir).unwrap();
-            eprintln!("removed tmp dir: {}", self.dir.display());
-        }
-    }
+    extern crate test_utils;
 
     #[test]
     fn test_host_kernel_vers_parse() {
@@ -162,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_conf_parse_from_defaults() {
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let conf_path = format!("{}/rapido.conf", td.dirname);
         fs::write(&conf_path, b"DRACUT_OUT=thisfile").unwrap();
         let mut c = conf_defaults();

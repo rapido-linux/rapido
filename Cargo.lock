@@ -31,4 +31,9 @@ dependencies = [
  "elf",
  "kmod-parser",
  "kv-conf",
+ "test-utils",
 ]
+
+[[package]]
+name = "test-utils"
+version = "0.1.0"

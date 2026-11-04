@@ -1534,38 +1534,9 @@ fn manifest_parse<W: Seek + Write>(
 mod tests {
     use super::*;
     use std::ffi::OsString;
-    use std::io::Read;
     use std::os::unix::fs::OpenOptionsExt;
 
-    struct TempDir {
-        pub dir: PathBuf,
-        pub dirname: String,
-    }
-    impl TempDir {
-        pub fn new() -> TempDir {
-            let mut b = [0u8; 16];
-            let mut dirname = String::from("test-rapido-cut-");
-            fs::File::open("/dev/urandom")
-                .unwrap()
-                .read_exact(&mut b)
-                .unwrap();
-            for i in &b {
-                dirname.push_str(&format!("{:02x}", i));
-            }
-            fs::create_dir(&dirname).unwrap();
-            TempDir {
-                dir: PathBuf::from(&dirname),
-                dirname,
-            }
-        }
-    }
-
-    impl Drop for TempDir {
-        fn drop(&mut self) {
-            assert!(self.dir.is_dir());
-            fs::remove_dir_all(&self.dir).unwrap();
-        }
-    }
+    extern crate test_utils;
 
     fn test_manifest_parse<W: Seek + Write>(
         conf: &HashMap<String, String>,
@@ -1591,7 +1562,7 @@ mod tests {
     #[test]
     fn test_manifest_include() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let ifest = format!("{}/readthis.fest", td.dirname);
         fs::write(&ifest, "dir /frominclude\n").unwrap();
 
@@ -1627,7 +1598,7 @@ mod tests {
     #[test]
     fn test_manifest_symlink() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let fest = format!("{}/test.fest", td.dirname);
         fs::write(&fest, "dir /a\nslink /b /a").unwrap();
 
@@ -1659,7 +1630,7 @@ mod tests {
             ("KEY1".to_string(), "VAL1".to_string()),
             ("KEY2".to_string(), "VAL2".to_string()),
         ]);
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let fest = format!("{}/test.fest", td.dirname);
         fs::write(&fest, "dir /a${KEY1}x\nslink /${KEY2} /a${KEY1}x").unwrap();
 
@@ -1688,7 +1659,7 @@ mod tests {
     #[test]
     fn test_manifest_file() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let data = b"this is some data";
         let file = format!("{}/test.data", td.dirname);
         fs::write(&file, &data).unwrap();
@@ -1725,7 +1696,7 @@ mod tests {
     #[test]
     fn test_manifest_bin() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let fest = format!("{}/test.fest", td.dirname);
         // unlike "bin", "try-bin" ignores missing files
         fs::write(&fest, "bin bash\ntry-bin th1s-doe5-not-ex1st").unwrap();
@@ -1763,7 +1734,7 @@ mod tests {
     #[test]
     fn test_manifest_elf_dir_traverse() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
 
         fs::create_dir_all(&format!("{}/this/is/a/tree", td.dirname)).unwrap();
         fs::File::create(&format!("{}/this/file", td.dirname)).unwrap();
@@ -1898,7 +1869,7 @@ mod tests {
 
     #[test]
     fn test_manifest_kmods() {
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
 
         let conf = HashMap::from([
             (
@@ -1957,7 +1928,7 @@ mod tests {
     #[test]
     fn test_manifest_autorun() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
 
         let inc_autorun = format!("{}/inc_autorun.sh", td.dirname);
         fs::write(&inc_autorun, "echo second\n").unwrap();
@@ -2033,7 +2004,7 @@ mod tests {
     #[test]
     fn test_manifest_tree() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
 
         fs::create_dir_all(&format!("{}/this/is/a/tree", td.dirname)).unwrap();
         fs::File::create(&format!("{}/this/file", td.dirname)).unwrap();
@@ -2085,7 +2056,7 @@ mod tests {
     #[test]
     fn test_paths_seen() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         fs::create_dir_all(&format!("{}/this/is/dir", td.dirname)).unwrap();
 
         let fest = format!("{}/test.fest", td.dirname);
@@ -2138,7 +2109,7 @@ mod tests {
     #[test]
     fn test_manifest_filter() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         fs::create_dir_all(&format!("{}/this/is/a/filtered/tree", td.dirname)).unwrap();
         fs::File::create(&format!("{}/this/filter", td.dirname)).unwrap();
         fs::create_dir_all(&format!("{}/this/isnt/filtered", td.dirname)).unwrap();
@@ -2199,7 +2170,7 @@ mod tests {
     #[test]
     fn test_manifest_file_parent_collapse() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let data = b"this is some data";
         let file = format!("{}/test.data", td.dirname);
         fs::write(&file, &data).unwrap();
@@ -2236,7 +2207,7 @@ mod tests {
     #[test]
     fn test_manifest_file_parent_collapse_below_root() {
         let conf = rapido::conf_defaults();
-        let td = TempDir::new();
+        let td = test_utils::TempDir::new();
         let fest = format!("{}/test.fest", td.dirname);
         fs::write(&fest, format!("file /a/b/.././../../below")).unwrap();
 

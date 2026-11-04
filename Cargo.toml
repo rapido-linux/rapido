@@ -8,7 +8,8 @@ version = "0.1.0"
 edition = "2018"
 default-run = "rapido-cut"
 
-# non-lib source for binaries is carried under src/bin/
+[dev-dependencies]
+test-utils = { path = "src/test-utils" }
 
 [dependencies]
 # internal
