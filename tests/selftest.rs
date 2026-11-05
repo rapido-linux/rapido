@@ -136,3 +136,104 @@ fn separate_cut_boot() {
     let status = proc.wait().unwrap();
     assert!(status.success(), "bad status");
 }
+
+// Boot two simple-example VMs in parallel. Check vm_num and pid files.
+#[test]
+fn parallel_boot() {
+    let td = test_utils::TempDir::new();
+    let conf = selftest_generate_conf(&td.dirname);
+    let status = Command::new("timeout")
+        .env("RAPIDO_BIN_PATH", "target/debug")
+        .env("RAPIDO_CONF", &conf)
+        .args(&["60s", "./rapido", "cut", "-B", "simple-example"])
+        .stdout(Stdio::null())
+        .status()
+        .expect("rapido failed to start");
+    assert!(status.success(), "bad status");
+
+    let mut proc1 = Command::new("timeout")
+        .env("RAPIDO_BIN_PATH", "target/debug")
+        .env("RAPIDO_CONF", &conf)
+        .args(&["60s", "./rapido", "boot"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("rapido failed to start");
+    let mut stdin1 = proc1.stdin.take().unwrap();
+    let stdout1 = proc1.stdout.take().unwrap();
+
+    let mut state = 0;
+    let mut awaiting = "Rapido scratch VM running";
+    for line in io::BufReader::new(stdout1).lines() {
+        let l = line.unwrap();
+        if l.contains(awaiting) {
+            state += 1;
+            eprintln!("got {}, moved to state {}", &awaiting, state);
+            match state {
+                1 => {
+                    stdin1.write_all(b"cat /proc/cmdline\n").unwrap();
+                    stdin1.flush().unwrap();
+                    awaiting = "rapido.vm_num=1";
+                }
+                2 => {
+                    // keep running for pidfile check
+                    break;
+                }
+                _ => panic!("invalid state"),
+            }
+        }
+    }
+    assert_eq!(state, 2);
+
+    let mut proc2 = Command::new("timeout")
+        .env("RAPIDO_BIN_PATH", "target/debug")
+        .env("RAPIDO_CONF", &conf)
+        .args(&["60s", "./rapido", "boot"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("rapido failed to start");
+    let mut stdin2 = proc2.stdin.take().unwrap();
+    let stdout2 = proc2.stdout.take().unwrap();
+
+    let mut state = 0;
+    let mut awaiting = "Rapido scratch VM running";
+    for line in io::BufReader::new(stdout2).lines() {
+        let l = line.unwrap();
+        if l.contains(awaiting) {
+            state += 1;
+            eprintln!("got {}, moved to state {}", &awaiting, state);
+            match state {
+                1 => {
+                    stdin2.write_all(b"cat /proc/cmdline\n").unwrap();
+                    stdin2.flush().unwrap();
+                    awaiting = "rapido.vm_num=2";
+                }
+                2 => {
+                    // keep running for pidfile check
+                    break;
+                }
+                _ => panic!("invalid state"),
+            }
+        }
+    }
+    assert_eq!(state, 2);
+
+    let vm1_pid = fs::read_to_string(format!("{}/rapido_vm1.pid", &td.dirname)).unwrap();
+    let vm2_pid = fs::read_to_string(format!("{}/rapido_vm2.pid", &td.dirname)).unwrap();
+    // drop newline and any garbage after it (yes, I've seen garbage here)
+    let vm1_pid = vm1_pid.split_whitespace().next().unwrap();
+    let vm2_pid = vm2_pid.split_whitespace().next().unwrap();
+    assert!(fs::exists(format!("/proc/{}", vm1_pid)).unwrap());
+    assert!(fs::exists(format!("/proc/{}", vm2_pid)).unwrap());
+
+    stdin1.write_all(b"shutdown\n").unwrap();
+    stdin1.flush().unwrap();
+    stdin2.write_all(b"shutdown\n").unwrap();
+    stdin2.flush().unwrap();
+
+    let status = proc1.wait().unwrap();
+    assert!(status.success(), "bad status");
+    let status = proc2.wait().unwrap();
+    assert!(status.success(), "bad status");
+}
