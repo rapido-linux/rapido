@@ -237,3 +237,104 @@ fn parallel_boot() {
     let status = proc2.wait().unwrap();
     assert!(status.success(), "bad status");
 }
+
+// exercise -f and -x post-autorun parameters
+#[test]
+fn post_autorun_exec() {
+    let td = test_utils::TempDir::new();
+    let conf = selftest_generate_conf(&td.dirname);
+
+    let ar_str = "echo post autorun script passed as string";
+    let ar_file = format!("{}/postautorun.sh", &td.dirname);
+    fs::write(&ar_file, "echo post autorun script passed as file").unwrap();
+
+    let mut proc = Command::new("timeout")
+        .env("RAPIDO_BIN_PATH", "target/debug")
+        .env("RAPIDO_CONF", &conf)
+        .args(&[
+            "60s",
+            "./rapido",
+            "cut",
+            "-x",
+            &ar_str,
+            "-f",
+            &ar_file,
+            "simple-example",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("rapido failed to start");
+    let mut stdin = proc.stdin.take().unwrap();
+    let stdout = proc.stdout.take().unwrap();
+    let mut state = 0;
+    let mut awaiting = "Rapido scratch VM running";
+
+    for line in io::BufReader::new(stdout).lines() {
+        let l = line.unwrap();
+        if l.contains(awaiting) {
+            state += 1;
+            eprintln!("got {}, moved to state {}", &awaiting, state);
+            match state {
+                1 => awaiting = "post autorun script passed as string",
+                2 => awaiting = "post autorun script passed as file",
+                3 => {
+                    stdin.write_all(b"shutdown\n").unwrap();
+                    stdin.flush().unwrap();
+                    break;
+                }
+                _ => panic!("invalid state"),
+            }
+        }
+    }
+
+    assert_eq!(state, 3);
+    assert!(proc.wait().unwrap().success(), "bad status");
+
+    // same again, but change order of execution
+    let mut proc = Command::new("timeout")
+        .env("RAPIDO_BIN_PATH", "target/debug")
+        .env("RAPIDO_CONF", &conf)
+        .args(&[
+            "60s",
+            "./rapido",
+            "cut",
+            "-f",
+            &ar_file,
+            "-x",
+            &ar_str,
+            "-f",
+            &ar_file,
+            "simple-example",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("rapido failed to start");
+    let mut stdin = proc.stdin.take().unwrap();
+    let stdout = proc.stdout.take().unwrap();
+    let mut state = 0;
+    let mut awaiting = "Rapido scratch VM running";
+
+    for line in io::BufReader::new(stdout).lines() {
+        let l = line.unwrap();
+        if l.contains(awaiting) {
+            state += 1;
+            eprintln!("got {}, moved to state {}", &awaiting, state);
+            match state {
+                1 => awaiting = "post autorun script passed as file",
+                2 => awaiting = "post autorun script passed as string",
+                3 => awaiting = "post autorun script passed as file",
+                4 => {
+                    stdin.write_all(b"shutdown\n").unwrap();
+                    stdin.flush().unwrap();
+                    break;
+                }
+                _ => panic!("invalid state"),
+            }
+        }
+    }
+
+    assert_eq!(state, 4);
+    assert!(proc.wait().unwrap().success(), "bad status");
+}
