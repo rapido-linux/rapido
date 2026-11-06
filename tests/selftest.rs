@@ -389,3 +389,47 @@ fn net_conf_hostname() {
     assert_eq!(state, 2);
     assert!(proc.wait().unwrap().success(), "bad status");
 }
+
+// cut+boot the simple-systemd runner and check for greeting and flag file
+#[test]
+fn simple_systemd() {
+    let td = test_utils::TempDir::new();
+    let conf = selftest_generate_conf(&td.dirname, None);
+
+    let mut proc = Command::new("timeout")
+        .env("RAPIDO_BIN_PATH", "target/debug")
+        .env("RAPIDO_CONF", &conf)
+        .args(&["60s", "./rapido", "cut", "simple-systemd"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("rapido failed to start");
+    let mut stdin = proc.stdin.take().unwrap();
+    let stdout = proc.stdout.take().unwrap();
+    let mut state = 0;
+    let mut awaiting = "Rapido scratch VM running";
+
+    for line in io::BufReader::new(stdout).lines() {
+        let l = line.unwrap();
+        if l.contains(awaiting) {
+            state += 1;
+            eprintln!("got {}, moved to state {}", &awaiting, state);
+            match state {
+                1 => {
+                    stdin.write_all(b"ls *.flag\n").unwrap();
+                    stdin.flush().unwrap();
+                    awaiting = "simple-example-service.flag";
+                }
+                2 => {
+                    stdin.write_all(b"shutdown\n").unwrap();
+                    stdin.flush().unwrap();
+                    break;
+                }
+                _ => panic!("invalid state"),
+            }
+        }
+    }
+
+    assert_eq!(state, 2);
+    assert!(proc.wait().unwrap().success(), "bad status");
+}
