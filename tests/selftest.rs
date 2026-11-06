@@ -7,7 +7,7 @@ use std::process::{Command, Stdio};
 
 extern crate test_utils;
 
-fn selftest_generate_conf(tmpd: &str) -> String {
+fn selftest_generate_conf(tmpd: &str, kvs: Option<&str>) -> String {
     let conf_path = format!("{tmpd}/r.conf");
     // use example as default conf. TODO: rely on sensible defaults w/o a conf
     fs::copy(format!("./rapido.conf.example"), &conf_path).unwrap();
@@ -33,9 +33,12 @@ fn selftest_generate_conf(tmpd: &str) -> String {
         "QEMU_EXTRA_KERNEL_PARAMS=\"loglevel=0\"
         QEMU_EXTRA_ARGS=\"-monitor none -serial stdio -nographic -device virtio-rng-pci\"
         DRACUT_OUT=\"{tmpd}/myinitrd\"
-        QEMU_PID_DIR=\"{tmpd}\""
+        QEMU_PID_DIR=\"{tmpd}\"\n"
     );
     conf_fh.write_all(conf.as_bytes()).unwrap();
+    if kvs.is_some() {
+        conf_fh.write_all(kvs.unwrap().as_bytes()).unwrap();
+    }
     conf_fh.flush().unwrap();
     conf_path
 }
@@ -43,7 +46,7 @@ fn selftest_generate_conf(tmpd: &str) -> String {
 #[test]
 fn boot_simple_example() {
     let td = test_utils::TempDir::new();
-    let conf = selftest_generate_conf(&td.dirname);
+    let conf = selftest_generate_conf(&td.dirname, None);
     // Use timeout for now, as std rust doesn't appear to offer kill() hooks.
     // Perhaps unix::process::ChildExt send_signal() in future?
     let mut proc = Command::new("timeout")
@@ -74,7 +77,7 @@ fn boot_simple_example() {
 #[test]
 fn separate_cut_boot() {
     let td = test_utils::TempDir::new();
-    let conf = selftest_generate_conf(&td.dirname);
+    let conf = selftest_generate_conf(&td.dirname, None);
     let mut proc = Command::new("timeout")
         .env("RAPIDO_BIN_PATH", "target/debug")
         .env("RAPIDO_CONF", &conf)
@@ -141,7 +144,7 @@ fn separate_cut_boot() {
 #[test]
 fn parallel_boot() {
     let td = test_utils::TempDir::new();
-    let conf = selftest_generate_conf(&td.dirname);
+    let conf = selftest_generate_conf(&td.dirname, None);
     let status = Command::new("timeout")
         .env("RAPIDO_BIN_PATH", "target/debug")
         .env("RAPIDO_CONF", &conf)
@@ -242,7 +245,7 @@ fn parallel_boot() {
 #[test]
 fn post_autorun_exec() {
     let td = test_utils::TempDir::new();
-    let conf = selftest_generate_conf(&td.dirname);
+    let conf = selftest_generate_conf(&td.dirname, None);
 
     let ar_str = "echo post autorun script passed as string";
     let ar_file = format!("{}/postautorun.sh", &td.dirname);
@@ -336,5 +339,53 @@ fn post_autorun_exec() {
     }
 
     assert_eq!(state, 4);
+    assert!(proc.wait().unwrap().success(), "bad status");
+}
+
+// Check net-conf hostnames are propagated through to VMs
+#[test]
+fn net_conf_hostname() {
+    let td = test_utils::TempDir::new();
+    let hn = "vm1-test-hostname";
+    fs::create_dir_all(format!("{}/net-conf/vm1", &td.dirname)).unwrap();
+    fs::write(format!("{}/net-conf/vm1/hostname", &td.dirname), hn).unwrap();
+    let netconf_kv = format!("VM_NET_CONF=\"{}/net-conf\"\n", &td.dirname);
+    let conf = selftest_generate_conf(&td.dirname, Some(&netconf_kv));
+
+    let mut proc = Command::new("timeout")
+        .env("RAPIDO_BIN_PATH", "target/debug")
+        .env("RAPIDO_CONF", &conf)
+        .args(&["60s", "./rapido", "cut", "simple-example"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("rapido failed to start");
+    let mut stdin = proc.stdin.take().unwrap();
+    let stdout = proc.stdout.take().unwrap();
+    let mut state = 0;
+    let mut awaiting = "Rapido scratch VM running";
+
+    for line in io::BufReader::new(stdout).lines() {
+        let l = line.unwrap();
+        if l.contains(awaiting) {
+            state += 1;
+            eprintln!("got {}, moved to state {}", &awaiting, state);
+            match state {
+                1 => {
+                    stdin.write_all(b"cat /proc/sys/kernel/hostname\n").unwrap();
+                    stdin.flush().unwrap();
+                    awaiting = hn;
+                }
+                2 => {
+                    stdin.write_all(b"shutdown\n").unwrap();
+                    stdin.flush().unwrap();
+                    break;
+                }
+                _ => panic!("invalid state"),
+            }
+        }
+    }
+
+    assert_eq!(state, 2);
     assert!(proc.wait().unwrap().success(), "bad status");
 }
