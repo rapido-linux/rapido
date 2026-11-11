@@ -17,7 +17,7 @@ jobs:
       - name: Install shellcheck
         run: sudo apt-get update -y && sudo apt-get install -y shellcheck
       - name: Run shellcheck
-        run: shellcheck --severity=error autorun/*.sh cut/*.sh selftest/*.sh rapido
+        run: shellcheck --severity=error autorun/*.sh cut/*.sh rapido
       - name: Run Rust format check and clippy lint
         run: |
           cargo --offline --version
@@ -35,9 +35,10 @@ jobs:
             qemu-system-x86 qemu-utils expect make flex bison libelf-dev
           sudo lsblk
           df
-      - name: cargo test
+      - name: run unit tests
         run: |
-          cargo --offline test
+          # tests/* integration tests run later
+          cargo --offline test --lib --bin "*"
           cargo --offline test --manifest-path src/cpio/Cargo.toml
           cargo --offline test --manifest-path src/kv-conf/Cargo.toml
           cargo --offline test --manifest-path src/kmod-parser/Cargo.toml
@@ -53,9 +54,9 @@ jobs:
          ./rapido cut -B -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
          ./target/release/lscpio initrds/myinitrd
          ./rapido boot
-      - name: run rapido selftests with host kernel
+      - name: run integration tests with host kernel
         run: |
-          ./selftest/selftest.sh
+          cargo --offline test --test "*"
       - name: clone and build mainline kernel
         run: |
           git clone --depth 1 -b master https://github.com/torvalds/linux ${HOME}/linux
@@ -72,8 +73,8 @@ jobs:
         run: |
           printf "KERNEL_SRC=${HOME}/linux\nKERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods\n" > rapido.conf
           ./rapido cut -x "cat /proc/filesystems; exit" simple-network
-      - name: run rapido selftests with mainline kernel
+      - name: run integration tests with mainline kernel
         run: |
-          # selftests creates its own rapido.conf, considering KERNEL_X envs
+          # selftests create their own rapido.conf, considering KERNEL_X envs
           export KERNEL_SRC=${HOME}/linux KERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods
-          ./selftest/selftest.sh
+          cargo --offline test --test "*"
