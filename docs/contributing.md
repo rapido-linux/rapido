@@ -31,7 +31,8 @@ submitted via GitHub pull requests. E.g.
 
 # Coding Style
 
-Rapido uses style guidelines very similar to blktests:
+For rust source code, `rustfmt` default style is expected.
+For shell sources, rapido uses style guidelines very similar to blktests:
 
 - Indent with tabs.
 - Don't add a space before the parentheses or a newline before the curly brace
