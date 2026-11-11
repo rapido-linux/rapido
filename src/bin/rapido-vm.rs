@@ -277,10 +277,12 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
     return Ok(qemu_args);
 }
 
+// If available, append the host tty size to @kcmdline
 // TODO: call TIOCGWINSZ ioctl directly?
-fn host_stty_size(kcmdline: &mut String, kparam: &'static str) -> Option<()> {
+fn host_stty_size(kcmdline: &mut String) -> Option<()> {
     let out = match process::Command::new("stty")
         .args(&["size"])
+        .stderr(process::Stdio::null())
         .stdout(process::Stdio::piped())
         .spawn()
     {
@@ -300,7 +302,7 @@ fn host_stty_size(kcmdline: &mut String, kparam: &'static str) -> Option<()> {
         return None;
     }
 
-    kcmdline.push_str(kparam);
+    kcmdline.push_str(" rapido.stty=");
     for c in rows {
         kcmdline.push(char::from(*c));
     }
@@ -323,7 +325,7 @@ fn vm_start(
         "rdinit=/rdinit console={} rapido.vm_num={} systemd.machine_id={:032x}",
         qemu_args.console, vm_num, vm_num
     );
-    host_stty_size(&mut kcmdline, " rapido.stty=");
+    host_stty_size(&mut kcmdline);
     let net_conf_dir = format!(
         "{}/vm{}",
         conf.get("VM_NET_CONF").expect("VM_NET_CONF not set"),
