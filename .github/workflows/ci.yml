@@ -32,7 +32,7 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends --no-install-suggests \
-            qemu-system-x86 qemu-utils expect make flex bison libelf-dev
+            qemu-system-x86 qemu-utils make flex bison libelf-dev
           sudo lsblk
           df
       - name: run unit tests
