@@ -11,7 +11,7 @@ They can alternatively be sent via email to any of the Git release taggers.
 
 All commits must carry a `Signed-off-by` tag (git commit -s), acknowledging
 that the contribution is made in accordance with the
-[Developer Certificate of Origin](https://developercertificate.org/).
+[Developer Certificate of Origin](contributing_dco.txt).
 
 
 ## Git Tags or Commits
