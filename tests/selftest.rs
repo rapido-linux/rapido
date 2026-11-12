@@ -60,17 +60,19 @@ fn boot_simple_example() {
         .expect("rapido failed to start");
     let mut stdin = proc.stdin.take().unwrap();
     let stdout = proc.stdout.take().unwrap();
+    let mut state = 0;
 
     for line in io::BufReader::new(stdout).lines() {
         let l = line.unwrap();
         if l.contains("Rapido scratch VM running") {
+            state += 1;
             stdin.write_all(b"shutdown\n").unwrap();
             stdin.flush().unwrap();
         }
     }
 
-    let status = proc.wait().unwrap();
-    assert!(status.success(), "bad status");
+    assert_eq!(state, 1);
+    assert!(proc.wait().unwrap().success(), "bad status");
 }
 
 // simple-example runner with separate cut + boot invocations
