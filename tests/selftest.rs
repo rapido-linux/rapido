@@ -49,11 +49,11 @@ fn boot_simple_example() {
     let conf = selftest_generate_conf(&td.dirname, None);
     // Use timeout for now, as std rust doesn't appear to offer kill() hooks.
     // Perhaps unix::process::ChildExt send_signal() in future?
-    let mut proc = Command::new("timeout")
+    let mut proc = Command::new("./rapido")
         // cargo test only builds debug binaries, so override rapido's path
         .env("RAPIDO_BIN_PATH", "target/debug")
         .env("RAPIDO_CONF", conf)
-        .args(&["60s", "./rapido", "cut", "simple-example"])
+        .args(&["cut", "simple-example"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -64,6 +64,7 @@ fn boot_simple_example() {
 
     for line in io::BufReader::new(stdout).lines() {
         let l = line.unwrap();
+        eprintln!("got {}", &l);
         if l.contains("Rapido scratch VM running") {
             state += 1;
             stdin.write_all(b"shutdown\n").unwrap();
