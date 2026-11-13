@@ -24,15 +24,29 @@ jobs:
           cargo --offline fmt --check --all
           cargo --offline clippy -- -A warnings -A clippy::byte_char_slices
   test:
-    # aarch64 github runners don't provide kvm
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-26.04-arm]
+    # aarch64 github runners don't provide kvm, but perform well without
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: install rust and kernel build tools
         run: |
+          case "$(uname -m)" in
+          x86_64)
+            export QEMU_SYSTEM=qemu-system-x86
+            ;;
+          aarch64)
+            export QEMU_SYSTEM=qemu-system-arm
+            ;;
+          *)
+            exit 1
+            ;;
+          esac
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends --no-install-suggests \
-            qemu-system-x86 qemu-utils make flex bison libelf-dev
+            "$QEMU_SYSTEM" qemu-utils make flex bison libelf-dev
           sudo lsblk
           df
       - name: run unit tests
@@ -48,7 +62,7 @@ jobs:
           cp -r net-conf.example/ net-conf
           sudo EDITOR=cat ./rapido setup-network -o $USER -b rapido-br -a "192.168.155.10/24"
           sudo chmod 0644 /boot/vmlinuz-*
-          sudo chmod 0666 /dev/kvm
+          [ -c /dev/kvm ] && sudo chmod 0666 /dev/kvm || true
       - name: boot host kernel VM
         run: |
          ./rapido cut -B -x "ping -c3 192.168.155.10 && echo test passed; exit" simple-network
