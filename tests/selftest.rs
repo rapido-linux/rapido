@@ -122,11 +122,13 @@ fn separate_cut_boot() {
                     stdin.write_all(b"reboot\n").unwrap();
                     stdin.flush().unwrap();
                 }
-                // cd and await pwd in prompt
+                // cd and await pwd in prompt (pwd below isn't needed)
                 2 => {
-                    stdin.write_all(b"cd /root\n").unwrap();
+                    stdin
+                        .write_all(b"cd /root\nmkdir subdir\ncd subdir\npwd\n")
+                        .unwrap();
                     stdin.flush().unwrap();
-                    awaiting = "/root";
+                    awaiting = "/root/subdir";
                 }
                 3 => {
                     stdin.write_all(b"shutdown\n").unwrap();
