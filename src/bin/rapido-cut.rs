@@ -806,20 +806,28 @@ fn populate_default_symlinks<W: Seek + Write>(
     // on Tumbleweed, bash won't start without this symlink. /lib64 may already
     // exist (e.g. it's a regular dir on Leap), so conditionally create it.
     let p = Path::new("/lib64");
-    if !paths_seen.contains(p) {
-        let tgt = Path::new("/usr/lib64");
+    let tgt = Path::new("/usr/lib64");
+    if !paths_seen.contains(p) && paths_seen.contains(tgt) {
         cpio::archive_symlink(cpio_state, p, &amd, tgt, &mut cpio_writer)?;
     }
+    // on arch64 debian, init won't start without this
+    let p = Path::new("/lib");
+    let tgt = Path::new("/usr/lib");
+    if !paths_seen.contains(p) && paths_seen.contains(tgt) {
+        cpio::archive_symlink(cpio_state, p, &amd, tgt, &mut cpio_writer)?;
+    }
+
     // xfstests (and others) hardcode /bin/bash
     let p = Path::new("/bin");
-    if !paths_seen.contains(p) {
-        let tgt = Path::new("/usr/bin");
+    let tgt = Path::new("/usr/bin");
+    if !paths_seen.contains(p) && paths_seen.contains(tgt) {
         cpio::archive_symlink(cpio_state, p, &amd, tgt, &mut cpio_writer)?;
     }
     // kernel request_module() runs CONFIG_MODPROBE_PATH. On 15.6 it's under...
+    // TODO: parse kernel config and create symlink at/to known paths?
     let p = Path::new("/sbin");
-    if !paths_seen.contains(p) {
-        let tgt = Path::new("/usr/sbin");
+    let tgt = Path::new("/usr/sbin");
+    if !paths_seen.contains(p) && paths_seen.contains(tgt) {
         cpio::archive_symlink(cpio_state, p, &amd, tgt, &mut cpio_writer)?;
     } else {
         let p = Path::new("/sbin/modprobe");

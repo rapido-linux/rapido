@@ -60,17 +60,19 @@ fn boot_simple_example() {
         .expect("rapido failed to start");
     let mut stdin = proc.stdin.take().unwrap();
     let stdout = proc.stdout.take().unwrap();
+    let mut state = 0;
 
     for line in io::BufReader::new(stdout).lines() {
         let l = line.unwrap();
         if l.contains("Rapido scratch VM running") {
+            state += 1;
             stdin.write_all(b"shutdown\n").unwrap();
             stdin.flush().unwrap();
         }
     }
 
-    let status = proc.wait().unwrap();
-    assert!(status.success(), "bad status");
+    assert_eq!(state, 1);
+    assert!(proc.wait().unwrap().success(), "bad status");
 }
 
 // simple-example runner with separate cut + boot invocations
@@ -110,20 +112,23 @@ fn separate_cut_boot() {
     let mut awaiting = "Rapido scratch VM running";
 
     for line in io::BufReader::new(stdout).lines() {
-        if line.unwrap().contains(awaiting) {
+        let l = line.unwrap();
+        if l.contains(awaiting) {
             state += 1;
-            eprintln!("got {}, moved to state {}", &awaiting, state);
+            eprintln!("got {}, moved to state {}", &l, state);
             match state {
                 // reboot and await boot msg again
                 1 => {
                     stdin.write_all(b"reboot\n").unwrap();
                     stdin.flush().unwrap();
                 }
-                // cd and await pwd in prompt
+                // cd and await pwd in prompt (pwd below isn't needed)
                 2 => {
-                    stdin.write_all(b"cd /root\n").unwrap();
+                    stdin
+                        .write_all(b"cd /root\nmkdir subdir\ncd subdir\npwd\n")
+                        .unwrap();
                     stdin.flush().unwrap();
-                    awaiting = "/root";
+                    awaiting = "/root/subdir";
                 }
                 3 => {
                     stdin.write_all(b"shutdown\n").unwrap();
@@ -171,7 +176,7 @@ fn parallel_boot() {
         let l = line.unwrap();
         if l.contains(awaiting) {
             state += 1;
-            eprintln!("got {}, moved to state {}", &awaiting, state);
+            eprintln!("got {}, moved to state {}", &l, state);
             match state {
                 1 => {
                     stdin1.write_all(b"cat /proc/cmdline\n").unwrap();
@@ -205,7 +210,7 @@ fn parallel_boot() {
         let l = line.unwrap();
         if l.contains(awaiting) {
             state += 1;
-            eprintln!("got {}, moved to state {}", &awaiting, state);
+            eprintln!("got {}, moved to state {}", &l, state);
             match state {
                 1 => {
                     stdin2.write_all(b"cat /proc/cmdline\n").unwrap();
@@ -277,7 +282,7 @@ fn post_autorun_exec() {
         let l = line.unwrap();
         if l.contains(awaiting) {
             state += 1;
-            eprintln!("got {}, moved to state {}", &awaiting, state);
+            eprintln!("got {}, moved to state {}", &l, state);
             match state {
                 1 => awaiting = "post autorun script passed as string",
                 2 => awaiting = "post autorun script passed as file",
@@ -323,7 +328,7 @@ fn post_autorun_exec() {
         let l = line.unwrap();
         if l.contains(awaiting) {
             state += 1;
-            eprintln!("got {}, moved to state {}", &awaiting, state);
+            eprintln!("got {}, moved to state {}", &l, state);
             match state {
                 1 => awaiting = "post autorun script passed as file",
                 2 => awaiting = "post autorun script passed as string",
@@ -369,7 +374,7 @@ fn net_conf_hostname() {
         let l = line.unwrap();
         if l.contains(awaiting) {
             state += 1;
-            eprintln!("got {}, moved to state {}", &awaiting, state);
+            eprintln!("got {}, moved to state {}", &l, state);
             match state {
                 1 => {
                     stdin.write_all(b"cat /proc/sys/kernel/hostname\n").unwrap();
@@ -413,7 +418,7 @@ fn simple_systemd() {
         let l = line.unwrap();
         if l.contains(awaiting) {
             state += 1;
-            eprintln!("got {}, moved to state {}", &awaiting, state);
+            eprintln!("got {}, moved to state {}", &l, state);
             match state {
                 1 => {
                     stdin.write_all(b"ls *.flag\n").unwrap();
