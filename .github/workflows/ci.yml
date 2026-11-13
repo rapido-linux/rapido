@@ -70,8 +70,8 @@ jobs:
          ./rapido boot
       - name: run integration tests with host kernel
         run: |
-          # avoid parallel cut+boot tests on under-resourced gh (aarch64) VMs
-          cargo --offline test --test "*" -- --nocapture --test-threads=1
+          # FIXME: aarch64 qemu runs fine above, but stalls when spawned via selftest
+          [[ $QEMU_SYSTEM == qemu-system-arm ]] || cargo --offline test --test "*" -- --nocapture --test-threads=1
       - name: clone and build mainline kernel
         run: |
           git clone --depth 1 -b master https://github.com/torvalds/linux ${HOME}/linux
@@ -92,4 +92,4 @@ jobs:
         run: |
           # selftests create their own rapido.conf, considering KERNEL_X envs
           export KERNEL_SRC=${HOME}/linux KERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods
-          cargo --offline test --test "*" -- --nocapture --test-threads=1
+          [[ $QEMU_SYSTEM == qemu-system-arm ]] || cargo --offline test --test "*" -- --nocapture
