@@ -224,9 +224,11 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
         }
     };
 
+    // Match host CPU with KVM, otherwise "max" emulates most modern features.
+    // I've not tested s390 or ppc64. TODO: support only ppc64le, not BE.
     let mut params = match fs::symlink_metadata("/dev/kvm") {
-        Ok(md) if md.file_type().is_char_device() => vec!["-machine", "accel=kvm"],
-        Err(_) | Ok(_) => vec![],
+        Ok(md) if md.file_type().is_char_device() => vec!["-machine", "accel=kvm", "-cpu", "host"],
+        Err(_) | Ok(_) => vec!["-cpu", "max"],
     };
 
     for line in io::BufReader::new(kconfig_f).lines().map_while(Result::ok) {
@@ -240,7 +242,7 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
             break;
         } else if line == "CONFIG_ARM64=y" {
             // "max" gic-version and cpu settings use "host" when KVM is enabled
-            params.extend(["-machine", "virt,gic-version=max", "-cpu", "max"]);
+            params.extend(["-machine", "virt,gic-version=max"]);
             qemu_args = Some(QemuArgs {
                 kernel_img: ks_kernel_img(ksrc, "arch/arm64/boot/Image", "Image", krel)?,
                 qemu_bin: "qemu-system-aarch64",
