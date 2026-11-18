@@ -86,11 +86,9 @@ jobs:
       - name: boot mainline kernel VM
         run: |
           printf "KERNEL_SRC=${HOME}/linux\nKERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods\n" > rapido.conf
-          # FIXME: skip gh aarch64: works fine on (very similar, KVMless) Azure aarch64 VMs
-          [[ "$(uname -m)" == "aarch64" ]] || ./rapido cut -x "cat /proc/filesystems; exit" simple-network
+          ./rapido cut -x "cat /proc/filesystems; exit" simple-network
       - name: run integration tests with mainline kernel
         run: |
           # selftests create their own rapido.conf, considering KERNEL_X envs
           export KERNEL_SRC=${HOME}/linux KERNEL_INSTALL_MOD_PATH=${HOME}/linux/mods
-          # FIXME: skip gh aarch64: works fine on (very similar, KVMless) Azure aarch64 VMs
-          [[ "$(uname -m)" == "aarch64" ]] || cargo --offline test --test "*" -- --nocapture
+          cargo --offline test --test "*" -- --nocapture
