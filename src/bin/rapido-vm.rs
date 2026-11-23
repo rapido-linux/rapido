@@ -208,18 +208,27 @@ fn vm_qemu_args_get(conf: &HashMap<String, String>) -> io::Result<QemuArgs<'_>> 
                     &host_kver
                 }
             };
-            match oo.read(true).open(format!("/boot/config-{krel}")) {
-                Err(_) => match oo
-                    .read(true)
-                    .open(format!("/usr/lib/modules/{krel}/config"))
-                {
-                    Err(e) => {
-                        eprintln!("failed to find {krel} host kernel config");
-                        return Err(e);
+            let mut last_err = None;
+            let mut found = None;
+            for p in [
+                format!("/boot/config-{krel}"),
+                format!("/usr/lib/modules/{krel}/config"),
+                format!("/usr/lib/modules/{krel}/build/.config"),
+            ] {
+                match oo.read(true).open(&p) {
+                    Ok(f) => {
+                        found = Some(f);
+                        break;
                     }
-                    Ok(f) => (f, Some(krel)),
-                },
-                Ok(f) => (f, Some(krel)),
+                    Err(e) => last_err = Some(e),
+                }
+            }
+            match found {
+                Some(f) => (f, Some(krel)),
+                None => {
+                    eprintln!("failed to find {krel} host kernel config");
+                    return Err(last_err.unwrap());
+                }
             }
         }
     };
