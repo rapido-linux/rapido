@@ -9,6 +9,8 @@ use std::io::BufRead;
 use std::io::Seek;
 use std::io::Write;
 use std::path::{self, Component, Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::sync::OnceLock;
 
 use elf::abi;
 use elf::endian::AnyEndian;
@@ -47,6 +49,46 @@ const MANIFEST_PATHS: [&str; 1] = ["manifest"];
 const RAPIDO_INIT_PATH: &str = "target/release/rapido-init";
 // FIXME: don't assume cwd location
 const RAPIDO_BASH_RC_PATH: &str = "vm_autorun.env";
+
+// Details of how the host's dynamic loader resolves rapido-init, as reported by
+// ldd. These are preferred over static guesses: LIB_PATHS may include compat
+// symlinks (e.g. /usr/lib64 -> lib) which the (cache-less) initramfs loader
+// won't search.
+#[derive(Default)]
+struct HostLdd {
+    // canonical directory that libc was loaded from
+    libdir: Option<PathBuf>,
+    // ELF interpreter (PT_INTERP) path, e.g. /lib64/ld-linux-x86-64.so.2
+    interp: Option<PathBuf>,
+}
+
+static HOST_LDD: OnceLock<HostLdd> = OnceLock::new();
+
+fn host_ldd(bin: &str) -> HostLdd {
+    let mut ret = HostLdd::default();
+    let out = match Command::new("ldd").arg(bin).stderr(Stdio::null()).output() {
+        Ok(o) if o.status.success() => o,
+        _ => return ret,
+    };
+    for line in String::from_utf8_lossy(&out.stdout).lines() {
+        // "\tlibc.so.6 => /usr/lib/libc.so.6 (0x...)"
+        // "\t/lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x...)"
+        let (name, rest) = match line.trim().split_once(" => ") {
+            Some(t) => t,
+            None => continue,
+        };
+        if name.starts_with('/') {
+            ret.interp = Some(PathBuf::from(name));
+        } else if name.starts_with("libc.so.") {
+            ret.libdir = rest
+                .split_whitespace()
+                .next()
+                .and_then(|l| Path::new(l).parent())
+                .and_then(|d| fs::canonicalize(d).ok());
+        }
+    }
+    ret
+}
 
 const GATHER_ITEM_IGNORE_PARENT: u32 = 1 << 0;
 
@@ -166,6 +208,15 @@ fn path_stat(ent: &GatherEnt) -> Result<Fsent, io::Error> {
         GatherEnt::Manifest(_) => &MANIFEST_PATHS,
         _ => &BIN_PATHS,
     };
+
+    if let GatherEnt::LibRunPath(_, _) | GatherEnt::Lib(_) = ent {
+        if let Some(d) = HOST_LDD.get().and_then(|h| h.libdir.as_ref()) {
+            let p = d.join(name);
+            if let Ok(md) = fs::symlink_metadata(&p) {
+                return Ok(Fsent { path: p, md: md });
+            }
+        }
+    }
 
     for dir in search_paths.iter() {
         let p = PathBuf::from(dir).join(name);
@@ -788,6 +839,7 @@ fn gather_archive_data<W: Seek + Write>(
 }
 
 fn populate_default_symlinks<W: Seek + Write>(
+    interp: Option<&Path>,
     paths_seen: &HashSet<PathBuf>,
     cpio_state: &mut cpio::ArchiveState,
     mut cpio_writer: W,
@@ -807,14 +859,29 @@ fn populate_default_symlinks<W: Seek + Write>(
     // exist (e.g. it's a regular dir on Leap), so conditionally create it.
     let p = Path::new("/lib64");
     let tgt = Path::new("/usr/lib64");
+    let mut linked: Vec<&Path> = vec![];
     if !paths_seen.contains(p) && paths_seen.contains(tgt) {
         cpio::archive_symlink(cpio_state, p, &amd, tgt, &mut cpio_writer)?;
+        linked.push(p);
     }
     // on arch64 debian, init won't start without this
     let p = Path::new("/lib");
     let tgt = Path::new("/usr/lib");
     if !paths_seen.contains(p) && paths_seen.contains(tgt) {
         cpio::archive_symlink(cpio_state, p, &amd, tgt, &mut cpio_writer)?;
+        linked.push(p);
+    }
+
+    // The ELF interpreter path (e.g. /lib64/ld-linux-x86-64.so.2) must resolve
+    // or the kernel can't exec anything. If the above didn't cover it then link
+    // the interpreter's directory to the one holding the archived interpreter.
+    if let Some((dir, canon)) = interp.and_then(|i| Some((i.parent()?, fs::canonicalize(i).ok()?)))
+    {
+        if let Some(tgt) = canon.parent() {
+            if !paths_seen.contains(dir) && !linked.contains(&dir) && paths_seen.contains(&canon) {
+                cpio::archive_symlink(cpio_state, dir, &amd, tgt, &mut cpio_writer)?;
+            }
+        }
     }
 
     // xfstests (and others) hardcode /bin/bash
@@ -978,6 +1045,7 @@ fn cpio_out_open(
 }
 
 fn main() -> io::Result<()> {
+    let _ = HOST_LDD.set(host_ldd(RAPIDO_INIT_PATH));
     let mut cpio_state = cpio::ArchiveState::new(cpio::ArchiveProperties {
         // Attempt 4K file data alignment within archive for Btrfs/XFS reflinks
         data_align: 4096,
@@ -1107,7 +1175,8 @@ fn main() -> io::Result<()> {
         &mut cpio_writer,
     )?;
 
-    populate_default_symlinks(&paths_seen, &mut cpio_state, &mut cpio_writer)?;
+    let interp = HOST_LDD.get().and_then(|h| h.interp.as_deref());
+    populate_default_symlinks(interp, &paths_seen, &mut cpio_state, &mut cpio_writer)?;
 
     let len = cpio::archive_trailer(&mut cpio_state, &mut cpio_writer)?;
     cpio_writer.flush()?;
