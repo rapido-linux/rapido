@@ -17,6 +17,7 @@ printf -v req_inst_bins 'bin %s\n' "${req_inst[@]}"
 
 rapido-cut --manifest /dev/stdin <<EOF
 file /rapido-rsc/mem/${mem_rsc}
+file /rapido-rsc/cpu/4
 include manifest/fstests.fest
 
 autorun autorun/lib/fstests.sh autorun/fstests_btrfs.sh $*
